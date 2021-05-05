@@ -1,0 +1,4 @@
+environment: production
+host: easey.app.cloud.gov
+memory: 2048M
+cdxSvcs: 'https://devngn.epacdxnode.net/cdx-register-II/services'

@@ -1,0 +1,4 @@
+environment: staging
+host: easey-stg.app.cloud.gov
+memory: 1024M
+cdxSvcs: 'https://devngn.epacdxnode.net/cdx-register-II/services'
