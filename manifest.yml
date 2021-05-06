@@ -9,7 +9,7 @@ applications:
       EASEY_AUTH_API_HOST: ((host))
       EASEY_AUTH_API_PATH: ((path))
       EASEY_AUTH_API_ENV: ((environment))
-      EASEY_CDX_SERVICES: ((cdx))
+      EASEY_CDX_SERVICES: ((cdxSvcs))
     routes:
       - route: ((host))/((path))
     services:
