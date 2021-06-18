@@ -22,14 +22,14 @@ export class AuthenticationService {
           dto.id = userId;
           dto.firstName = 'Emmy';
           dto.lastName = 'Winter';
-          dto.status = 'Active';
+          dto.status = 'Valid';
           break;
         case 'brian':
           dto = new UserDTO();
           dto.id = userId;
           dto.firstName = 'Brian';
           dto.lastName = 'Nobel';
-          dto.status = 'Active';
+          dto.status = 'Valid';
           break;
         default:
           dto = this.login(userId, password);
