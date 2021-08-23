@@ -15,10 +15,7 @@ import { AuthenticationModule } from './authentication/authentication.module';
     RouterModule.forRoutes(routes),
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [
-        dbConfig,
-        appConfig,
-      ],
+      load: [dbConfig, appConfig],
     }),
     // TypeOrmModule.forRootAsync({
     //   useClass: TypeOrmConfigService,

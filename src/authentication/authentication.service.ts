@@ -1,22 +1,38 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
 import { createClientAsync } from 'soap';
 
 import { UserDTO } from './../dtos/user.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserSessionRepository } from '../user-session/user-session.repository';
+import { UserSessionMap } from '../maps/user-session.map';
 
 @Injectable()
 export class AuthenticationService {
   private readonly appId = 'easey.camd.oar.dev@epa.gov';
   private readonly appPwd = 'DEVeasey01!';
 
-  constructor(private configService: ConfigService) {}
+  constructor(
+    @InjectRepository(UserSessionRepository)
+    private repository: UserSessionRepository,
+    private configService: ConfigService,
+    private sessionMap: UserSessionMap,
+  ) {}
 
   async authenticate(
     userId: string,
     password: string,
     clientIp: string,
   ): Promise<UserDTO> {
+    // TODO: Validation check on session in DB [If session exists throw an error]
+
     const user = await this.login(userId, password);
+
+    const sessionId = uuidv4();
+
+    // TODO: Add session id to database (await)
+
     user.token = await this.createToken(userId, clientIp);
     user.tokenExpiration = new Date(Date.now()).toUTCString();
     return user;
@@ -53,6 +69,10 @@ export class AuthenticationService {
   async createToken(userId: string, clientIp: string): Promise<any> {
     const url = this.configService.get<string>('app.naasSvcs');
 
+    //TODO: check database to obtain session ID [If none exists throw error]
+
+    const sessionId = '';
+
     return createClientAsync(url)
       .then(client => {
         return client.CreateSecurityTokenAsync({
@@ -63,7 +83,7 @@ export class AuthenticationService {
           issuer: this.appId,
           authMethod: 'password',
           subject: userId,
-          subjectData: `userId=${userId}`,
+          subjectData: `userId=${userId}&sessionId=${sessionId}`,
           ip: clientIp,
         });
       })
@@ -80,6 +100,8 @@ export class AuthenticationService {
 
   async validateToken(token: string, clientIp: string): Promise<any> {
     const url = this.configService.get<string>('app.naasSvcs');
+
+    //TODO: parse token and make sure user has valid session
 
     return createClientAsync(url)
       .then(client => {
