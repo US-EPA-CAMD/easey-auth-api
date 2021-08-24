@@ -27,6 +27,9 @@ export class AuthenticationService {
   ): Promise<UserDTO> {
     // TODO: Validation check on session in DB [If session exists throw an error]
 
+    const userSession = await this.repository.findOne(userId);
+    console.log(userSession);
+
     const user = await this.login(userId, password);
 
     const sessionId = uuidv4();
@@ -70,6 +73,9 @@ export class AuthenticationService {
     const url = this.configService.get<string>('app.naasSvcs');
 
     //TODO: check database to obtain session ID [If none exists throw error]
+
+    const userSession = await this.repository.findOne(userId);
+    console.log(userSession);
 
     const sessionId = '';
 

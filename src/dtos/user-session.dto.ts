@@ -1,3 +1,11 @@
 export class UserSessionDTO {
-  //TODO: Implement
+  userId: string;
+
+  sessionId: string;
+
+  securityToken: string;
+
+  tokenExpiration: Date;
+
+  lastLoginDate: Date;
 }

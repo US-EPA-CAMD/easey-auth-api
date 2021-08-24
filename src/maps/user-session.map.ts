@@ -8,7 +8,11 @@ import { UserSessionDTO } from '../dtos/user-session.dto';
 export class UserSessionMap extends BaseMap<UserSession, UserSessionDTO> {
   public async one(entity: UserSession): Promise<UserSessionDTO> {
     return {
-      //TODO: implement map
+      userId: entity.userId,
+      sessionId: entity.sessionId,
+      securityToken: entity.securityToken,
+      tokenExpiration: entity.tokenExpiration,
+      lastLoginDate: entity.lastLoginDate,
     };
   }
 }

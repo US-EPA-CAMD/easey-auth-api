@@ -2,5 +2,18 @@ import { BaseEntity, Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity({ name: 'camdecmpswks.user_session' })
 export class UserSession extends BaseEntity {
-  //TODO: Fill Out Entity
+  @PrimaryColumn({ name: 'userid' })
+  userId: string;
+
+  @Column({ name: 'session_id' })
+  sessionId: string;
+
+  @Column({ name: 'security_token' })
+  securityToken: string;
+
+  @Column({ name: 'token_expiration' })
+  tokenExpiration: Date;
+
+  @Column({ name: 'last_login_date', type: 'timestamptz' })
+  lastLoginDate: Date;
 }
