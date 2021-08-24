@@ -5,7 +5,7 @@ export class UserSessionDTO {
 
   securityToken: string;
 
-  tokenExpiration: Date;
+  tokenExpiration: string;
 
-  lastLoginDate: Date;
+  lastLoginDate: string;
 }

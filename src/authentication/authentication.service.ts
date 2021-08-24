@@ -7,6 +7,21 @@ import { UserDTO } from './../dtos/user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserSessionRepository } from '../user-session/user-session.repository';
 import { UserSessionMap } from '../maps/user-session.map';
+import { UserSession } from '../entities/user-session.entity';
+import { UserSessionDTO } from 'src/dtos/user-session.dto';
+
+interface Token {
+  userId: string;
+  sessionId: string;
+  firstName: string;
+  lastName: string;
+}
+
+interface SessionStatus {
+  active: boolean;
+  allowed: boolean;
+  session: UserSessionDTO;
+}
 
 @Injectable()
 export class AuthenticationService {
@@ -17,8 +32,46 @@ export class AuthenticationService {
     @InjectRepository(UserSessionRepository)
     private repository: UserSessionRepository,
     private configService: ConfigService,
-    private sessionMap: UserSessionMap,
+    private map: UserSessionMap,
   ) {}
+
+  parseToken(token: string): Token {
+    let obj = {
+      userId: null,
+      sessionId: null,
+      firstName: null,
+      lastName: null,
+    };
+
+    const arr = token.split('&');
+    arr.forEach(element => {
+      let keyValue = element.split('=');
+      obj[keyValue[0]] = keyValue[1];
+    });
+
+    return obj;
+  }
+
+  async getSessionStatus(userid: string): Promise<SessionStatus> {
+    let status: SessionStatus = {
+      active: false,
+      allowed: false,
+      session: null,
+    };
+
+    const userSession = await this.repository.findOne(userid);
+    if (userSession !== undefined) {
+      status.active = true;
+
+      const sessionDTO = await this.map.one(userSession);
+      status.session = sessionDTO;
+      if (new Date(Date.now()) < new Date(sessionDTO.tokenExpiration)) {
+        status.allowed = true;
+      }
+    }
+
+    return status;
+  }
 
   async authenticate(
     userId: string,
@@ -27,17 +80,53 @@ export class AuthenticationService {
   ): Promise<UserDTO> {
     // TODO: Validation check on session in DB [If session exists throw an error]
 
-    const userSession = await this.repository.findOne(userId);
-    console.log(userSession);
+    let user: UserDTO;
+    const sessionStatus = await this.getSessionStatus(userId);
+    if (sessionStatus.active) {
+      if (!sessionStatus.allowed) {
+        throw new InternalServerErrorException('Token has expired');
+      }
 
-    const user = await this.login(userId, password);
+      const sessionDTO = sessionStatus.session;
 
+      const token = await this.validateToken(
+        sessionDTO.securityToken,
+        clientIp,
+      );
+
+      const parsed = this.parseToken(token);
+
+      user = new UserDTO();
+
+      user.firstName = parsed.firstName;
+      user.lastName = parsed.lastName;
+      user.token = sessionDTO.securityToken;
+      user.tokenExpiration = sessionDTO.tokenExpiration;
+      user.userId = userId;
+
+      return user;
+    }
+
+    user = await this.login(userId, password);
     const sessionId = uuidv4();
 
-    // TODO: Add session id to database (await)
+    const expiration = new Date(Date.now() + 20 * 60000).toUTCString(); //Expire in 20 minutes
+    const current = new Date(Date.now()).toUTCString();
 
-    user.token = await this.createToken(userId, clientIp);
-    user.tokenExpiration = new Date(Date.now()).toUTCString();
+    const session = new UserSession();
+    session.userId = userId;
+    session.sessionId = sessionId;
+    session.tokenExpiration = expiration;
+    session.lastLoginDate = current;
+    await this.repository.save(session);
+
+    user.token = await this.createToken(
+      userId,
+      clientIp,
+      user.firstName,
+      user.lastName,
+    );
+    user.tokenExpiration = expiration;
     return user;
   }
 
@@ -69,15 +158,19 @@ export class AuthenticationService {
       });
   }
 
-  async createToken(userId: string, clientIp: string): Promise<any> {
+  async createToken(
+    userId: string,
+    clientIp: string,
+    firstName: string,
+    lastName: string,
+  ): Promise<any> {
     const url = this.configService.get<string>('app.naasSvcs');
 
-    //TODO: check database to obtain session ID [If none exists throw error]
-
-    const userSession = await this.repository.findOne(userId);
-    console.log(userSession);
-
-    const sessionId = '';
+    const userSession = await this.getSessionStatus(userId);
+    if (!userSession.active) {
+      throw new InternalServerErrorException('No valid user session!');
+    }
+    const sessionDTO = userSession.session;
 
     return createClientAsync(url)
       .then(client => {
@@ -89,11 +182,14 @@ export class AuthenticationService {
           issuer: this.appId,
           authMethod: 'password',
           subject: userId,
-          subjectData: `userId=${userId}&sessionId=${sessionId}`,
+          subjectData: `userId=${userId}&sessionId=${sessionDTO.sessionId}&firstName=${firstName}&lastName=${lastName}`,
           ip: clientIp,
         });
       })
       .then(res => {
+        sessionDTO.securityToken = res[0].return;
+        this.repository.update(userId, sessionDTO);
+
         return res[0].return;
       })
       .catch(err => {
@@ -107,7 +203,11 @@ export class AuthenticationService {
   async validateToken(token: string, clientIp: string): Promise<any> {
     const url = this.configService.get<string>('app.naasSvcs');
 
-    //TODO: parse token and make sure user has valid session
+    const parsed = this.parseToken(token);
+    const userid = parsed.userId;
+    const sessionStatus = await this.getSessionStatus(userid);
+    if (!sessionStatus.active || !sessionStatus.allowed)
+      throw new InternalServerErrorException('Session has expired');
 
     return createClientAsync(url)
       .then(client => {

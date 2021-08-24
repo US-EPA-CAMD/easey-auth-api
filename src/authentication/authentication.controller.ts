@@ -47,6 +47,7 @@ export class AuthenticationController {
     );
   }
 
+  /*
   @Post('/token')
   @ApiOkResponse({
     type: String,
@@ -58,6 +59,7 @@ export class AuthenticationController {
   ): Promise<string> {
     return this.service.createToken(dto.userId, clientIp);
   }
+  */
 
   @Post('/validate')
   @ApiOkResponse({

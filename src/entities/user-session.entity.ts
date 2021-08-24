@@ -12,8 +12,8 @@ export class UserSession extends BaseEntity {
   securityToken: string;
 
   @Column({ name: 'token_expiration' })
-  tokenExpiration: Date;
+  tokenExpiration: string;
 
   @Column({ name: 'last_login_date', type: 'timestamptz' })
-  lastLoginDate: Date;
+  lastLoginDate: string;
 }
