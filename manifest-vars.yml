@@ -6,3 +6,4 @@ environment: development
 host: easey-dev.app.cloud.gov
 memory: 512M
 cdxSvcs: 'https://devngn.epacdxnode.net/cdx-register-II/services'
+nassSvcs: 'https://naasdev.epacdxnode.net/xml/securitytoken_v30.wsdl'

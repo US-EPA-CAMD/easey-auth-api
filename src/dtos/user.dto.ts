@@ -1,8 +1,10 @@
-import { ApiHideProperty } from "@nestjs/swagger";
-
 export class UserDTO {
-  id: string;
+  userId: string;
   firstName: string;
   lastName: string;
-  status: string;
+  token: string;
+  tokenExpiration: string;
+  email: string;
+  roles: string[];
+  facilities: number[];
 }

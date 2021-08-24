@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { RouterModule } from 'nest-router';
 import { ConfigModule } from '@nestjs/config';
-//import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 import routes from './routes';
 import dbConfig from './config/db.config';
 import appConfig from './config/app.config';
-//import { TypeOrmConfigService } from './config/typeorm.config';
+import { TypeOrmConfigService } from './config/typeorm.config';
 
 import { AuthenticationModule } from './authentication/authentication.module';
 
@@ -15,14 +15,11 @@ import { AuthenticationModule } from './authentication/authentication.module';
     RouterModule.forRoutes(routes),
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [
-        dbConfig,
-        appConfig,
-      ],
+      load: [dbConfig, appConfig],
     }),
-    // TypeOrmModule.forRootAsync({
-    //   useClass: TypeOrmConfigService,
-    // }),
+    TypeOrmModule.forRootAsync({
+      useClass: TypeOrmConfigService,
+    }),
     AuthenticationModule,
   ],
 })

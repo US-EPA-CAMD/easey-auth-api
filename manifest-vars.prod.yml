@@ -1,4 +1,5 @@
 environment: production
 host: easey.app.cloud.gov
 memory: 2048M
-cdxSvcs: 'https://devngn.epacdxnode.net/cdx-register-II/services'
+cdxSvcs: 'https://epacdxnode.net/cdx-register-II/services'
+nassSvcs: 'https://cdxnodenaas.epa.gov/xml/securitytoken_v30.wsdl'

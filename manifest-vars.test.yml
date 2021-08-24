@@ -1,4 +1,5 @@
 environment: testing
 host: easey-tst.app.cloud.gov
 memory: 512M
-cdxSvcs: 'https://devngn.epacdxnode.net/cdx-register-II/services'
+cdxSvcs: 'https://???.epacdxnode.net/cdx-register-II/services'
+nassSvcs: 'https://naas.epacdxnode.net/xml/securitytoken_v30.wsdl'
