@@ -6,6 +6,7 @@ import { CredentialsDTO } from './../dtos/credentials.dto';
 
 import { ClientIP } from './../decorators/client-ip.decorator';
 import { AuthenticationService } from './authentication.service';
+import { ValidateTokenDTO } from 'src/dtos/validate-token.dto';
 
 @ApiTags('Authentication')
 @Controller()
@@ -44,4 +45,14 @@ export class AuthenticationController {
       clientIp,
     );
   }
+
+  @Post('/sign-out')
+  @ApiOkResponse({
+    type: UserDTO,
+    description: 'Authenticates a user using EPA CDX Services',
+  })
+  signOut(
+    @Body() credentials: ValidateTokenDTO,
+    @ClientIP() clientIp: string,
+  ) {}
 }

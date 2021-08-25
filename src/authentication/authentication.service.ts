@@ -26,6 +26,7 @@ interface SessionStatus {
   active: boolean;
   allowed: boolean;
   session: UserSessionDTO;
+  sessionEntity: UserSession;
 }
 
 @Injectable()
@@ -63,12 +64,13 @@ export class AuthenticationService {
       active: false,
       allowed: false,
       session: null,
+      sessionEntity: null,
     };
 
     const userSession = await this.repository.findOne(userid);
     if (userSession !== undefined) {
       status.active = true;
-
+      status.sessionEntity = userSession;
       const sessionDTO = await this.map.one(userSession);
       status.session = sessionDTO;
       if (new Date(Date.now()) < new Date(sessionDTO.tokenExpiration)) {
@@ -207,7 +209,7 @@ export class AuthenticationService {
       });
   }
 
-  async validateToken(token: string, clientIp: string): Promise<any> {
+  async unpackToken(token: string, clientIp: string): Promise<any> {
     const url = this.configService.get<string>('app.naasSvcs');
 
     return createClientAsync(url)
@@ -222,14 +224,6 @@ export class AuthenticationService {
         });
       })
       .then(async res => {
-        const parsed = this.parseToken(res[0].return);
-        const sessionStatus = await this.getSessionStatus(parsed.userId);
-
-        if (!sessionStatus.active || !sessionStatus.allowed)
-          throw new BadRequestException(
-            'No valid session exists for the user. Please log in to create a valid session."',
-          );
-
         return res[0].return;
       })
       .catch(err => {
@@ -238,5 +232,28 @@ export class AuthenticationService {
           'Security token validation failed!',
         );
       });
+  }
+
+  async validateToken(token: string, clientIp: string): Promise<any> {
+    const stringifiedToken = await this.unpackToken(token, clientIp);
+    const parsed = this.parseToken(stringifiedToken);
+
+    const sessionStatus = await this.getSessionStatus(parsed.userId);
+    if (!sessionStatus.active || !sessionStatus.allowed)
+      throw new BadRequestException(
+        'No valid session exists for the user. Please log in to create a valid session."',
+      );
+
+    return stringifiedToken;
+  }
+
+  async logOut(token: string, clientIp: string) {
+    const stringifiedToken = await this.unpackToken(token, clientIp);
+    const parsed = this.parseToken(stringifiedToken);
+
+    const sessionStatus = await this.getSessionStatus(parsed.userId);
+    if (sessionStatus.active)
+      this.repository.remove(sessionStatus.sessionEntity);
+    else throw new BadRequestException('No session exists for token.');
   }
 }
