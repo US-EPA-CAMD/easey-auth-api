@@ -52,6 +52,7 @@ export class AuthenticationService {
     return obj;
   }
 
+  /*
   async getSessionStatus(userid: string): Promise<SessionStatus> {
     let status: SessionStatus = {
       active: false,
@@ -72,6 +73,7 @@ export class AuthenticationService {
 
     return status;
   }
+  */
 
   async authenticate(
     userId: string,
@@ -81,6 +83,8 @@ export class AuthenticationService {
     // TODO: Validation check on session in DB [If session exists throw an error]
 
     let user: UserDTO;
+
+    /*
     const sessionStatus = await this.getSessionStatus(userId);
     if (sessionStatus.active) {
       if (!sessionStatus.allowed) {
@@ -106,11 +110,14 @@ export class AuthenticationService {
 
       return user;
     }
+    */
 
     user = await this.login(userId, password);
+    const expiration = new Date(Date.now() + 20 * 60000).toUTCString(); //Expire in 20 minutes
+
+    /*
     const sessionId = uuidv4();
 
-    const expiration = new Date(Date.now() + 20 * 60000).toUTCString(); //Expire in 20 minutes
     const current = new Date(Date.now()).toUTCString();
 
     const session = new UserSession();
@@ -120,6 +127,7 @@ export class AuthenticationService {
     session.lastLoginDate = current;
     await this.repository.save(session);
 
+    */
     user.token = await this.createToken(
       userId,
       clientIp,
@@ -166,11 +174,13 @@ export class AuthenticationService {
   ): Promise<any> {
     const url = this.configService.get<string>('app.naasSvcs');
 
+    /*
     const userSession = await this.getSessionStatus(userId);
     if (!userSession.active) {
       throw new InternalServerErrorException('No valid user session!');
     }
     const sessionDTO = userSession.session;
+    */
 
     return createClientAsync(url)
       .then(client => {
@@ -182,13 +192,15 @@ export class AuthenticationService {
           issuer: this.appId,
           authMethod: 'password',
           subject: userId,
-          subjectData: `userId=${userId}&sessionId=${sessionDTO.sessionId}&firstName=${firstName}&lastName=${lastName}`,
+          subjectData: `userId=${userId}&firstName=${firstName}&lastName=${lastName}`,
           ip: clientIp,
         });
       })
       .then(res => {
+        /*
         sessionDTO.securityToken = res[0].return;
         this.repository.update(userId, sessionDTO);
+        */
 
         return res[0].return;
       })
@@ -205,9 +217,11 @@ export class AuthenticationService {
 
     const parsed = this.parseToken(token);
     const userid = parsed.userId;
+    /*
     const sessionStatus = await this.getSessionStatus(userid);
     if (!sessionStatus.active || !sessionStatus.allowed)
       throw new InternalServerErrorException('Session has expired');
+    */
 
     return createClientAsync(url)
       .then(client => {
