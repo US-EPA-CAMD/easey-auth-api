@@ -8,11 +8,15 @@ import { ValidateTokenDTO } from './../dtos/validate-token.dto';
 
 import { ClientIP } from './../decorators/client-ip.decorator';
 import { AuthenticationService } from './authentication.service';
+import { TestingPatch } from './testing-patch.service';
 
 @ApiTags('Authentication')
 @Controller()
 export class AuthenticationController {
-  constructor(private service: AuthenticationService) {}
+  constructor(
+    private service: AuthenticationService,
+    private testService: TestingPatch,
+  ) {}
 
   // Refactor out eventually
   @Post('/authenticate')
@@ -24,10 +28,9 @@ export class AuthenticationController {
     @Body() credentials: CredentialsDTO,
     @ClientIP() clientIp: string,
   ): Promise<UserDTO> {
-    return this.service.authenticate(
+    return this.testService.authenticate(
       credentials.userId,
       credentials.password,
-      clientIp,
     );
   }
 
@@ -46,20 +49,6 @@ export class AuthenticationController {
       clientIp,
     );
   }
-
-  /*
-  @Post('/token')
-  @ApiOkResponse({
-    type: String,
-    description: 'Creates a security token (user must be authenticated)',
-  })
-  createToken(
-    @Body() dto: UserIdDTO,
-    @ClientIP() clientIp: string,
-  ): Promise<string> {
-    return this.service.createToken(dto.userId, clientIp);
-  }
-  */
 
   @Post('/validate')
   @ApiOkResponse({

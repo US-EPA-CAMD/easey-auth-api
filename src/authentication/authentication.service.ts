@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
 import { createClientAsync } from 'soap';
@@ -9,12 +13,14 @@ import { UserSessionRepository } from '../user-session/user-session.repository';
 import { UserSessionMap } from '../maps/user-session.map';
 import { UserSession } from '../entities/user-session.entity';
 import { UserSessionDTO } from 'src/dtos/user-session.dto';
+import { toNamespacedPath } from 'path';
 
 interface Token {
   userId: string;
   sessionId: string;
   firstName: string;
   lastName: string;
+  expiration: string;
 }
 
 interface SessionStatus {
@@ -41,11 +47,12 @@ export class AuthenticationService {
       sessionId: null,
       firstName: null,
       lastName: null,
+      expiration: null,
     };
 
     const arr = token.split('&');
     arr.forEach(element => {
-      let keyValue = element.split('=');
+      const keyValue = element.split('=');
       obj[keyValue[0]] = keyValue[1];
     });
 
@@ -80,15 +87,13 @@ export class AuthenticationService {
     password: string,
     clientIp: string,
   ): Promise<UserDTO> {
-    // TODO: Validation check on session in DB [If session exists throw an error]
-
     let user: UserDTO;
 
     /*
     const sessionStatus = await this.getSessionStatus(userId);
     if (sessionStatus.active) {
       if (!sessionStatus.allowed) {
-        throw new InternalServerErrorException('Token has expired');
+        throw new BadRequestException('Token has expired');
       }
 
       const sessionDTO = sessionStatus.session;
@@ -174,13 +179,14 @@ export class AuthenticationService {
   ): Promise<any> {
     const url = this.configService.get<string>('app.naasSvcs');
 
-    /*
+    const tokenExpiration = new Date(Date.now() + 20 * 60000).toUTCString();
     const userSession = await this.getSessionStatus(userId);
-    if (!userSession.active) {
-      throw new InternalServerErrorException('No valid user session!');
+    if (!userSession.active || !userSession.allowed) {
+      throw new BadRequestException('No valid user session!');
     }
+
     const sessionDTO = userSession.session;
-    */
+    sessionDTO.tokenExpiration = tokenExpiration;
 
     return createClientAsync(url)
       .then(client => {
@@ -192,7 +198,7 @@ export class AuthenticationService {
           issuer: this.appId,
           authMethod: 'password',
           subject: userId,
-          subjectData: `userId=${userId}&firstName=${firstName}&lastName=${lastName}`,
+          subjectData: `userId=${userId}&sessionId=${sessionDTO.sessionId}&firstName=${firstName}&lastName=${lastName}&expiration=${tokenExpiration}`,
           ip: clientIp,
         });
       })
@@ -234,7 +240,13 @@ export class AuthenticationService {
           resourceURI: null,
         });
       })
-      .then(res => {
+      .then(async res => {
+        const parsed = this.parseToken(res[0].return);
+        const sessionStatus = await this.getSessionStatus(parsed.userId);
+
+        if (!sessionStatus.active || !sessionStatus.allowed)
+          throw new BadRequestException('Session has expired');
+
         return res[0].return;
       })
       .catch(err => {
