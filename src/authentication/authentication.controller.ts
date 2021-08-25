@@ -2,9 +2,7 @@ import { ApiTags, ApiOkResponse } from '@nestjs/swagger';
 import { Post, Controller, Body } from '@nestjs/common';
 
 import { UserDTO } from './../dtos/user.dto';
-import { UserIdDTO } from '../dtos/user-id.dto';
 import { CredentialsDTO } from './../dtos/credentials.dto';
-import { ValidateTokenDTO } from './../dtos/validate-token.dto';
 
 import { ClientIP } from './../decorators/client-ip.decorator';
 import { AuthenticationService } from './authentication.service';
@@ -48,17 +46,5 @@ export class AuthenticationController {
       credentials.password,
       clientIp,
     );
-  }
-
-  @Post('/validate')
-  @ApiOkResponse({
-    type: String,
-    description: 'Validates a security token (user must be authenticated)',
-  })
-  validate(
-    @Body() dto: ValidateTokenDTO,
-    @ClientIP() clientIp: string,
-  ): Promise<string> {
-    return this.service.validateToken(dto.token, clientIp);
   }
 }

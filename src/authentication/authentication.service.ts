@@ -13,7 +13,6 @@ import { UserSessionRepository } from '../user-session/user-session.repository';
 import { UserSessionMap } from '../maps/user-session.map';
 import { UserSession } from '../entities/user-session.entity';
 import { UserSessionDTO } from 'src/dtos/user-session.dto';
-import { toNamespacedPath } from 'path';
 
 interface Token {
   userId: string;
@@ -245,7 +244,9 @@ export class AuthenticationService {
         const sessionStatus = await this.getSessionStatus(parsed.userId);
 
         if (!sessionStatus.active || !sessionStatus.allowed)
-          throw new BadRequestException('Session has expired');
+          throw new BadRequestException(
+            'No valid session exists for the user. Please log in to create a valid session."',
+          );
 
         return res[0].return;
       })
