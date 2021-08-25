@@ -47,20 +47,6 @@ export class AuthenticationController {
     );
   }
 
-  /*
-  @Post('/token')
-  @ApiOkResponse({
-    type: String,
-    description: 'Creates a security token (user must be authenticated)',
-  })
-  createToken(
-    @Body() dto: UserIdDTO,
-    @ClientIP() clientIp: string,
-  ): Promise<string> {
-    return this.service.createToken(dto.userId, clientIp);
-  }
-  */
-
   @Post('/validate')
   @ApiOkResponse({
     type: String,

@@ -9,6 +9,7 @@ import appConfig from './config/app.config';
 import { TypeOrmConfigService } from './config/typeorm.config';
 
 import { AuthenticationModule } from './authentication/authentication.module';
+import { TokenModule } from './token/token.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AuthenticationModule } from './authentication/authentication.module';
       useClass: TypeOrmConfigService,
     }),
     AuthenticationModule,
+    TokenModule,
   ],
 })
 export class AppModule {}

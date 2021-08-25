@@ -12,5 +12,6 @@ import { UserSessionMap } from '../maps/user-session.map';
   imports: [TypeOrmModule.forFeature([UserSessionRepository])],
   controllers: [AuthenticationController],
   providers: [ConfigService, AuthenticationService, UserSessionMap],
+  exports: [AuthenticationService],
 })
 export class AuthenticationModule {}
