@@ -48,11 +48,9 @@ export class AuthenticationController {
 
   @Post('/sign-out')
   @ApiOkResponse({
-    type: UserDTO,
     description: 'Authenticates a user using EPA CDX Services',
   })
-  signOut(
-    @Body() credentials: ValidateTokenDTO,
-    @ClientIP() clientIp: string,
-  ) {}
+  signOut(@Body() credentials: ValidateTokenDTO, @ClientIP() clientIp: string) {
+    this.service.signOut(credentials.token, clientIp);
+  }
 }

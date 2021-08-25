@@ -247,13 +247,13 @@ export class AuthenticationService {
     return stringifiedToken;
   }
 
-  async logOut(token: string, clientIp: string) {
+  async signOut(token: string, clientIp: string) {
     const stringifiedToken = await this.unpackToken(token, clientIp);
     const parsed = this.parseToken(stringifiedToken);
 
     const sessionStatus = await this.getSessionStatus(parsed.userId);
-    if (sessionStatus.active)
-      this.repository.remove(sessionStatus.sessionEntity);
-    else throw new BadRequestException('No session exists for token.');
+    if (sessionStatus.active) {
+      await this.repository.remove(sessionStatus.sessionEntity);
+    } else throw new BadRequestException('No session exists for token.');
   }
 }
