@@ -12,9 +12,6 @@ import { parseToken } from '../utils';
 
 @Injectable()
 export class AuthenticationService {
-  //private readonly appId = 'easey.camd.oar.dev@epa.gov';
-  //private readonly appPwd = 'DEVeasey01!';
-
   constructor(
     private configService: ConfigService,
     private tokenService: TokenService,

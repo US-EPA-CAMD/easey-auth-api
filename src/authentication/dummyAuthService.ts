@@ -1,5 +1,3 @@
-//TODO: Remove file and rely on Sign-In Endpoint
-
 import { ConfigService } from '@nestjs/config';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { createClientAsync } from 'soap';
@@ -19,11 +17,15 @@ export class DummyAuthService {
         case 'emmy':
           dto = new UserDTO();
           dto.id = userId;
+          dto.firstName = 'Emmy';
+          dto.lastName = 'Winter';
           dto.status = 'Valid';
           break;
         case 'brian':
           dto = new UserDTO();
           dto.id = userId;
+          dto.firstName = 'Brian';
+          dto.lastName = 'Nobel';
           dto.status = 'Valid';
           break;
         default:
@@ -55,6 +57,8 @@ export class DummyAuthService {
 
         dto = new UserDTO();
         dto.id = user.userId;
+        dto.firstName = user.firstName;
+        dto.lastName = user.lastName;
         dto.status = user.status;
 
         return dto;
