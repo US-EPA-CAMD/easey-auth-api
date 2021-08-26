@@ -19,6 +19,8 @@ export default registerAs('app', () => ({
   env: process.env.EASEY_AUTH_API_ENV || 'local-dev',
   version: process.env.EASEY_AUTH_API_VERSION || 'v0.0.0',
   published: process.env.EASEY_AUTH_API_PUBLISHED || 'local',
+  naasAppId: process.env.EASEY_AUTH_API_NAASID || 'easey.camd.oar.dev@epa.gov',
+  nassAppPwd: process.env.EASEY_AUTH_API_NAASPWD,
   cdxSvcs:
     process.env.EASEY_CDX_SERVICES ||
     'https://devngn.epacdxnode.net/cdx-register-II/services',

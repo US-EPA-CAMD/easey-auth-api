@@ -7,11 +7,15 @@ import { CredentialsDTO } from './../dtos/credentials.dto';
 import { ClientIP } from './../decorators/client-ip.decorator';
 import { AuthenticationService } from './authentication.service';
 import { ValidateTokenDTO } from 'src/dtos/validate-token.dto';
+import { DummyAuthService } from './dummyAuthService';
 
 @ApiTags('Authentication')
 @Controller()
 export class AuthenticationController {
-  constructor(private service: AuthenticationService) {}
+  constructor(
+    private service: AuthenticationService,
+    private dummyService: DummyAuthService,
+  ) {}
 
   // Refactor out eventually
   @Post('/authenticate')
@@ -23,10 +27,9 @@ export class AuthenticationController {
     @Body() credentials: CredentialsDTO,
     @ClientIP() clientIp: string,
   ): Promise<UserDTO> {
-    return this.service.authenticate(
+    return this.dummyService.authenticate(
       credentials.userId,
       credentials.password,
-      clientIp,
     );
   }
 
