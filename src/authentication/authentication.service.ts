@@ -17,7 +17,69 @@ export class AuthenticationService {
     private tokenService: TokenService,
   ) {}
 
-  async authenticate(
+  async authenticateDummy(userId: string, password: string): Promise<UserDTO> {
+    let dto = null;
+    const env = this.configService.get<string>('app.env');
+
+    if (env !== 'production') {
+      switch (userId) {
+        case 'emmy':
+          dto = new UserDTO();
+          dto.id = userId;
+          dto.firstName = 'Emmy';
+          dto.lastName = 'Winter';
+          dto.status = 'Valid';
+          break;
+        case 'brian':
+          dto = new UserDTO();
+          dto.id = userId;
+          dto.firstName = 'Brian';
+          dto.lastName = 'Nobel';
+          dto.status = 'Valid';
+          break;
+        default:
+          dto = this.loginDummy(userId, password);
+          break;
+      }
+
+      return dto;
+    }
+
+    return this.loginDummy(userId, password);
+  }
+
+  private async loginDummy(userId: string, password: string): Promise<UserDTO> {
+    let dto = null;
+    const url = `${this.configService.get<string>(
+      'app.cdxSvcs',
+    )}/RegisterAuthService?wsdl`;
+
+    return createClientAsync(url)
+      .then(client => {
+        return client.AuthenticateAsync({
+          userId,
+          password,
+        });
+      })
+      .then(res => {
+        const user = res[0].User;
+
+        dto = new UserDTO();
+        dto.id = user.userId;
+        dto.firstName = user.firstName;
+        dto.lastName = user.lastName;
+        dto.status = user.status;
+
+        return dto;
+      })
+      .catch(err => {
+        throw new InternalServerErrorException(
+          err.root.Envelope.Body.Fault.detail.RegisterAuthFault.description,
+        );
+      });
+  }
+
+  async signIn(
     userId: string,
     password: string,
     clientIp: string,
@@ -25,19 +87,12 @@ export class AuthenticationService {
     let user: UserDTO;
 
     const sessionStatus = await this.tokenService.getSessionStatus(userId);
-    if (sessionStatus.active) {
-      if (!sessionStatus.allowed) {
+    if (sessionStatus.exists) {
+      if (sessionStatus.expired) {
         throw new BadRequestException('Token has expired');
       }
 
       const sessionDTO = sessionStatus.session;
-
-      const token = await this.tokenService.validateToken(
-        sessionDTO.securityToken,
-        clientIp,
-      );
-
-      const parsed = parseToken(token);
 
       user = new UserDTO();
       user.token = sessionDTO.securityToken;
@@ -51,11 +106,11 @@ export class AuthenticationService {
     const session = await this.tokenService.createUserSession(userId);
     user.token = await this.tokenService.createToken(userId, clientIp);
     user.tokenExpiration = session.tokenExpiration;
-      
+
     return user;
   }
 
-  private async login(userId: string, password: string): Promise<UserDTO> {
+  async login(userId: string, password: string): Promise<UserDTO> {
     let dto: UserDTO;
     const url = `${this.configService.get<string>(
       'app.cdxSvcs',
@@ -88,10 +143,14 @@ export class AuthenticationService {
     );
     const parsed = parseToken(stringifiedToken);
 
+    if (parsed.clientIp !== clientIp) {
+      throw new BadRequestException('Request from invalid IP.');
+    }
+
     const sessionStatus = await this.tokenService.getSessionStatus(
       parsed.userId,
     );
-    if (sessionStatus.active) {
+    if (sessionStatus.exists) {
       await this.tokenService.removeUserSession(sessionStatus.sessionEntity);
     } else throw new BadRequestException('No session exists for token.');
   }
