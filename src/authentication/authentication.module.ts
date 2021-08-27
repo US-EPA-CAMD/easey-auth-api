@@ -1,23 +1,15 @@
-import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { AuthenticationController } from './authentication.controller';
 import { AuthenticationService } from './authentication.service';
-import { UserSessionRepository } from '../user-session/user-session.repository';
-import { UserSessionMap } from '../maps/user-session.map';
-import { TestingPatch } from './testing-patch.service';
+import { TokenModule } from '../token/token.module';
+import { DummyAuthService } from './dummyAuthService';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserSessionRepository])],
+  imports: [TokenModule],
   controllers: [AuthenticationController],
-  providers: [
-    ConfigService,
-    AuthenticationService,
-    UserSessionMap,
-    TestingPatch,
-  ],
+  providers: [ConfigService, AuthenticationService, DummyAuthService],
   exports: [AuthenticationService],
 })
 export class AuthenticationModule {}

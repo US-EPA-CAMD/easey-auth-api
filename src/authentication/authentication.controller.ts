@@ -6,14 +6,15 @@ import { CredentialsDTO } from './../dtos/credentials.dto';
 
 import { ClientIP } from './../decorators/client-ip.decorator';
 import { AuthenticationService } from './authentication.service';
-import { TestingPatch } from './testing-patch.service';
+import { ValidateTokenDTO } from 'src/dtos/validate-token.dto';
+import { DummyAuthService } from './dummyAuthService';
 
 @ApiTags('Authentication')
 @Controller()
 export class AuthenticationController {
   constructor(
     private service: AuthenticationService,
-    private testService: TestingPatch,
+    private dummyService: DummyAuthService,
   ) {}
 
   // Refactor out eventually
@@ -26,7 +27,7 @@ export class AuthenticationController {
     @Body() credentials: CredentialsDTO,
     @ClientIP() clientIp: string,
   ): Promise<UserDTO> {
-    return this.testService.authenticate(
+    return this.dummyService.authenticate(
       credentials.userId,
       credentials.password,
     );
@@ -46,5 +47,13 @@ export class AuthenticationController {
       credentials.password,
       clientIp,
     );
+  }
+
+  @Post('/sign-out')
+  @ApiOkResponse({
+    description: 'Authenticates a user using EPA CDX Services',
+  })
+  signOut(@Body() credentials: ValidateTokenDTO, @ClientIP() clientIp: string) {
+    this.service.signOut(credentials.token, clientIp);
   }
 }

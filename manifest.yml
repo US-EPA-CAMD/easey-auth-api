@@ -10,7 +10,8 @@ applications:
       EASEY_AUTH_API_PATH: ((path))
       EASEY_AUTH_API_ENV: ((environment))
       EASEY_CDX_SERVICES: ((cdxSvcs))
-      EASEY_NAAS_SERVICES: ((nassSvcs))
+      EASEY_NAAS_SERVICES: ((naasSvcs))
+      EASEY_AUTH_API_NAASID: ((naasAppId))
     routes:
       - route: ((host))/((path))
     services:

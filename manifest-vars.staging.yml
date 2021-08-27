@@ -3,3 +3,4 @@ host: easey-stg.app.cloud.gov
 memory: 1024M
 cdxSvcs: 'https://???.epacdxnode.net/cdx-register-II/services'
 nassSvcs: 'https://???.epacdxnode.net/xml/securitytoken_v30.wsdl'
+naasAppId: ''
