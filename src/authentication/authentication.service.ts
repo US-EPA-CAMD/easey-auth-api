@@ -40,7 +40,6 @@ export class AuthenticationService {
       const parsed = parseToken(token);
 
       user = new UserDTO();
-
       user.token = sessionDTO.securityToken;
       user.tokenExpiration = sessionDTO.tokenExpiration;
       user.userId = userId;
@@ -52,6 +51,7 @@ export class AuthenticationService {
     const session = await this.tokenService.createUserSession(userId);
     user.token = await this.tokenService.createToken(userId, clientIp);
     user.tokenExpiration = session.tokenExpiration;
+      
     return user;
   }
 
