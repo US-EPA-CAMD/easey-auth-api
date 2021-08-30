@@ -5,6 +5,16 @@ import { AuthenticationService } from './authentication.service';
 import { UserDTO } from '../dtos/user.dto';
 import { UserSessionDTO } from '../dtos/user-session.dto';
 
+const client = {
+  AuthenticateAsync: jest.fn(() =>
+    Promise.resolve([{ User: { userId: '1' } }]),
+  ),
+};
+
+jest.mock('soap', () => ({
+  createClientAsync: jest.fn(() => Promise.resolve(client)),
+}));
+
 const mockTokenService = () => ({
   getSessionStatus: jest.fn().mockResolvedValue({
     exists: false,
@@ -83,6 +93,13 @@ describe('Authentication Service', () => {
       expect(async () => {
         await service.signIn('', '', '');
       }).rejects.toThrowError();
+    });
+  });
+
+  describe('login()', () => {
+    it('should return a userDTO given an existing session', async () => {
+      const dto = await service.login('', '');
+      expect(dto.userId).toEqual('1');
     });
   });
 });

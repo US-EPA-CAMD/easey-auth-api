@@ -27,7 +27,7 @@ export class TokenService {
   async getSessionStatus(userid: string): Promise<SessionStatus> {
     const status: SessionStatus = {
       exists: false,
-      expired: false,
+      expired: true,
       session: null,
       sessionEntity: null,
     };
@@ -39,7 +39,7 @@ export class TokenService {
       const sessionDTO = await this.map.one(userSession);
       status.session = sessionDTO;
       if (new Date(Date.now()) < new Date(sessionDTO.tokenExpiration)) {
-        status.expired = true;
+        status.expired = false;
       }
     }
 
@@ -71,7 +71,7 @@ export class TokenService {
 
     const tokenExpiration = new Date(Date.now() + 20 * 60000).toUTCString();
     const userSession = await this.getSessionStatus(userId);
-    if (!userSession.exists || !userSession.expired) {
+    if (!userSession.exists || userSession.expired) {
       throw new BadRequestException('No valid user session!');
     }
 
@@ -109,8 +109,6 @@ export class TokenService {
   async unpackToken(token: string, clientIp: string): Promise<any> {
     const url = this.configService.get<string>('app.naasSvcs');
 
-    console.log(clientIp);
-
     return createClientAsync(url)
       .then(client => {
         return client.ValidateAsync({
@@ -138,7 +136,7 @@ export class TokenService {
     const parsed = parseToken(stringifiedToken);
 
     const sessionStatus = await this.getSessionStatus(parsed.userId);
-    if (!sessionStatus.exists || !sessionStatus.expired)
+    if (!sessionStatus.exists || sessionStatus.expired)
       throw new BadRequestException(
         'No valid session exists for the user. Please log in to create a valid session."',
       );

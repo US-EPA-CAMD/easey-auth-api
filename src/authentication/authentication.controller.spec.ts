@@ -3,8 +3,8 @@ import { AuthenticationService } from './authentication.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserDTO } from '../dtos/user.dto';
 import { CredentialsDTO } from '../dtos/credentials.dto';
-import { TokenService } from '../token/token.service';
-import { ConfigService } from '@nestjs/config';
+
+jest.mock('./authentication.service');
 
 describe('Authentication Controller', () => {
   let controller: AuthenticationController;
@@ -13,14 +13,7 @@ describe('Authentication Controller', () => {
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthenticationController],
-      providers: [
-        AuthenticationService,
-        {
-          provide: TokenService,
-          useValue: jest.fn(),
-        },
-        ConfigService,
-      ],
+      providers: [AuthenticationService],
     }).compile();
 
     controller = module.get(AuthenticationController);
