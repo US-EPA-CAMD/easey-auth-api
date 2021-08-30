@@ -10,7 +10,7 @@ import { TokenService } from './token.service';
 export class TokenController {
   constructor(private service: TokenService) {}
 
-  @Post('/createToken')
+  @Post()
   @ApiOkResponse({
     type: String,
     description: 'Creates a security token (user must be authenticated)',
@@ -22,7 +22,7 @@ export class TokenController {
     return this.service.createToken(dto.userId, clientIp);
   }
 
-  @Post('/validateToken')
+  @Post('/validate')
   @ApiOkResponse({
     type: String,
     description: 'Validates a security token (user must have valid session)',

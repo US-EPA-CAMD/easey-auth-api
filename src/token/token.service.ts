@@ -11,9 +11,9 @@ import { UserSessionRepository } from '../user-session/user-session.repository';
 import { UserSessionMap } from '../maps/user-session.map';
 import { SessionStatus } from './session-status.interface';
 import { parseToken } from '../utils';
-import { UserSession } from 'src/entities/user-session.entity';
+import { UserSession } from '../entities/user-session.entity';
 import { v4 as uuidv4 } from 'uuid';
-import { UserSessionDTO } from 'src/dtos/user-session.dto';
+import { UserSessionDTO } from '../dtos/user-session.dto';
 
 @Injectable()
 export class TokenService {
@@ -25,21 +25,21 @@ export class TokenService {
   ) {}
 
   async getSessionStatus(userid: string): Promise<SessionStatus> {
-    let status: SessionStatus = {
-      active: false,
-      allowed: false,
+    const status: SessionStatus = {
+      exists: false,
+      expired: true,
       session: null,
       sessionEntity: null,
     };
 
     const userSession = await this.repository.findOne(userid);
     if (userSession !== undefined) {
-      status.active = true;
+      status.exists = true;
       status.sessionEntity = userSession;
       const sessionDTO = await this.map.one(userSession);
       status.session = sessionDTO;
       if (new Date(Date.now()) < new Date(sessionDTO.tokenExpiration)) {
-        status.allowed = true;
+        status.expired = false;
       }
     }
 
@@ -71,7 +71,7 @@ export class TokenService {
 
     const tokenExpiration = new Date(Date.now() + 20 * 60000).toUTCString();
     const userSession = await this.getSessionStatus(userId);
-    if (!userSession.active || !userSession.allowed) {
+    if (!userSession.exists || userSession.expired) {
       throw new BadRequestException('No valid user session!');
     }
 
@@ -88,7 +88,7 @@ export class TokenService {
           issuer: this.configService.get<string>('app.naasAppId'),
           authMethod: 'password',
           subject: userId,
-          subjectData: `userId=${userId}&sessionId=${sessionDTO.sessionId}&expiration=${tokenExpiration}`,
+          subjectData: `userId=${userId}&sessionId=${sessionDTO.sessionId}&expiration=${tokenExpiration}&clientIp=${clientIp}`,
           ip: clientIp,
         });
       })
@@ -136,7 +136,7 @@ export class TokenService {
     const parsed = parseToken(stringifiedToken);
 
     const sessionStatus = await this.getSessionStatus(parsed.userId);
-    if (!sessionStatus.active || !sessionStatus.allowed)
+    if (!sessionStatus.exists || sessionStatus.expired)
       throw new BadRequestException(
         'No valid session exists for the user. Please log in to create a valid session."',
       );

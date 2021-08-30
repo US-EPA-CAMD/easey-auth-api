@@ -1,8 +1,9 @@
 export const parseToken = (token: string) => {
-  let obj = {
+  const obj = {
     userId: null,
     sessionId: null,
     expiration: null,
+    clientIp: null,
   };
 
   const arr = token.split('&');
