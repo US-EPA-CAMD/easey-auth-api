@@ -50,10 +50,4 @@ describe('Authentication Controller', () => {
       expect(await controller.signIn(cred, '')).toBe(data);
     });
   });
-
-  describe('Delete Methods', () => {
-    it('should delete a user from a session', async () => {
-      expect(controller.signOut('', '')).resolves.not.toThrow();
-    });
-  });
 });
