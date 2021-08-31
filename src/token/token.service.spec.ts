@@ -23,6 +23,7 @@ const mockRepository = () => ({
   findOne: jest.fn().mockResolvedValue(''),
   save: jest.fn().mockResolvedValue(''),
   update: jest.fn().mockResolvedValue(''),
+  remove: jest.fn().mockResolvedValue(''),
 });
 
 const mockMap = () => ({
@@ -132,6 +133,14 @@ describe('Token Service', () => {
     it('should return value of mocked session map', async () => {
       const result = await service.createUserSession('');
       expect(result).toEqual('');
+    });
+  });
+
+  describe('removeUserSession()', () => {
+    it('should execute', async () => {
+      expect(
+        service.removeUserSession(new UserSession()),
+      ).resolves.not.toThrowError();
     });
   });
 

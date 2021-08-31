@@ -136,7 +136,7 @@ export class AuthenticationService {
       });
   }
 
-  async signOut(token: string, clientIp: string) {
+  async signOut(token: string, clientIp: string): Promise<void> {
     const stringifiedToken = await this.tokenService.unpackToken(
       token,
       clientIp,

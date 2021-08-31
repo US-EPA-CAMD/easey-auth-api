@@ -11,6 +11,6 @@ import { AuthGuard } from '../guards/auth.guard';
   imports: [TypeOrmModule.forFeature([UserSessionRepository])],
   controllers: [TokenController],
   providers: [TokenService, UserSessionMap, AuthGuard],
-  exports: [TokenService, AuthGuard],
+  exports: [TypeOrmModule, TokenService, AuthGuard],
 })
 export class TokenModule {}
