@@ -33,6 +33,16 @@ async function bootstrap() {
     .setTitle(`${appTitle} OpenAPI Specification`)
     .setDescription(appDesc)
     .setVersion(`${appVersion} published: ${appPublished}`)
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        name: 'Token',
+        description: 'Enter Auth token',
+        in: 'header',
+      },
+      'Token',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerDocOptions);
