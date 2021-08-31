@@ -5,7 +5,6 @@ import { UserDTO } from '../dtos/user.dto';
 import { CredentialsDTO } from '../dtos/credentials.dto';
 import { AuthGuard } from '../guards/auth.guard';
 import { UserSessionRepository } from '../user-session/user-session.repository';
-import { ValidateTokenDTO } from '../dtos/validate-token.dto';
 
 jest.mock('./authentication.service');
 
@@ -54,9 +53,7 @@ describe('Authentication Controller', () => {
 
   describe('Delete Methods', () => {
     it('should delete a user from a session', async () => {
-      const token = new ValidateTokenDTO();
-
-      expect(controller.signOut(token, '')).resolves.not.toThrow();
+      expect(controller.signOut('', '')).resolves.not.toThrow();
     });
   });
 });
