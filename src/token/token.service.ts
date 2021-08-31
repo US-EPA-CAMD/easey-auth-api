@@ -71,8 +71,10 @@ export class TokenService {
 
     const tokenExpiration = new Date(Date.now() + 20 * 60000).toUTCString();
     const userSession = await this.getSessionStatus(userId);
-    if (!userSession.exists || userSession.expired) {
-      throw new BadRequestException('No valid user session!');
+    if (!userSession.exists) {
+      throw new BadRequestException(
+        'No valid session exists for the current user.',
+      );
     }
 
     const sessionDTO = userSession.session;

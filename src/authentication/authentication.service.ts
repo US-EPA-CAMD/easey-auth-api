@@ -152,6 +152,9 @@ export class AuthenticationService {
     );
     if (sessionStatus.exists) {
       await this.tokenService.removeUserSession(sessionStatus.sessionEntity);
-    } else throw new BadRequestException('No session exists for token.');
+    } else
+      throw new BadRequestException(
+        'No valid session exists for the current user.',
+      );
   }
 }
