@@ -124,9 +124,8 @@ export class AuthenticationService {
         });
       })
       .then(res => {
-        const user = res[0].User;
         dto = new UserDTO();
-        dto.userId = user.userId;
+        dto.userId = userId;
         return dto;
       })
       .catch(err => {
