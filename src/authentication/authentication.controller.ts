@@ -1,12 +1,12 @@
 import { ApiTags, ApiOkResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { Post, Controller, Body, UseGuards, Delete } from '@nestjs/common';
+import { Post, Controller, Body, UseGuards, Delete, Req } from '@nestjs/common';
+import { Request } from '@nestjs/common';
 
 import { UserDTO } from './../dtos/user.dto';
 import { CredentialsDTO } from './../dtos/credentials.dto';
 
 import { ClientIP } from './../decorators/client-ip.decorator';
 import { AuthenticationService } from './authentication.service';
-import { ValidateTokenDTO } from '../dtos/validate-token.dto';
 import { AuthGuard } from '../guards/auth.guard';
 
 @ApiTags('Authentication')
@@ -52,10 +52,8 @@ export class AuthenticationController {
   @ApiOkResponse({
     description: 'Authenticates a user using EPA CDX Services',
   })
-  signOut(
-    @Body() credentials: ValidateTokenDTO,
-    @ClientIP() clientIp: string,
-  ): Promise<void> {
-    return this.service.signOut(credentials.token, clientIp);
+  signOut(@Req() req: Request, @ClientIP() clientIp: string): Promise<void> {
+    const token = req.headers['authorization'].split(' ')[1];
+    return this.service.signOut(token, clientIp);
   }
 }

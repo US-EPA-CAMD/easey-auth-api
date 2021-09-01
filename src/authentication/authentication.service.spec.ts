@@ -15,6 +15,12 @@ jest.mock('soap', () => ({
   createClientAsync: jest.fn(() => Promise.resolve(client)),
 }));
 
+jest.mock('../utils', () => ({
+  parseToken: jest.fn(() => {
+    return { clientIp: '1' };
+  }),
+}));
+
 const mockTokenService = () => ({
   getSessionStatus: jest.fn().mockResolvedValue({
     exists: false,
@@ -100,6 +106,51 @@ describe('Authentication Service', () => {
     it('should return a userDTO given an existing session', async () => {
       const dto = await service.login('', '');
       expect(dto.userId).toEqual('1');
+    });
+  });
+
+  describe('signOut()', () => {
+    it('should return a userDTO given an existing session', async () => {
+      jest.spyOn(tokenService, 'unpackToken').mockResolvedValue('');
+      jest.spyOn(tokenService, 'getSessionStatus').mockResolvedValue({
+        exists: true,
+        expired: false,
+        session: null,
+        sessionEntity: null,
+      });
+      jest.spyOn(tokenService, 'removeUserSession').mockResolvedValue();
+
+      expect(service.signOut('', '1')).resolves.not.toThrow();
+    });
+
+    it('should throw an error when provided a different Ip', () => {
+      jest.spyOn(tokenService, 'unpackToken').mockResolvedValue('');
+      jest.spyOn(tokenService, 'getSessionStatus').mockResolvedValue({
+        exists: true,
+        expired: false,
+        session: null,
+        sessionEntity: null,
+      });
+      jest.spyOn(tokenService, 'removeUserSession').mockResolvedValue();
+
+      expect(async () => {
+        await service.signOut('', '2');
+      }).rejects.toThrowError();
+    });
+
+    it('should throw an error when provided a non existing session', () => {
+      jest.spyOn(tokenService, 'unpackToken').mockResolvedValue('');
+      jest.spyOn(tokenService, 'getSessionStatus').mockResolvedValue({
+        exists: false,
+        expired: false,
+        session: null,
+        sessionEntity: null,
+      });
+      jest.spyOn(tokenService, 'removeUserSession').mockResolvedValue();
+
+      expect(async () => {
+        await service.signOut('', '2');
+      }).rejects.toThrowError();
     });
   });
 });

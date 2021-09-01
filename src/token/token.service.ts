@@ -62,8 +62,8 @@ export class TokenService {
     return await this.map.one(session);
   }
 
-  async removeUserSession(session: UserSession) {
-    this.repository.remove(session);
+  async removeUserSession(session: UserSession): Promise<void> {
+    await this.repository.remove(session);
   }
 
   async createToken(userId: string, clientIp: string): Promise<any> {

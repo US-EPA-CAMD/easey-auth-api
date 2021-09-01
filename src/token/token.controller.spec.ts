@@ -1,10 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { AuthGuard } from '../guards/auth.guard';
 import { UserIdDTO } from '../dtos/user-id.dto';
 import { ValidateTokenDTO } from '../dtos/validate-token.dto';
 import { TokenController } from './token.controller';
 import { TokenService } from './token.service';
+import { UserSessionRepository } from '../user-session/user-session.repository';
 
 jest.mock('./token.service');
+
+const mockRepo = () => ({
+  findOne: jest.fn().mockResolvedValue(''),
+});
 
 describe('Token Controller', () => {
   let controller: TokenController;
@@ -13,7 +19,11 @@ describe('Token Controller', () => {
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TokenController],
-      providers: [TokenService],
+      providers: [
+        TokenService,
+        AuthGuard,
+        { provide: UserSessionRepository, useFactory: mockRepo },
+      ],
     }).compile();
 
     controller = module.get(TokenController);
