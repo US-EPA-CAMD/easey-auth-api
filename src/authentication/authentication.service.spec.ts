@@ -7,7 +7,9 @@ import { UserSessionDTO } from '../dtos/user-session.dto';
 
 const client = {
   AuthenticateAsync: jest.fn(() =>
-    Promise.resolve([{ User: { userId: '1' } }]),
+    Promise.resolve([
+      { User: { userId: '1', firstName: 'Jeff', lastName: 'Bob' } },
+    ]),
   ),
 };
 
@@ -87,25 +89,12 @@ describe('Authentication Service', () => {
 
       expect(user).toBeDefined();
     });
-
-    it('should throw a BadRequestException given an existing, expired session', async () => {
-      jest.spyOn(tokenService, 'getSessionStatus').mockResolvedValue({
-        exists: true,
-        expired: true,
-        session: null,
-        sessionEntity: null,
-      });
-
-      expect(async () => {
-        await service.signIn('', '', '');
-      }).rejects.toThrowError();
-    });
   });
 
   describe('login()', () => {
     it('should return a userDTO given an existing session', async () => {
       const dto = await service.login('', '');
-      expect(dto.userId).toEqual('1');
+      expect(dto.firstName).toEqual('Jeff');
     });
   });
 
