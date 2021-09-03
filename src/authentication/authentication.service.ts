@@ -87,17 +87,16 @@ export class AuthenticationService {
     let user: UserDTO;
 
     const sessionStatus = await this.tokenService.getSessionStatus(userId);
-    if (sessionStatus.exists) {
-      if (sessionStatus.expired) {
-        throw new BadRequestException('Token has expired');
-      }
 
+    if (sessionStatus.exists && sessionStatus.expired)
+      await this.tokenService.removeUserSession(sessionStatus.sessionEntity);
+
+    if (sessionStatus.exists && !sessionStatus.expired) {
       const sessionDTO = sessionStatus.session;
 
-      user = new UserDTO();
+      user = await this.login(userId, password);
       user.token = sessionDTO.securityToken;
       user.tokenExpiration = sessionDTO.tokenExpiration;
-      user.userId = userId;
 
       return user;
     }
@@ -124,8 +123,11 @@ export class AuthenticationService {
         });
       })
       .then(res => {
+        const user = res[0].User;
         dto = new UserDTO();
         dto.userId = userId;
+        dto.firstName = user.firstName;
+        dto.lastName = user.lastName;
         return dto;
       })
       .catch(err => {
