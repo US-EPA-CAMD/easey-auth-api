@@ -32,7 +32,7 @@ export class TokenService {
       sessionEntity: null,
     };
 
-    const userSession = await this.repository.findOne(userid);
+    const userSession = await this.repository.findOne(userid.toLowerCase());
     if (userSession !== undefined) {
       status.exists = true;
       status.sessionEntity = userSession;
@@ -53,7 +53,7 @@ export class TokenService {
     const current = new Date(Date.now()).toUTCString();
 
     const session = new UserSession();
-    session.userId = userId;
+    session.userId = userId.toLowerCase();
     session.sessionId = sessionId;
     session.tokenExpiration = expiration;
     session.lastLoginDate = current;
