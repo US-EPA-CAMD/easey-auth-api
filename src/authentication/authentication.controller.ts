@@ -14,22 +14,6 @@ import { AuthGuard } from '../guards/auth.guard';
 export class AuthenticationController {
   constructor(private service: AuthenticationService) {}
 
-  // Refactor out eventually
-  @Post('/authenticate')
-  @ApiOkResponse({
-    type: UserDTO,
-    description: 'Authenticates a user using EPA CDX Services',
-  })
-  authenticate(
-    @Body() credentials: CredentialsDTO,
-    @ClientIP() clientIp: string,
-  ): Promise<UserDTO> {
-    return this.service.authenticateDummy(
-      credentials.userId,
-      credentials.password,
-    );
-  }
-
   @Post('/sign-in')
   @ApiOkResponse({
     type: UserDTO,
