@@ -2,7 +2,13 @@ import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
 export const ClientIP = createParamDecorator(
   (data: never, context: ExecutionContext) => {
-    return context.switchToHttp().getRequest().ip;
+    const request = context.switchToHttp().getRequest();
+
+    if (request.body && request.body.ip) {
+      return request.body.ip;
+    }
+
+    return request.ip;
   },
 );
 
