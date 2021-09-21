@@ -23,6 +23,7 @@ export class AuthenticationController {
     @Body() credentials: CredentialsDTO,
     @ClientIP() clientIp: string,
   ): Promise<UserDTO> {
+    console.log('Login IP ' + clientIp);
     return this.service.signIn(
       credentials.userId,
       credentials.password,
