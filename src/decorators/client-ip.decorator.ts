@@ -5,15 +5,13 @@ export const ClientIP = createParamDecorator(
     const request = context.switchToHttp().getRequest();
 
     if (request.headers['x-client-ip']) {
+      console.log('X Client IP: ' + request.headers['x-client-ip']);
       return request.headers['x-client-ip'];
     }
 
-    console.log(`request.ip: ${request.ip}`);
-    console.log(
-      `request.connection.remoteAddress: ${request.connection.remoteAddress}`,
-    );
-    console.log(`x-forwarded-for: ${request.headers['x-forwarded-for']}`);
-    return request.ip;
+    console.log('X-Forwarded-For: ' + request['x-forwarded-for']);
+
+    return request['x-forwarded-for'];
   },
 );
 
