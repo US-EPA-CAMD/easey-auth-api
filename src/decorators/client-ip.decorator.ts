@@ -9,9 +9,9 @@ export const ClientIP = createParamDecorator(
       return request.headers['x-client-ip'];
     }
 
-    console.log('X-Forwarded-For: ' + request['x-forwarded-for']);
+    console.log('X-Forwarded-For: ' + request.headers['x-forwarded-for']);
 
-    return request['x-forwarded-for'];
+    return request.headers['x-forwarded-for'];
   },
 );
 
