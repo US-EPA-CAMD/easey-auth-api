@@ -1,9 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
-import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -52,6 +52,8 @@ async function bootstrap() {
     document,
     swaggerCustomOptions,
   );
+
+  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
   await app.listen(configService.get<number>('app.port'));
   console.log(

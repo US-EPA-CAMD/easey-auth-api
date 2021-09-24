@@ -5,6 +5,7 @@ import { UserDTO } from '../dtos/user.dto';
 import { CredentialsDTO } from '../dtos/credentials.dto';
 import { AuthGuard } from '../guards/auth.guard';
 import { UserSessionRepository } from '../user-session/user-session.repository';
+import { createMock } from '@golevelup/ts-jest';
 
 jest.mock('./authentication.service');
 
@@ -48,6 +49,19 @@ describe('Authentication Controller', () => {
       const cred = new CredentialsDTO();
 
       expect(await controller.signIn(cred, '')).toBe(data);
+    });
+  });
+
+  describe('Sign-Out Controller', () => {
+    it('Should call the service sign out given a valid request', async () => {
+      const signOut = jest.spyOn(service, 'signOut').mockResolvedValue();
+      const mockRequest = createMock<Request>();
+
+      mockRequest.headers['authorization'] = 'Bearer 1';
+
+      controller.signOut(mockRequest, '0');
+
+      expect(signOut).toHaveBeenCalled();
     });
   });
 });

@@ -1,7 +1,9 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
+  LoggerService,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClientAsync } from 'soap';
@@ -9,12 +11,15 @@ import { createClientAsync } from 'soap';
 import { UserDTO } from './../dtos/user.dto';
 import { TokenService } from '../token/token.service';
 import { parseToken } from '../utils';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class AuthenticationService {
   constructor(
     private configService: ConfigService,
     private tokenService: TokenService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly logger: LoggerService,
   ) {}
 
   async signIn(
@@ -69,9 +74,15 @@ export class AuthenticationService {
         return dto;
       })
       .catch(err => {
-        throw new InternalServerErrorException(
-          err.root.Envelope.Body.Fault.detail.RegisterAuthFault.description,
-        );
+        if (err.root && err.root.Envelope) {
+          this.logger.log(
+            err.root.Envelope.Body.Fault.detail.RegisterAuthFault.description,
+          );
+          throw new InternalServerErrorException(
+            err.root.Envelope.Body.Fault.detail.RegisterAuthFault.description,
+          );
+        }
+        throw new InternalServerErrorException(err);
       });
   }
 

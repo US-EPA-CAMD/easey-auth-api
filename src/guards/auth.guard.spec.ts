@@ -1,6 +1,8 @@
 import { TestingModule, Test } from '@nestjs/testing';
 import { UserSessionRepository } from '../user-session/user-session.repository';
 import { AuthGuard } from './auth.guard';
+import { createMock } from '@golevelup/ts-jest';
+import { ExecutionContext } from '@nestjs/common';
 
 const mockRepository = () => ({
   findOne: jest.fn().mockResolvedValue(''),
@@ -25,6 +27,18 @@ describe('AuthGuard', () => {
 
   it('should be defined', () => {
     expect(guard).toBeDefined();
+  });
+
+  it('should return true given a valid execution context ', () => {
+    const mockExecutionContext = createMock<ExecutionContext>();
+
+    jest.spyOn(guard, 'validateRequest').mockResolvedValueOnce(true);
+
+    const func = jest.spyOn(guard, 'canActivate');
+
+    guard.canActivate(mockExecutionContext);
+
+    expect(func).toHaveReturned();
   });
 
   it('should validate properly and return true given good input', async () => {
