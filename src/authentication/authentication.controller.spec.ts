@@ -52,7 +52,7 @@ describe('Authentication Controller', () => {
     });
   });
 
-  describe('Delete Methods', () => {
+  describe('Sign-Out Controller', () => {
     it('Should call the service sign out given a valid request', async () => {
       const signOut = jest.spyOn(service, 'signOut').mockResolvedValue();
       const mockRequest = createMock<Request>();
