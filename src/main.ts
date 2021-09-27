@@ -3,18 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
-import { WinstonModule } from 'nest-winston';
-import winston = require('winston');
-import ecsFormat = require('@elastic/ecs-winston-format');
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: WinstonModule.createLogger({
-      level: 'info',
-      format: ecsFormat(),
-      transports: [new winston.transports.Console()],
-    }),
-  });
+  const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
   const appTitle = configService.get<string>('app.title');

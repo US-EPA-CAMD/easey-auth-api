@@ -10,7 +10,6 @@ import { TypeOrmConfigService } from './config/typeorm.config';
 
 import { AuthenticationModule } from './authentication/authentication.module';
 import { TokenModule } from './token/token.module';
-import { WinstonModule } from 'nest-winston';
 
 @Module({
   imports: [
@@ -25,7 +24,6 @@ import { WinstonModule } from 'nest-winston';
     }),
     AuthenticationModule,
     TokenModule,
-    WinstonModule,
   ],
   providers: [Logger],
 })
