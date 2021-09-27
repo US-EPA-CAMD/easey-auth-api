@@ -11,15 +11,12 @@ import { createClientAsync } from 'soap';
 import { UserDTO } from './../dtos/user.dto';
 import { TokenService } from '../token/token.service';
 import { parseToken } from '../utils';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class AuthenticationService {
   constructor(
     private configService: ConfigService,
     private tokenService: TokenService,
-    @Inject(WINSTON_MODULE_NEST_PROVIDER)
-    private readonly logger: LoggerService,
   ) {}
 
   async signIn(
@@ -29,22 +26,21 @@ export class AuthenticationService {
   ): Promise<UserDTO> {
     let user: UserDTO;
 
-    const sessionStatus = await this.tokenService.getSessionStatus(userId);
+    user = await this.login(userId, password);
 
+    const sessionStatus = await this.tokenService.getSessionStatus(userId);
     if (sessionStatus.exists && sessionStatus.expired)
       await this.tokenService.removeUserSession(sessionStatus.sessionEntity);
 
     if (sessionStatus.exists && !sessionStatus.expired) {
       const sessionDTO = sessionStatus.session;
 
-      user = await this.login(userId, password);
       user.token = sessionDTO.securityToken;
       user.tokenExpiration = sessionDTO.tokenExpiration;
 
       return user;
     }
 
-    user = await this.login(userId, password);
     const session = await this.tokenService.createUserSession(userId);
     user.token = await this.tokenService.createToken(userId, clientIp);
     user.tokenExpiration = session.tokenExpiration;
@@ -75,9 +71,6 @@ export class AuthenticationService {
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          this.logger.log(
-            err.root.Envelope.Body.Fault.detail.RegisterAuthFault.description,
-          );
           throw new InternalServerErrorException(
             err.root.Envelope.Body.Fault.detail.RegisterAuthFault.description,
           );

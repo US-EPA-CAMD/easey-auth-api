@@ -6,8 +6,7 @@ import {
   UseGuards,
   Delete,
   Req,
-  Inject,
-  LoggerService,
+  Logger,
 } from '@nestjs/common';
 import { Request } from '@nestjs/common';
 
@@ -17,15 +16,13 @@ import { CredentialsDTO } from './../dtos/credentials.dto';
 import { ClientIP } from './../decorators/client-ip.decorator';
 import { AuthenticationService } from './authentication.service';
 import { AuthGuard } from '../guards/auth.guard';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @ApiTags('Authentication')
 @Controller()
 export class AuthenticationController {
   constructor(
     private service: AuthenticationService,
-    @Inject(WINSTON_MODULE_NEST_PROVIDER)
-    private readonly logger: LoggerService,
+    private readonly logger: Logger,
   ) {}
 
   @Post('/sign-in')
@@ -37,9 +34,7 @@ export class AuthenticationController {
     @Body() credentials: CredentialsDTO,
     @ClientIP() clientIp: string,
   ): Promise<UserDTO> {
-    this.logger.log(
-      `User ${credentials.userId} signing in from IP: ${clientIp}`,
-    );
+    this.logger.log('User signed in');
 
     return this.service.signIn(
       credentials.userId,

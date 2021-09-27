@@ -6,6 +6,7 @@ import { CredentialsDTO } from '../dtos/credentials.dto';
 import { AuthGuard } from '../guards/auth.guard';
 import { UserSessionRepository } from '../user-session/user-session.repository';
 import { createMock } from '@golevelup/ts-jest';
+import { Logger } from '@nestjs/common';
 
 jest.mock('./authentication.service');
 
@@ -28,6 +29,7 @@ describe('Authentication Controller', () => {
       providers: [
         { provide: AuthenticationService, useFactory: mockService },
         AuthGuard,
+        Logger,
         { provide: UserSessionRepository, useFactory: mockRepo },
       ],
     }).compile();

@@ -3,10 +3,18 @@ import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { WinstonModule, WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import winston = require('winston');
+import ecsFormat = require('@elastic/ecs-winston-format');
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: WinstonModule.createLogger({
+      level: 'info',
+      format: ecsFormat(),
+      transports: [new winston.transports.Console()],
+    }),
+  });
   const configService = app.get(ConfigService);
 
   const appTitle = configService.get<string>('app.title');
@@ -52,8 +60,6 @@ async function bootstrap() {
     document,
     swaggerCustomOptions,
   );
-
-  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
   await app.listen(configService.get<number>('app.port'));
   console.log(
