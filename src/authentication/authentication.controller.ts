@@ -1,13 +1,5 @@
 import { ApiTags, ApiOkResponse, ApiBearerAuth } from '@nestjs/swagger';
-import {
-  Post,
-  Controller,
-  Body,
-  UseGuards,
-  Delete,
-  Req,
-  Logger,
-} from '@nestjs/common';
+import { Post, Controller, Body, UseGuards, Delete, Req } from '@nestjs/common';
 import { Request } from '@nestjs/common';
 
 import { UserDTO } from './../dtos/user.dto';
@@ -16,8 +8,6 @@ import { CredentialsDTO } from './../dtos/credentials.dto';
 import { ClientIP } from './../decorators/client-ip.decorator';
 import { AuthenticationService } from './authentication.service';
 import { AuthGuard } from '../guards/auth.guard';
-
-import { logger } from '../utils';
 
 @ApiTags('Authentication')
 @Controller()
@@ -33,11 +23,6 @@ export class AuthenticationController {
     @Body() credentials: CredentialsDTO,
     @ClientIP() clientIp: string,
   ): Promise<UserDTO> {
-    logger.warn('Received Sign In Logger');
-    console.log('Received Sign In Console');
-    Logger.log('Received Sign In Logger');
-    logger.warn('Sign In With Props', { userId: credentials.userId });
-
     return this.service.signIn(
       credentials.userId,
       credentials.password,

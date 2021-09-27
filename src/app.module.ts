@@ -1,4 +1,4 @@
-import { Logger, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { RouterModule } from 'nest-router';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -25,6 +25,5 @@ import { TokenModule } from './token/token.module';
     AuthenticationModule,
     TokenModule,
   ],
-  providers: [Logger],
 })
 export class AppModule {}

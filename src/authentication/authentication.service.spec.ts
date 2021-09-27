@@ -4,6 +4,7 @@ import { TokenService } from '../token/token.service';
 import { AuthenticationService } from './authentication.service';
 import { UserDTO } from '../dtos/user.dto';
 import { UserSessionDTO } from '../dtos/user-session.dto';
+import logWrapper from '../logWrapper';
 
 const client = {
   AuthenticateAsync: jest.fn(() =>
@@ -50,6 +51,7 @@ describe('Authentication Service', () => {
           provide: TokenService,
           useFactory: mockTokenService,
         },
+        logWrapper,
         ConfigService,
       ],
     }).compile();

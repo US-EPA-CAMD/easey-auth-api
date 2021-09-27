@@ -37,6 +37,7 @@
     "swagger-ui-express": "^4.1.4",
     "typeorm": "^0.2.31",
     "uuid": "^8.3.2",
+    "uuidv4": "^6.2.12",
     "winston": "^3.3.3"
   },
   "devDependencies": {
