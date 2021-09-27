@@ -17,13 +17,12 @@ import { ClientIP } from './../decorators/client-ip.decorator';
 import { AuthenticationService } from './authentication.service';
 import { AuthGuard } from '../guards/auth.guard';
 
+import { logger } from '../utils';
+
 @ApiTags('Authentication')
 @Controller()
 export class AuthenticationController {
-  constructor(
-    private service: AuthenticationService,
-    private readonly logger: Logger,
-  ) {}
+  constructor(private service: AuthenticationService) {}
 
   @Post('/sign-in')
   @ApiOkResponse({
@@ -34,9 +33,10 @@ export class AuthenticationController {
     @Body() credentials: CredentialsDTO,
     @ClientIP() clientIp: string,
   ): Promise<UserDTO> {
-    console.log('User signed in', 'signIn');
-    console.log('User signed in', { signIn: 'signIn' });
-    console.log('User signed in');
+    logger.warn('Received Sign In Logger');
+    console.log('Received Sign In Console');
+    Logger.log('Received Sign In Logger');
+    logger.warn('Sign In With Props', { userId: credentials.userId });
 
     return this.service.signIn(
       credentials.userId,

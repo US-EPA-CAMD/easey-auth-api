@@ -1,3 +1,5 @@
+const winston = require('winston');
+
 export const parseToken = (token: string) => {
   const obj = {
     userId: null,
@@ -14,3 +16,9 @@ export const parseToken = (token: string) => {
 
   return obj;
 };
+
+export const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(),
+  transports: [new winston.transports.Console()],
+});
