@@ -34,7 +34,9 @@ export class AuthenticationController {
     @Body() credentials: CredentialsDTO,
     @ClientIP() clientIp: string,
   ): Promise<UserDTO> {
-    this.logger.log('User signed in');
+    console.log('User signed in', 'signIn');
+    console.log('User signed in', { signIn: 'signIn' });
+    console.log('User signed in');
 
     return this.service.signIn(
       credentials.userId,
