@@ -9,12 +9,14 @@ import { createClientAsync } from 'soap';
 import { UserDTO } from './../dtos/user.dto';
 import { TokenService } from '../token/token.service';
 import { parseToken } from '../utils';
+import logWrapper from '../logWrapper';
 
 @Injectable()
 export class AuthenticationService {
   constructor(
     private configService: ConfigService,
     private tokenService: TokenService,
+    private logger: logWrapper,
   ) {}
 
   async signIn(
@@ -60,6 +62,7 @@ export class AuthenticationService {
         });
       })
       .then(res => {
+        this.logger.log('User successfully signed in', { userId: userId });
         const user = res[0].User;
         dto = new UserDTO();
         dto.userId = userId;
@@ -69,11 +72,17 @@ export class AuthenticationService {
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          throw new InternalServerErrorException(
+          this.logger.error(
+            InternalServerErrorException,
             err.root.Envelope.Body.Fault.detail.RegisterAuthFault.description,
+            { userId: userId },
           );
         }
-        throw new InternalServerErrorException(err);
+
+        this.logger.error(InternalServerErrorException, err.message, {
+          userId: userId,
+        });
+        return null;
       });
   }
 
@@ -85,7 +94,11 @@ export class AuthenticationService {
     const parsed = parseToken(stringifiedToken);
 
     if (parsed.clientIp !== clientIp) {
-      throw new BadRequestException('Request from invalid IP.');
+      this.logger.error(
+        BadRequestException,
+        'Sign out request coming from invalid IP address',
+        { userId: parsed.userId, clientIp: clientIp },
+      );
     }
 
     const sessionStatus = await this.tokenService.getSessionStatus(
@@ -93,9 +106,15 @@ export class AuthenticationService {
     );
     if (sessionStatus.exists) {
       await this.tokenService.removeUserSession(sessionStatus.sessionEntity);
-    } else
-      throw new BadRequestException(
-        'No valid session exists for the current user.',
+      this.logger.log('User successfully signed out', {
+        userId: parsed.userId,
+      });
+    } else {
+      this.logger.error(
+        BadRequestException,
+        'No valid session exists for the current user',
+        { userId: parsed.userId },
       );
+    }
   }
 }
