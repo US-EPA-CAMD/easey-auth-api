@@ -4,7 +4,8 @@ import { TokenService } from '../token/token.service';
 import { AuthenticationService } from './authentication.service';
 import { UserDTO } from '../dtos/user.dto';
 import { UserSessionDTO } from '../dtos/user-session.dto';
-import logWrapper from '../logWrapper';
+import logWrapper from '../Logger/Logger.service';
+import { LogModule } from '../Logger/Logger.module';
 
 const client = {
   AuthenticateAsync: jest.fn(() =>
@@ -45,6 +46,7 @@ describe('Authentication Service', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [LogModule],
       providers: [
         AuthenticationService,
         {

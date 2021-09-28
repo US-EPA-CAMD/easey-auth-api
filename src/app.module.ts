@@ -11,6 +11,8 @@ import { TypeOrmConfigService } from './config/typeorm.config';
 import { AuthenticationModule } from './authentication/authentication.module';
 import { TokenModule } from './token/token.module';
 
+import { LogModule } from './Logger/Logger.module';
+
 @Module({
   imports: [
     RouterModule.forRoutes(routes),
@@ -18,7 +20,7 @@ import { TokenModule } from './token/token.module';
       isGlobal: true,
       load: [dbConfig, appConfig],
     }),
-
+    LogModule,
     TypeOrmModule.forRootAsync({
       useClass: TypeOrmConfigService,
     }),

@@ -5,6 +5,7 @@ import { UserSessionRepository } from '../user-session/user-session.repository';
 import { UserSessionMap } from '../maps/user-session.map';
 import { UserSession } from '../entities/user-session.entity';
 import { UserSessionDTO } from '../dtos/user-session.dto';
+import { LogModule } from '../Logger/Logger.module';
 
 const client = {
   CreateSecurityTokenAsync: jest.fn(() => Promise.resolve([{ return: '' }])),
@@ -37,6 +38,7 @@ describe('Token Service', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [LogModule],
       providers: [
         TokenService,
         {

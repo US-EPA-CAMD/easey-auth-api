@@ -14,6 +14,7 @@ import { parseToken } from '../utils';
 import { UserSession } from '../entities/user-session.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { UserSessionDTO } from '../dtos/user-session.dto';
+import { Logger } from '../Logger/Logger.service';
 
 @Injectable()
 export class TokenService {
@@ -22,6 +23,7 @@ export class TokenService {
     private repository: UserSessionRepository,
     private map: UserSessionMap,
     private configService: ConfigService,
+    private logger: Logger,
   ) {}
 
   async getSessionStatus(userid: string): Promise<SessionStatus> {
@@ -49,6 +51,11 @@ export class TokenService {
   async createUserSession(userId: string): Promise<UserSessionDTO> {
     const sessionId = uuidv4();
 
+    this.logger.info('Creating user session', {
+      userId: userId,
+      sessionId: sessionId,
+    });
+
     const expiration = new Date(Date.now() + 20 * 60000).toUTCString(); //Expire in 20 minutes
     const current = new Date(Date.now()).toUTCString();
 
@@ -72,8 +79,10 @@ export class TokenService {
     const tokenExpiration = new Date(Date.now() + 20 * 60000).toUTCString();
     const userSession = await this.getSessionStatus(userId);
     if (!userSession.exists) {
-      throw new BadRequestException(
-        'No valid session exists for the current user.',
+      this.logger.error(
+        BadRequestException,
+        'No valid session exists for the current user',
+        { userId: userId },
       );
     }
 
@@ -98,12 +107,18 @@ export class TokenService {
         sessionDTO.securityToken = res[0].return;
         this.repository.update(userId, sessionDTO);
 
+        this.logger.info('Creating new security token', {
+          token: sessionDTO.securityToken,
+          userId: userId,
+        });
+
         return res[0].return;
       })
       .catch(err => {
-        throw new InternalServerErrorException(
+        this.logger.error(
+          InternalServerErrorException,
           err.root.Envelope.Body.Fault.detail.faultdetails,
-          'Create security token failed!',
+          { userId: userId },
         );
       });
   }
@@ -126,9 +141,10 @@ export class TokenService {
         return res[0].return;
       })
       .catch(err => {
-        throw new InternalServerErrorException(
+        this.logger.error(
+          InternalServerErrorException,
           err.root.Envelope.Body.Fault.detail.faultdetails,
-          'Security token validation failed!',
+          { token: token, clientIp: clientIp },
         );
       });
   }
@@ -138,10 +154,13 @@ export class TokenService {
     const parsed = parseToken(stringifiedToken);
 
     const sessionStatus = await this.getSessionStatus(parsed.userId);
-    if (!sessionStatus.exists || sessionStatus.expired)
-      throw new BadRequestException(
-        'No valid session exists for the user. Please log in to create a valid session."',
+    if (!sessionStatus.exists || sessionStatus.expired) {
+      this.logger.error(
+        BadRequestException,
+        'No valid session exists for the user. Please log in to create a valid session.',
+        { token: token, clientIp: clientIp },
       );
+    }
 
     return stringifiedToken;
   }
