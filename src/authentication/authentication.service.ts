@@ -9,14 +9,15 @@ import { createClientAsync } from 'soap';
 import { UserDTO } from './../dtos/user.dto';
 import { TokenService } from '../token/token.service';
 import { parseToken } from '../utils';
-import logWrapper from '../logWrapper';
+
+import { Logger } from '../Logger/Logger.service';
 
 @Injectable()
 export class AuthenticationService {
   constructor(
     private configService: ConfigService,
     private tokenService: TokenService,
-    private logger: logWrapper,
+    private logger: Logger,
   ) {}
 
   async signIn(
@@ -62,7 +63,7 @@ export class AuthenticationService {
         });
       })
       .then(res => {
-        this.logger.log('User successfully signed in', { userId: userId });
+        this.logger.info('User successfully signed in', { userId: userId });
         const user = res[0].User;
         dto = new UserDTO();
         dto.userId = userId;
@@ -106,7 +107,7 @@ export class AuthenticationService {
     );
     if (sessionStatus.exists) {
       await this.tokenService.removeUserSession(sessionStatus.sessionEntity);
-      this.logger.log('User successfully signed out', {
+      this.logger.info('User successfully signed out', {
         userId: parsed.userId,
       });
     } else {

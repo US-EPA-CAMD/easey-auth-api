@@ -3,6 +3,7 @@ import { UserSessionRepository } from '../user-session/user-session.repository';
 import { AuthGuard } from './auth.guard';
 import { createMock } from '@golevelup/ts-jest';
 import { ExecutionContext } from '@nestjs/common';
+import { LogModule } from '../Logger/Logger.module';
 
 const mockRepository = () => ({
   findOne: jest.fn().mockResolvedValue(''),
@@ -16,6 +17,7 @@ describe('AuthGuard', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [LogModule],
       providers: [
         AuthGuard,
         { provide: UserSessionRepository, useFactory: mockRepository },
