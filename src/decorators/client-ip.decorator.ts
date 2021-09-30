@@ -4,9 +4,9 @@ export const ClientIP = createParamDecorator(
   (data: never, context: ExecutionContext) => {
     const request = context.switchToHttp().getRequest();
 
-    if (request.headers['x-client-ip']) {
-      console.log('Using X-Client-IP ' + request.headers['x-client-ip']);
-      return request.headers['x-client-ip'];
+    if (request.body.clientIp) {
+      console.log('Using passed clientIp ' + request.body.clientIp);
+      return request.body.clientIp;
     }
 
     if (request.headers['x-forwarded-for']) {
