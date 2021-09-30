@@ -10,11 +10,9 @@ export const ClientIP = createParamDecorator(
     }
 
     if (request.headers['x-forwarded-for']) {
-      console.log(
-        'Using X-Forwarded-For ' +
-          request.headers['x-forwarded-for'].split(',')[0],
-      );
-      return request.headers['x-forwarded-for'].split(',')[0];
+      const forwarded = request.headers['x-forwarded-for'].split(',')[0];
+      console.log('Using X-Forwarded-For ' + forwarded);
+      return forwarded;
     }
 
     console.log('Defaulting to IP ' + request.ip);
