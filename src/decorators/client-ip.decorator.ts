@@ -4,14 +4,19 @@ export const ClientIP = createParamDecorator(
   (data: never, context: ExecutionContext) => {
     const request = context.switchToHttp().getRequest();
 
-    if (request.headers['x-client-ip']) {
-      console.log('X Client IP: ' + request.headers['x-client-ip']);
-      return request.headers['x-client-ip'];
+    if (request.body.clientIp) {
+      console.log('Using passed clientIp ' + request.body.clientIp);
+      return request.body.clientIp;
     }
 
-    console.log('X-Forwarded-For: ' + request.headers['x-forwarded-for']);
+    if (request.headers['x-forwarded-for']) {
+      const forwarded = request.headers['x-forwarded-for'].split(',')[0];
+      console.log('Using X-Forwarded-For ' + forwarded);
+      return forwarded;
+    }
 
-    return request.headers['x-forwarded-for'];
+    console.log('Defaulting to IP ' + request.ip);
+    return request.ip;
   },
 );
 
