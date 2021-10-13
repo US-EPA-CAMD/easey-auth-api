@@ -21,11 +21,22 @@ export class AuthenticationService {
     private logger: Logger,
   ) {}
 
-  bypassUser(password: string) {
+  bypassUser(userId: string, password: string) {
     if (
       this.configService.get<string>('bypass.environment') === 'development' &&
       this.configService.get<string>('bypass.bypassed')
     ) {
+      const acceptedUsers = JSON.parse(
+        this.configService.get<string>('bypass.users'),
+      );
+
+      if (!acceptedUsers.find(x => x === userId)) {
+        this.logger.error(
+          InternalServerErrorException,
+          'Incorrect bypass user',
+        );
+      }
+
       const currentDate = new Date();
       const currentMonth = currentDate.toLocaleString('default', {
         month: 'long',
@@ -57,7 +68,7 @@ export class AuthenticationService {
     let user: UserDTO;
 
     // Dummy user returned if the system is set to flagging users
-    if (this.bypassUser(password)) {
+    if (this.bypassUser(userId, password)) {
       user = new UserDTO();
       user.userId = userId;
       user.firstName = userId;
