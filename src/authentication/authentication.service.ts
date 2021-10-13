@@ -11,6 +11,7 @@ import { TokenService } from '../token/token.service';
 import { parseToken } from '../utils';
 
 import { Logger } from '../Logger/Logger.service';
+import { decode } from 'js-base64';
 
 @Injectable()
 export class AuthenticationService {
@@ -20,6 +21,34 @@ export class AuthenticationService {
     private logger: Logger,
   ) {}
 
+  bypassUser(password: string) {
+    if (
+      this.configService.get<string>('bypass.environment') === 'development' &&
+      this.configService.get<string>('bypass.bypassed')
+    ) {
+      const currentDate = new Date();
+      const currentMonth = currentDate.toLocaleString('default', {
+        month: 'long',
+      });
+      const currentYear = currentDate.getFullYear();
+      const currentPass =
+        currentMonth +
+        currentYear +
+        this.configService.get<string>('bypass.pass');
+
+      if (password === currentPass) {
+        return true;
+      } else {
+        this.logger.error(
+          InternalServerErrorException,
+          'Incorrect bypass password',
+        );
+      }
+    }
+
+    return false;
+  }
+
   async signIn(
     userId: string,
     password: string,
@@ -27,7 +56,15 @@ export class AuthenticationService {
   ): Promise<UserDTO> {
     let user: UserDTO;
 
-    user = await this.login(userId, password);
+    // Dummy user returned if the system is set to flagging users
+    if (this.bypassUser(password)) {
+      user = new UserDTO();
+      user.userId = userId;
+      user.firstName = userId;
+      user.lastName = '';
+    } else {
+      user = await this.login(userId, password);
+    }
 
     const sessionStatus = await this.tokenService.getSessionStatus(userId);
     if (sessionStatus.exists && sessionStatus.expired)
@@ -88,11 +125,18 @@ export class AuthenticationService {
   }
 
   async signOut(token: string, clientIp: string): Promise<void> {
-    const stringifiedToken = await this.tokenService.unpackToken(
-      token,
-      clientIp,
-    );
-    const parsed = parseToken(stringifiedToken);
+    let stringifiedToken;
+    let parsed;
+    if (
+      this.configService.get<string>('bypass.environment') === 'development' &&
+      this.configService.get<string>('bypass.bypassed')
+    ) {
+      stringifiedToken = decode(token);
+      parsed = parseToken(stringifiedToken);
+    } else {
+      stringifiedToken = await this.tokenService.unpackToken(token, clientIp);
+      parsed = parseToken(stringifiedToken);
+    }
 
     if (parsed.clientIp !== clientIp) {
       this.logger.error(

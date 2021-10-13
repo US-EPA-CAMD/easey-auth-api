@@ -15,6 +15,7 @@ import { UserSession } from '../entities/user-session.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { UserSessionDTO } from '../dtos/user-session.dto';
 import { Logger } from '../Logger/Logger.service';
+import { encode, decode } from 'js-base64';
 
 @Injectable()
 export class TokenService {
@@ -89,6 +90,25 @@ export class TokenService {
     const sessionDTO = userSession.session;
     sessionDTO.tokenExpiration = tokenExpiration;
 
+    // Bypass logic
+    if (
+      this.configService.get<string>('bypass.environment') === 'development' &&
+      this.configService.get<string>('bypass.bypassed')
+    ) {
+      let fakeToken = `userId=${userId}&sessionId=${sessionDTO.sessionId}&expiration=${tokenExpiration}&clientIp=${clientIp}`;
+      fakeToken = encode(fakeToken);
+
+      sessionDTO.securityToken = fakeToken;
+      this.repository.update(userId, sessionDTO);
+
+      this.logger.info('Creating new security token', {
+        token: sessionDTO.securityToken,
+        userId: userId,
+      });
+
+      return fakeToken;
+    }
+
     return createClientAsync(url)
       .then(client => {
         return client.CreateSecurityTokenAsync({
@@ -150,8 +170,19 @@ export class TokenService {
   }
 
   async validateToken(token: string, clientIp: string): Promise<any> {
-    const stringifiedToken = await this.unpackToken(token, clientIp);
-    const parsed = parseToken(stringifiedToken);
+    let stringifiedToken;
+    let parsed;
+
+    if (
+      this.configService.get<string>('bypass.environment') === 'development' &&
+      this.configService.get<string>('bypass.bypassed')
+    ) {
+      stringifiedToken = decode(token);
+      parsed = parseToken(stringifiedToken);
+    } else {
+      stringifiedToken = await this.unpackToken(token, clientIp);
+      parsed = parseToken(stringifiedToken);
+    }
 
     const sessionStatus = await this.getSessionStatus(parsed.userId);
     if (!sessionStatus.exists || sessionStatus.expired) {
