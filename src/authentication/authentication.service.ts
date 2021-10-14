@@ -23,7 +23,7 @@ export class AuthenticationService {
 
   bypassUser(userId: string, password: string) {
     if (
-      this.configService.get<string>('bypass.environment') === 'development' &&
+      this.configService.get<string>('app.env') === 'development' &&
       this.configService.get<string>('bypass.bypassed')
     ) {
       const acceptedUsers = JSON.parse(
@@ -33,7 +33,7 @@ export class AuthenticationService {
       if (!acceptedUsers.find(x => x === userId)) {
         this.logger.error(
           InternalServerErrorException,
-          'Incorrect bypass user',
+          'Incorrect bypass userId',
         );
       }
 
@@ -139,15 +139,15 @@ export class AuthenticationService {
     let stringifiedToken;
     let parsed;
     if (
-      this.configService.get<string>('bypass.environment') === 'development' &&
+      this.configService.get<string>('app.env') === 'development' &&
       this.configService.get<string>('bypass.bypassed')
     ) {
       stringifiedToken = decode(token);
-      parsed = parseToken(stringifiedToken);
     } else {
       stringifiedToken = await this.tokenService.unpackToken(token, clientIp);
-      parsed = parseToken(stringifiedToken);
     }
+
+    parsed = parseToken(stringifiedToken);
 
     if (parsed.clientIp !== clientIp) {
       this.logger.error(

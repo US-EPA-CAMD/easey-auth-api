@@ -92,7 +92,7 @@ export class TokenService {
 
     // Bypass logic
     if (
-      this.configService.get<string>('bypass.environment') === 'development' &&
+      this.configService.get<string>('app.env') === 'development' &&
       this.configService.get<string>('bypass.bypassed')
     ) {
       let fakeToken = `userId=${userId}&sessionId=${sessionDTO.sessionId}&expiration=${tokenExpiration}&clientIp=${clientIp}`;
@@ -174,15 +174,15 @@ export class TokenService {
     let parsed;
 
     if (
-      this.configService.get<string>('bypass.environment') === 'development' &&
+      this.configService.get<string>('app.env') === 'development' &&
       this.configService.get<string>('bypass.bypassed')
     ) {
       stringifiedToken = decode(token);
-      parsed = parseToken(stringifiedToken);
     } else {
       stringifiedToken = await this.unpackToken(token, clientIp);
-      parsed = parseToken(stringifiedToken);
     }
+
+    parsed = parseToken(stringifiedToken);
 
     const sessionStatus = await this.getSessionStatus(parsed.userId);
     if (!sessionStatus.exists || sessionStatus.expired) {
