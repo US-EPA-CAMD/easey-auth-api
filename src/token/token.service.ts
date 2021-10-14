@@ -169,20 +169,20 @@ export class TokenService {
       });
   }
 
-  async validateToken(token: string, clientIp: string): Promise<any> {
-    let stringifiedToken;
-    let parsed;
-
+  async getStringifiedToken(token: string, clientIp: string): Promise<any> {
     if (
       this.configService.get<string>('app.env') === 'development' &&
       this.configService.get<string>('bypass.bypassed')
     ) {
-      stringifiedToken = decode(token);
+      return decode(token);
     } else {
-      stringifiedToken = await this.unpackToken(token, clientIp);
+      return await this.unpackToken(token, clientIp);
     }
+  }
 
-    parsed = parseToken(stringifiedToken);
+  async validateToken(token: string, clientIp: string): Promise<any> {
+    const stringifiedToken = await this.getStringifiedToken(token, clientIp);
+    const parsed = parseToken(stringifiedToken);
 
     const sessionStatus = await this.getSessionStatus(parsed.userId);
     if (!sessionStatus.exists || sessionStatus.expired) {

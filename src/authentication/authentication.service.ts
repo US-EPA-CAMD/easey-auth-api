@@ -136,18 +136,11 @@ export class AuthenticationService {
   }
 
   async signOut(token: string, clientIp: string): Promise<void> {
-    let stringifiedToken;
-    let parsed;
-    if (
-      this.configService.get<string>('app.env') === 'development' &&
-      this.configService.get<string>('bypass.bypassed')
-    ) {
-      stringifiedToken = decode(token);
-    } else {
-      stringifiedToken = await this.tokenService.unpackToken(token, clientIp);
-    }
-
-    parsed = parseToken(stringifiedToken);
+    const stringifiedToken = await this.tokenService.getStringifiedToken(
+      token,
+      clientIp,
+    );
+    const parsed = parseToken(stringifiedToken);
 
     if (parsed.clientIp !== clientIp) {
       this.logger.error(
