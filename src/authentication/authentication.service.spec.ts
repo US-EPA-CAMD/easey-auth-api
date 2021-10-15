@@ -15,6 +15,13 @@ const client = {
   ),
 };
 
+let responseVals = {
+  ['app.env']: 'development',
+  ['cdxBypass.enabled']: true,
+  ['cdxBypass.users']: '["kherceg-dp"]',
+  ['cdxBypass.pass']: 'password',
+};
+
 jest.mock('soap', () => ({
   createClientAsync: jest.fn(() => Promise.resolve(client)),
 }));
@@ -38,6 +45,8 @@ const mockTokenService = () => ({
   createToken: jest.fn().mockResolvedValue(''),
   unpackToken: jest.fn().mockResolvedValue(''),
   validateToken: jest.fn().mockResolvedValue(''),
+  getStringifiedToken: jest.fn().mockResolvedValue(''),
+  isBypassSet: jest.fn().mockReturnValue(false),
 });
 
 describe('Authentication Service', () => {
@@ -54,7 +63,14 @@ describe('Authentication Service', () => {
           useFactory: mockTokenService,
         },
         logWrapper,
-        ConfigService,
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              return responseVals[key];
+            }),
+          },
+        },
       ],
     }).compile();
 
@@ -66,8 +82,70 @@ describe('Authentication Service', () => {
     expect(service).toBeDefined();
   });
 
+  describe('bypassUser()', () => {
+    it('should return a new userDTO given a non-existing session and bypass flag set to true', async () => {
+      responseVals = {
+        ['app.env']: 'development',
+        ['cdxBypass.enabled']: true,
+        ['cdxBypass.users']: '["kherceg-dp"]',
+        ['cdxBypass.pass']: 'IC@nn0tL0g1nIn',
+      };
+      jest.spyOn(tokenService, 'isBypassSet').mockReturnValue(true);
+      const currentDate = new Date();
+      const currentMonth = currentDate.toLocaleString('default', {
+        month: 'long',
+      });
+      const currentYear = currentDate.getFullYear();
+      const currentPass =
+        currentMonth + currentYear + responseVals['cdxBypass.pass'];
+
+      const user = await service.bypassUser('kherceg-dp', currentPass);
+      expect(user).toEqual(true);
+    });
+
+    it('should throw an error given an invalid userId', async () => {
+      responseVals = {
+        ['app.env']: 'development',
+        ['cdxBypass.enabled']: true,
+        ['cdxBypass.users']: '["kherceg-d"]',
+        ['cdxBypass.pass']: 'IC@nn0tL0g1nIn',
+      };
+      jest.spyOn(tokenService, 'isBypassSet').mockReturnValue(true);
+      const currentDate = new Date();
+      const currentMonth = currentDate.toLocaleString('default', {
+        month: 'long',
+      });
+      const currentYear = currentDate.getFullYear();
+      const currentPass =
+        currentMonth + currentYear + responseVals['cdxBypass.pass'];
+
+      expect(async () => {
+        await service.bypassUser('kherceg-d', currentPass);
+      }).rejects.toThrowError();
+    });
+
+    it('should throw an error given an invalid password', async () => {
+      responseVals = {
+        ['app.env']: 'development',
+        ['cdxBypass.enabled']: true,
+        ['cdxBypass.users']: '["kherceg-dp"]',
+        ['cdxBypass.pass']: 'password',
+      };
+      jest.spyOn(tokenService, 'isBypassSet').mockReturnValue(true);
+      expect(async () => {
+        await service.bypassUser('kherceg-d', 'pass');
+      }).rejects.toThrowError();
+    });
+  });
+
   describe('signIn()', () => {
     it('should return a new userDTO given a non-existing session', async () => {
+      responseVals = {
+        ['app.env']: 'development',
+        ['cdxBypass.enabled']: false,
+        ['cdxBypass.users']: '["kherceg-dp"]',
+        ['cdxBypass.pass']: 'password',
+      };
       jest.spyOn(tokenService, 'getSessionStatus').mockResolvedValue({
         exists: false,
         expired: false,
@@ -82,6 +160,12 @@ describe('Authentication Service', () => {
     });
 
     it('should return a existing userDTO given an existing session', async () => {
+      responseVals = {
+        ['app.env']: 'development',
+        ['cdxBypass.enabled']: false,
+        ['cdxBypass.users']: '["kherceg-dp"]',
+        ['cdxBypass.pass']: 'password',
+      };
       jest.spyOn(tokenService, 'getSessionStatus').mockResolvedValue({
         exists: true,
         expired: false,
@@ -93,57 +177,72 @@ describe('Authentication Service', () => {
 
       expect(user).toBeDefined();
     });
-  });
 
-  describe('login()', () => {
-    it('should return a userDTO given an existing session', async () => {
-      const dto = await service.login('', '');
-      expect(dto.firstName).toEqual('Jeff');
-    });
-  });
+    it('should return a bypassed userDTO given a bypass flag and valid userId', async () => {
+      jest.spyOn(service, 'bypassUser').mockReturnValue(true);
 
-  describe('signOut()', () => {
-    it('should return a userDTO given an existing session', async () => {
-      jest.spyOn(tokenService, 'unpackToken').mockResolvedValue('');
-      jest.spyOn(tokenService, 'getSessionStatus').mockResolvedValue({
-        exists: true,
-        expired: false,
-        session: null,
-        sessionEntity: null,
-      });
-      jest.spyOn(tokenService, 'removeUserSession').mockResolvedValue();
-
-      expect(service.signOut('', '1')).resolves.not.toThrow();
-    });
-
-    it('should throw an error when provided a different Ip', () => {
-      jest.spyOn(tokenService, 'unpackToken').mockResolvedValue('');
-      jest.spyOn(tokenService, 'getSessionStatus').mockResolvedValue({
-        exists: true,
-        expired: false,
-        session: null,
-        sessionEntity: null,
-      });
-      jest.spyOn(tokenService, 'removeUserSession').mockResolvedValue();
-
-      expect(async () => {
-        await service.signOut('', '2');
-      }).rejects.toThrowError();
-    });
-
-    it('should throw an error when provided a non existing session', () => {
-      jest.spyOn(tokenService, 'unpackToken').mockResolvedValue('');
       jest.spyOn(tokenService, 'getSessionStatus').mockResolvedValue({
         exists: false,
         expired: false,
-        session: null,
+        session: new UserSessionDTO(),
         sessionEntity: null,
       });
-      jest.spyOn(tokenService, 'removeUserSession').mockResolvedValue();
 
-      expect(async () => {
-        await service.signOut('', '2');
-      }).rejects.toThrowError();
+      const user = await service.signIn('k', '', '');
+
+      expect(user.userId).toEqual('k');
+    });
+
+    describe('login()', () => {
+      it('should return a userDTO given an existing session', async () => {
+        const dto = await service.login('', '');
+        expect(dto.firstName).toEqual('Jeff');
+      });
+    });
+
+    describe('signOut()', () => {
+      it('should return a userDTO given an existing session', async () => {
+        jest.spyOn(tokenService, 'unpackToken').mockResolvedValue('');
+        jest.spyOn(tokenService, 'getSessionStatus').mockResolvedValue({
+          exists: true,
+          expired: false,
+          session: null,
+          sessionEntity: null,
+        });
+        jest.spyOn(tokenService, 'removeUserSession').mockResolvedValue();
+
+        expect(service.signOut('', '1')).resolves.not.toThrow();
+      });
+
+      it('should throw an error when provided a different Ip', () => {
+        jest.spyOn(tokenService, 'unpackToken').mockResolvedValue('');
+        jest.spyOn(tokenService, 'getSessionStatus').mockResolvedValue({
+          exists: true,
+          expired: false,
+          session: null,
+          sessionEntity: null,
+        });
+        jest.spyOn(tokenService, 'removeUserSession').mockResolvedValue();
+
+        expect(async () => {
+          await service.signOut('', '2');
+        }).rejects.toThrowError();
+      });
+
+      it('should throw an error when provided a non existing session', () => {
+        jest.spyOn(tokenService, 'unpackToken').mockResolvedValue('');
+        jest.spyOn(tokenService, 'getSessionStatus').mockResolvedValue({
+          exists: false,
+          expired: false,
+          session: null,
+          sessionEntity: null,
+        });
+        jest.spyOn(tokenService, 'removeUserSession').mockResolvedValue();
+
+        expect(async () => {
+          await service.signOut('', '2');
+        }).rejects.toThrowError();
+      });
     });
   });
 });

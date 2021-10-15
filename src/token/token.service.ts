@@ -27,6 +27,16 @@ export class TokenService {
     private logger: Logger,
   ) {}
 
+  isBypassSet() {
+    if (
+      this.configService.get<string>('app.env') !== 'production' &&
+      this.configService.get<string>('cdxBypass.enabled')
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   async getSessionStatus(userid: string): Promise<SessionStatus> {
     const status: SessionStatus = {
       exists: false,
@@ -91,10 +101,7 @@ export class TokenService {
     sessionDTO.tokenExpiration = tokenExpiration;
 
     // Bypass logic
-    if (
-      this.configService.get<string>('app.env') === 'development' &&
-      this.configService.get<string>('bypass.bypassed')
-    ) {
+    if (this.isBypassSet()) {
       let fakeToken = `userId=${userId}&sessionId=${sessionDTO.sessionId}&expiration=${tokenExpiration}&clientIp=${clientIp}`;
       fakeToken = encode(fakeToken);
 
@@ -170,10 +177,7 @@ export class TokenService {
   }
 
   async getStringifiedToken(token: string, clientIp: string): Promise<any> {
-    if (
-      this.configService.get<string>('app.env') === 'development' &&
-      this.configService.get<string>('bypass.bypassed')
-    ) {
+    if (this.isBypassSet()) {
       return decode(token);
     } else {
       return await this.unpackToken(token, clientIp);

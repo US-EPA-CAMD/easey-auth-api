@@ -16,7 +16,7 @@ export default registerAs('app', () => ({
   host,
   port,
   uri,
-  env: process.env.EASEY_AUTH_API_ENV || 'development',
+  env: process.env.EASEY_AUTH_API_ENV || 'local-dev',
   version: process.env.EASEY_AUTH_API_VERSION || 'v0.0.0',
   published: process.env.EASEY_AUTH_API_PUBLISHED || 'local',
   naasAppId: process.env.EASEY_AUTH_API_NAASID || 'easey.camd.oar.dev@epa.gov',

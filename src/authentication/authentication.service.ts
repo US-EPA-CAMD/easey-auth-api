@@ -11,7 +11,6 @@ import { TokenService } from '../token/token.service';
 import { parseToken } from '../utils';
 
 import { Logger } from '../Logger/Logger.service';
-import { decode } from 'js-base64';
 
 @Injectable()
 export class AuthenticationService {
@@ -22,12 +21,9 @@ export class AuthenticationService {
   ) {}
 
   bypassUser(userId: string, password: string) {
-    if (
-      this.configService.get<string>('app.env') === 'development' &&
-      this.configService.get<string>('bypass.bypassed')
-    ) {
+    if (this.tokenService.isBypassSet()) {
       const acceptedUsers = JSON.parse(
-        this.configService.get<string>('bypass.users'),
+        this.configService.get<string>('cdxBypass.users'),
       );
 
       if (!acceptedUsers.find(x => x === userId)) {
@@ -45,7 +41,7 @@ export class AuthenticationService {
       const currentPass =
         currentMonth +
         currentYear +
-        this.configService.get<string>('bypass.pass');
+        this.configService.get<string>('cdxBypass.pass');
 
       if (password === currentPass) {
         return true;
