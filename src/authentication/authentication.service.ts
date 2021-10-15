@@ -20,6 +20,42 @@ export class AuthenticationService {
     private logger: Logger,
   ) {}
 
+  bypassUser(userId: string, password: string) {
+    if (this.tokenService.isBypassSet()) {
+      const acceptedUsers = JSON.parse(
+        this.configService.get<string>('cdxBypass.users'),
+      );
+
+      if (!acceptedUsers.find(x => x === userId)) {
+        this.logger.error(
+          InternalServerErrorException,
+          'Incorrect bypass userId',
+        );
+      }
+
+      const currentDate = new Date();
+      const currentMonth = currentDate.toLocaleString('default', {
+        month: 'long',
+      });
+      const currentYear = currentDate.getFullYear();
+      const currentPass =
+        currentMonth +
+        currentYear +
+        this.configService.get<string>('cdxBypass.pass');
+
+      if (password === currentPass) {
+        return true;
+      } else {
+        this.logger.error(
+          InternalServerErrorException,
+          'Incorrect bypass password',
+        );
+      }
+    }
+
+    return false;
+  }
+
   async signIn(
     userId: string,
     password: string,
@@ -27,7 +63,15 @@ export class AuthenticationService {
   ): Promise<UserDTO> {
     let user: UserDTO;
 
-    user = await this.login(userId, password);
+    // Dummy user returned if the system is set to flagging users
+    if (this.bypassUser(userId, password)) {
+      user = new UserDTO();
+      user.userId = userId;
+      user.firstName = userId;
+      user.lastName = '';
+    } else {
+      user = await this.login(userId, password);
+    }
 
     const sessionStatus = await this.tokenService.getSessionStatus(userId);
     if (sessionStatus.exists && sessionStatus.expired)
@@ -88,7 +132,7 @@ export class AuthenticationService {
   }
 
   async signOut(token: string, clientIp: string): Promise<void> {
-    const stringifiedToken = await this.tokenService.unpackToken(
+    const stringifiedToken = await this.tokenService.getStringifiedToken(
       token,
       clientIp,
     );

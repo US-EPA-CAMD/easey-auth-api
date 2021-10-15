@@ -15,6 +15,7 @@ import { UserSession } from '../entities/user-session.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { UserSessionDTO } from '../dtos/user-session.dto';
 import { Logger } from '../Logger/Logger.service';
+import { encode, decode } from 'js-base64';
 
 @Injectable()
 export class TokenService {
@@ -25,6 +26,16 @@ export class TokenService {
     private configService: ConfigService,
     private logger: Logger,
   ) {}
+
+  isBypassSet() {
+    if (
+      this.configService.get<string>('app.env') !== 'production' &&
+      this.configService.get<string>('cdxBypass.enabled')
+    ) {
+      return true;
+    }
+    return false;
+  }
 
   async getSessionStatus(userid: string): Promise<SessionStatus> {
     const status: SessionStatus = {
@@ -89,6 +100,22 @@ export class TokenService {
     const sessionDTO = userSession.session;
     sessionDTO.tokenExpiration = tokenExpiration;
 
+    // Bypass logic
+    if (this.isBypassSet()) {
+      let fakeToken = `userId=${userId}&sessionId=${sessionDTO.sessionId}&expiration=${tokenExpiration}&clientIp=${clientIp}`;
+      fakeToken = encode(fakeToken);
+
+      sessionDTO.securityToken = fakeToken;
+      this.repository.update(userId, sessionDTO);
+
+      this.logger.info('Creating new security token', {
+        token: sessionDTO.securityToken,
+        userId: userId,
+      });
+
+      return fakeToken;
+    }
+
     return createClientAsync(url)
       .then(client => {
         return client.CreateSecurityTokenAsync({
@@ -149,8 +176,16 @@ export class TokenService {
       });
   }
 
+  async getStringifiedToken(token: string, clientIp: string): Promise<any> {
+    if (this.isBypassSet()) {
+      return decode(token);
+    } else {
+      return await this.unpackToken(token, clientIp);
+    }
+  }
+
   async validateToken(token: string, clientIp: string): Promise<any> {
-    const stringifiedToken = await this.unpackToken(token, clientIp);
+    const stringifiedToken = await this.getStringifiedToken(token, clientIp);
     const parsed = parseToken(stringifiedToken);
 
     const sessionStatus = await this.getSessionStatus(parsed.userId);

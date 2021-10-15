@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import routes from './routes';
 import dbConfig from './config/db.config';
 import appConfig from './config/app.config';
+import cdxBypass from './config/bypass.config';
 import { TypeOrmConfigService } from './config/typeorm.config';
 
 import { AuthenticationModule } from './authentication/authentication.module';
@@ -18,7 +19,7 @@ import { LogModule } from './Logger/Logger.module';
     RouterModule.forRoutes(routes),
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [dbConfig, appConfig],
+      load: [dbConfig, appConfig, cdxBypass],
     }),
     LogModule,
     TypeOrmModule.forRootAsync({
