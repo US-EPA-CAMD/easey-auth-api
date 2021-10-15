@@ -30,7 +30,7 @@ export class TokenService {
   isBypassSet() {
     if (
       this.configService.get<string>('app.env') !== 'production' &&
-      this.configService.get<string>('cdxBypass.enabled')
+      this.configService.get<boolean>('cdxBypass.enabled')
     ) {
       return true;
     }
