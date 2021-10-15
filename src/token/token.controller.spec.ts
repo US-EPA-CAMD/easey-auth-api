@@ -5,7 +5,7 @@ import { ValidateTokenDTO } from '../dtos/validate-token.dto';
 import { TokenController } from './token.controller';
 import { TokenService } from './token.service';
 import { UserSessionRepository } from '../user-session/user-session.repository';
-import { LogModule } from '../Logger/Logger.module';
+import { LogModule } from '@us-epa-camd/easey-common/logger';
 
 jest.mock('./token.service');
 

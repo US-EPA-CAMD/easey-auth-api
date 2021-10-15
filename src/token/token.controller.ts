@@ -35,7 +35,6 @@ export class TokenController {
     @Body() dto: ValidateTokenDTO,
     @ClientIP() clientIp: string,
   ): Promise<string> {
-    console.log('Validate Token IP ' + clientIp);
     return this.service.validateToken(dto.token, clientIp);
   }
 }

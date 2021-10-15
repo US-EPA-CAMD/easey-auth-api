@@ -4,8 +4,8 @@ import { TokenService } from '../token/token.service';
 import { AuthenticationService } from './authentication.service';
 import { UserDTO } from '../dtos/user.dto';
 import { UserSessionDTO } from '../dtos/user-session.dto';
-import logWrapper from '../Logger/Logger.service';
-import { LogModule } from '../Logger/Logger.module';
+import { LogModule } from '@us-epa-camd/easey-common/logger';
+import { Logger } from '@us-epa-camd/easey-common/logger';
 
 const client = {
   AuthenticateAsync: jest.fn(() =>
@@ -26,7 +26,7 @@ jest.mock('soap', () => ({
   createClientAsync: jest.fn(() => Promise.resolve(client)),
 }));
 
-jest.mock('../utils', () => ({
+jest.mock('@us-epa-camd/easey-common/utilities', () => ({
   parseToken: jest.fn(() => {
     return { clientIp: '1' };
   }),
@@ -62,7 +62,7 @@ describe('Authentication Service', () => {
           provide: TokenService,
           useFactory: mockTokenService,
         },
-        logWrapper,
+        Logger,
         {
           provide: ConfigService,
           useValue: {
