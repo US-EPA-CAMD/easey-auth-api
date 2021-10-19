@@ -6,7 +6,7 @@ on:
       - develop
     paths-ignore:
       - '.github/**'
-//
+
 jobs:
   Build-Test-Deploy:
     runs-on: ubuntu-latest
