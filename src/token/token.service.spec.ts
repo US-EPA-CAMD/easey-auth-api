@@ -5,7 +5,7 @@ import { UserSessionRepository } from '../user-session/user-session.repository';
 import { UserSessionMap } from '../maps/user-session.map';
 import { UserSession } from '../entities/user-session.entity';
 import { UserSessionDTO } from '../dtos/user-session.dto';
-import { LogModule } from '../Logger/Logger.module';
+import { LogModule } from '@us-epa-camd/easey-common/logger';
 
 const client = {
   CreateSecurityTokenAsync: jest.fn(() => Promise.resolve([{ return: '' }])),
@@ -16,7 +16,7 @@ jest.mock('soap', () => ({
   createClientAsync: jest.fn(() => Promise.resolve(client)),
 }));
 
-jest.mock('../utils', () => ({
+jest.mock('@us-epa-camd/easey-common/utilities', () => ({
   parseToken: jest.fn().mockResolvedValue(''),
 }));
 

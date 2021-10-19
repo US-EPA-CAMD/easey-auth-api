@@ -12,7 +12,7 @@ import { TypeOrmConfigService } from './config/typeorm.config';
 import { AuthenticationModule } from './authentication/authentication.module';
 import { TokenModule } from './token/token.module';
 
-import { LogModule } from './Logger/Logger.module';
+import { LogModule } from '@us-epa-camd/easey-common/logger';
 
 @Module({
   imports: [

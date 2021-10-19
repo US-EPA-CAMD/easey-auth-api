@@ -3,7 +3,7 @@ import { UserSessionRepository } from '../user-session/user-session.repository';
 import { AuthGuard } from './auth.guard';
 import { createMock } from '@golevelup/ts-jest';
 import { ExecutionContext } from '@nestjs/common';
-import { LogModule } from '../Logger/Logger.module';
+import { LogModule } from '@us-epa-camd/easey-common/logger';
 
 const mockRepository = () => ({
   findOne: jest.fn().mockResolvedValue(''),

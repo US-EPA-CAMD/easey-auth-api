@@ -7,7 +7,7 @@ import {
 import { Observable } from 'rxjs';
 import { UserSessionRepository } from '../user-session/user-session.repository';
 import { InjectRepository } from '@nestjs/typeorm';
-import Logger from '../Logger/Logger.service';
+import { Logger } from '@us-epa-camd/easey-common/logger';
 
 @Injectable()
 export class AuthGuard implements CanActivate {

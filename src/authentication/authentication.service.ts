@@ -8,9 +8,9 @@ import { createClientAsync } from 'soap';
 
 import { UserDTO } from './../dtos/user.dto';
 import { TokenService } from '../token/token.service';
-import { parseToken } from '../utils';
+import { parseToken } from '@us-epa-camd/easey-common/utilities';
 
-import { Logger } from '../Logger/Logger.service';
+import { Logger } from '@us-epa-camd/easey-common/logger';
 
 @Injectable()
 export class AuthenticationService {
@@ -44,6 +44,7 @@ export class AuthenticationService {
         this.configService.get<string>('cdxBypass.pass');
 
       if (password === currentPass) {
+        this.logger.info('Logging in user in bypass mode', { userId: userId });
         return true;
       } else {
         this.logger.error(

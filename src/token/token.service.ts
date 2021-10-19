@@ -10,11 +10,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserSessionRepository } from '../user-session/user-session.repository';
 import { UserSessionMap } from '../maps/user-session.map';
 import { SessionStatus } from './session-status.interface';
-import { parseToken } from '../utils';
+import { parseToken } from '@us-epa-camd/easey-common/utilities';
 import { UserSession } from '../entities/user-session.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { UserSessionDTO } from '../dtos/user-session.dto';
-import { Logger } from '../Logger/Logger.service';
+import { Logger } from '@us-epa-camd/easey-common/logger';
 import { encode, decode } from 'js-base64';
 
 @Injectable()
@@ -28,7 +28,6 @@ export class TokenService {
   ) {}
 
   isBypassSet() {
-    console.log(this.configService.get<boolean>('cdxBypass.enabled'));
     if (
       this.configService.get<string>('app.env') !== 'production' &&
       this.configService.get<string>('cdxBypass.enabled') === 'true'
