@@ -11,6 +11,7 @@ if (host == 'localhost') {
 }
 
 export default registerAs('app', () => ({
+  name: 'auth-api',
   title: process.env.EASEY_AUTH_API_TITLE || 'Authentication & Authorization',
   path,
   host,
