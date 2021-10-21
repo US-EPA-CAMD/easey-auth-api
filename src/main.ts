@@ -2,11 +2,12 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { CorsOptionsService } from '@us-epa-camd/easey-common/cors-options';
-
 import { AppModule } from './app.module';
+import * as helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(helmet());
   const configService = app.get(ConfigService);
   const corsOptionsService = app.get(CorsOptionsService);
 
