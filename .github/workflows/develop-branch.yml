@@ -1,4 +1,4 @@
-\name: Develop Branch Workflow
+name: Develop Branch Workflow
 
 on:
   push:
