@@ -2,8 +2,7 @@ name: Develop Branch Workflow
 
 on:
   push:
-    branches:
-      - develop
+    branches: [develop]
     paths-ignore:
       - '.github/**'
 
