@@ -2,10 +2,11 @@ name: Develop Branch Workflow
 
 on:
   push:
-    branches: [ develop ]
+    branches:
+      - develop
     paths-ignore:
-    - '.github/**'
-    
+      - '.github/**'
+
 jobs:
   Build-Test-Deploy:
     runs-on: ubuntu-latest
@@ -39,7 +40,7 @@ jobs:
         uses: sonarsource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}          
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Install cf cli
         run: devops/scripts/install-cf-cli.sh
       - name: Login to cloud.gov

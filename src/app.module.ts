@@ -12,19 +12,21 @@ import { TypeOrmConfigService } from './config/typeorm.config';
 import { AuthenticationModule } from './authentication/authentication.module';
 import { TokenModule } from './token/token.module';
 
-import { LogModule } from '@us-epa-camd/easey-common/logger';
+import { LoggerModule } from '@us-epa-camd/easey-common/logger';
+import { CorsOptionsModule } from '@us-epa-camd/easey-common/cors-options';
 
 @Module({
   imports: [
+    TypeOrmModule.forRootAsync({
+      useClass: TypeOrmConfigService,
+    }),
     RouterModule.forRoutes(routes),
     ConfigModule.forRoot({
       isGlobal: true,
       load: [dbConfig, appConfig, cdxBypass],
     }),
-    LogModule,
-    TypeOrmModule.forRootAsync({
-      useClass: TypeOrmConfigService,
-    }),
+    LoggerModule,
+    CorsOptionsModule,
     AuthenticationModule,
     TokenModule,
   ],
