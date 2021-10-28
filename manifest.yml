@@ -12,6 +12,8 @@ applications:
       EASEY_CDX_SERVICES: ((cdxSvcs))
       EASEY_NAAS_SERVICES: ((naasSvcs))
       EASEY_AUTH_API_NAASID: ((naasAppId))
+      EASEY_AUTH_API_CDX_BYPASS_USERS:
+      EASEY_AUTH_API_CDX_BYPASS_ENABLED: false
     routes:
       - route: ((host))/((path))
     services:
