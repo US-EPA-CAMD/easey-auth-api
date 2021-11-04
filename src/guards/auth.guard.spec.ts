@@ -3,7 +3,8 @@ import { UserSessionRepository } from '../user-session/user-session.repository';
 import { AuthGuard } from './auth.guard';
 import { createMock } from '@golevelup/ts-jest';
 import { ExecutionContext } from '@nestjs/common';
-import { LogModule } from '@us-epa-camd/easey-common/logger';
+import { LoggerModule } from '@us-epa-camd/easey-common/logger';
+import { uuid } from 'uuidv4';
 
 const mockRepository = () => ({
   findOne: jest.fn().mockResolvedValue(''),
@@ -17,7 +18,7 @@ describe('AuthGuard', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [LogModule],
+      imports: [LoggerModule],
       providers: [
         AuthGuard,
         { provide: UserSessionRepository, useFactory: mockRepository },
@@ -56,7 +57,9 @@ describe('AuthGuard', () => {
   });
 
   it('should error given invalid bearer format', async () => {
-    const request = { headers: { authorization: 'Beater 3' } };
+    const header = 'Beater' + uuid();
+
+    const request = { headers: { authorization: header } };
     expect(async () => {
       await guard.validateRequest(request);
     }).rejects.toThrowError();

@@ -4,7 +4,7 @@ import { TokenService } from '../token/token.service';
 import { AuthenticationService } from './authentication.service';
 import { UserDTO } from '../dtos/user.dto';
 import { UserSessionDTO } from '../dtos/user-session.dto';
-import { LogModule } from '@us-epa-camd/easey-common/logger';
+import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 
 const client = {
@@ -27,9 +27,7 @@ jest.mock('soap', () => ({
 }));
 
 jest.mock('@us-epa-camd/easey-common/utilities', () => ({
-  parseToken: jest.fn(() => {
-    return { clientIp: '1' };
-  }),
+  parseToken: jest.fn().mockReturnValue({ clientIp: '1' }),
 }));
 
 const mockTokenService = () => ({
@@ -55,7 +53,7 @@ describe('Authentication Service', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [LogModule],
+      imports: [LoggerModule],
       providers: [
         AuthenticationService,
         {
@@ -107,7 +105,7 @@ describe('Authentication Service', () => {
       responseVals = {
         ['app.env']: 'development',
         ['cdxBypass.enabled']: true,
-        ['cdxBypass.users']: '["kherceg-d"]',
+        ['cdxBypass.users']: '["k"]',
         ['cdxBypass.pass']: 'IC@nn0tL0g1nIn',
       };
       jest.spyOn(tokenService, 'isBypassSet').mockReturnValue(true);
@@ -119,9 +117,9 @@ describe('Authentication Service', () => {
       const currentPass =
         currentMonth + currentYear + responseVals['cdxBypass.pass'];
 
-      expect(async () => {
-        await service.bypassUser('kherceg-d', currentPass);
-      }).rejects.toThrowError();
+      expect(() => {
+        service.bypassUser('kherceg-d', currentPass);
+      }).toThrowError();
     });
 
     it('should throw an error given an invalid password', async () => {
@@ -132,9 +130,10 @@ describe('Authentication Service', () => {
         ['cdxBypass.pass']: 'password',
       };
       jest.spyOn(tokenService, 'isBypassSet').mockReturnValue(true);
-      expect(async () => {
-        await service.bypassUser('kherceg-d', 'pass');
-      }).rejects.toThrowError();
+
+      expect(() => {
+        service.bypassUser('kherceg-dp', 'pass');
+      }).toThrowError();
     });
   });
 
@@ -211,7 +210,7 @@ describe('Authentication Service', () => {
         });
         jest.spyOn(tokenService, 'removeUserSession').mockResolvedValue();
 
-        expect(service.signOut('', '1')).resolves.not.toThrow();
+        expect(service.signOut('', '1')).resolves.not.toThrowError();
       });
 
       it('should throw an error when provided a different Ip', () => {
@@ -240,7 +239,7 @@ describe('Authentication Service', () => {
         jest.spyOn(tokenService, 'removeUserSession').mockResolvedValue();
 
         expect(async () => {
-          await service.signOut('', '2');
+          await service.signOut('', '1');
         }).rejects.toThrowError();
       });
     });
