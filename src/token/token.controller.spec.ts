@@ -5,7 +5,7 @@ import { ValidateTokenDTO } from '../dtos/validate-token.dto';
 import { TokenController } from './token.controller';
 import { TokenService } from './token.service';
 import { UserSessionRepository } from '../user-session/user-session.repository';
-import { LogModule } from '@us-epa-camd/easey-common/logger';
+import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 
 jest.mock('./token.service');
 
@@ -19,7 +19,7 @@ describe('Token Controller', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [LogModule],
+      imports: [LoggerModule],
       controllers: [TokenController],
       providers: [
         TokenService,

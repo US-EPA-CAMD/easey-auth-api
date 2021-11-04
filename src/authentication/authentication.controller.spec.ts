@@ -7,6 +7,7 @@ import { AuthGuard } from '../guards/auth.guard';
 import { UserSessionRepository } from '../user-session/user-session.repository';
 import { createMock } from '@golevelup/ts-jest';
 import { Logger } from '@nestjs/common';
+import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 
 jest.mock('./authentication.service');
 
@@ -25,6 +26,7 @@ describe('Authentication Controller', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [LoggerModule],
       controllers: [AuthenticationController],
       providers: [
         { provide: AuthenticationService, useFactory: mockService },
