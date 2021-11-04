@@ -1,5 +1,5 @@
 import { BaseEntity, Column, Entity, PrimaryColumn } from 'typeorm';
-
+//
 @Entity({ name: 'camdecmpswks.user_session' })
 export class UserSession extends BaseEntity {
   @PrimaryColumn({ name: 'userid' })
