@@ -79,12 +79,15 @@ export class AuthenticationService {
       await this.tokenService.removeUserSession(sessionStatus.sessionEntity);
 
     if (sessionStatus.exists && !sessionStatus.expired) {
+      /*
       const sessionDTO = sessionStatus.session;
 
       user.token = sessionDTO.securityToken;
       user.tokenExpiration = sessionDTO.tokenExpiration;
 
       return user;
+      */
+      this.logger.error(BadRequestException, "Valid session already exists", {userId: userId});
     }
 
     const session = await this.tokenService.createUserSession(userId);
