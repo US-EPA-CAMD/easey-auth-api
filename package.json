@@ -23,7 +23,6 @@
   },
   "resolutions": {
     "ansi-regex": "^5.0.1",
-    "class-transformer": "^0.5.1",
     "uuid": "^8.3.2"
   },
   "dependencies": {
@@ -35,7 +34,7 @@
     "@nestjs/platform-express": "^8.1.1",
     "@nestjs/swagger": "^5.1.2",
     "@nestjs/typeorm": "^8.0.2",
-    "@us-epa-camd/easey-common": "^1.11.3",
+    "@us-epa-camd/easey-common": "^1.11.7",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.13.1",
     "dotenv": "^10.0.0",
@@ -51,8 +50,6 @@
     "soap": "^0.39.0",
     "swagger-ui-express": "^4.1.4",
     "typeorm": "^0.2.38",
-    "uuid": "^8.3.2",
-    "uuidv4": "^6.2.12",
     "winston": "^3.3.3"
   },
   "devDependencies": {
@@ -63,7 +60,7 @@
     "@types/jest": "27.0.2",
     "@types/node": "^16.11.2",
     "@types/supertest": "^2.0.8",
-    "@types/uuid": "^8.3.1",
+    "@types/uuid": "^8.3.3",
     "@typescript-eslint/eslint-plugin": "5.1.0",
     "@typescript-eslint/parser": "5.1.0",
     "eslint": "^8.0.1",

@@ -1012,12 +1012,7 @@
   resolved "https://registry.yarnpkg.com/@types/tough-cookie/-/tough-cookie-4.0.1.tgz#8f80dd965ad81f3e1bc26d6f5c727e132721ff40"
   integrity sha512-Y0K95ThC3esLEYD6ZuqNek29lNX2EM1qxV8y2FTLUB0ff5wWrk7az+mLrnNFUnaXcgKye22+sFBRXOgpPILZNg==
 
-"@types/uuid@8.3.1":
-  version "8.3.1"
-  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-8.3.1.tgz#1a32969cf8f0364b3d8c8af9cc3555b7805df14f"
-  integrity sha512-Y2mHTRAbqfFkpjldbkHGY8JIzRN6XqYRliG8/24FcHm2D2PwW24fl5xMRTVGdrb7iMrwCaIEbLWerGIkXuFWVg==
-
-"@types/uuid@^8.3.1":
+"@types/uuid@^8.3.3":
   version "8.3.3"
   resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-8.3.3.tgz#c6a60686d953dbd1b1d45e66f4ecdbd5d471b4d0"
   integrity sha512-0LbEEx1zxrYB3pgpd1M5lEhLcXjKJnYghvhTRgaBeUivLHMDM1TzF3IJ6hXU2+8uA4Xz+5BA63mtZo5DjVT8iA==
@@ -1109,10 +1104,10 @@
     "@typescript-eslint/types" "5.1.0"
     eslint-visitor-keys "^3.0.0"
 
-"@us-epa-camd/easey-common@^1.11.3":
-  version "1.11.3"
-  resolved "https://npm.pkg.github.com/download/@us-epa-camd/easey-common/1.11.3/a47eb1e5c37f15dd7e12934f8eee08a979549b3b94a277e60d3384eb23e8f341#f96665b7996f42a6a8f29f47bdd419d8f185a725"
-  integrity sha512-0KLRb7evbEvWC982QgN6c2BhWqhiu4D5iElmUGy9TalEiplOW4GtyIgW7XjlrnolAOIgD6EdRcLo4OESpXMeGw==
+"@us-epa-camd/easey-common@^1.11.7":
+  version "1.11.7"
+  resolved "https://npm.pkg.github.com/download/@us-epa-camd/easey-common/1.11.7/4fe95b47c682f0d8baf892f26b0e6aaa18bf75067632ef5569caecc4ef3110df#15f57c7d83932df4aa33a276ccc896a9414e20e7"
+  integrity sha512-+aRWxvNtmj/55/NrNofQqGThrlm51Z3Ui8/89VqliSu5mHaxoHP6+jwbWAeSRchd0QDuB4hlWxKF1WpFgIAVXw==
   dependencies:
     "@nestjs/axios" "0.0.3"
     "@nestjs/common" "^8.1.1"
@@ -1124,7 +1119,6 @@
     reflect-metadata "^0.1.13"
     rxjs "^7.4.0"
     typeorm "^0.2.38"
-    uuid "^8.3.2"
     winston "^3.3.3"
 
 "@webassemblyjs/ast@1.11.1":
@@ -6077,14 +6071,6 @@ uuid@8.3.2, uuid@^3.3.2, uuid@^8.3.0, uuid@^8.3.2:
   version "8.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
-
-uuidv4@^6.2.12:
-  version "6.2.12"
-  resolved "https://registry.yarnpkg.com/uuidv4/-/uuidv4-6.2.12.tgz#e8c1d1d733c3fa4963d4610b8a3a09b4ec58ca96"
-  integrity sha512-UnN4ThIYWhv3ZUE8UwDnnCvh4JafCNu+sQkxmLyjCVwK3rjLfkg3DYiEv6oCMDIAIVEDP4INg4kX/C5hKaRzZA==
-  dependencies:
-    "@types/uuid" "8.3.1"
-    uuid "8.3.2"
 
 v8-compile-cache@^2.0.3:
   version "2.3.0"
