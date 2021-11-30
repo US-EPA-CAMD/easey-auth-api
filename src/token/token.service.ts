@@ -93,6 +93,7 @@ export class TokenService {
       this.logger.error(
         BadRequestException,
         'No valid session exists for the current user',
+        true,
         { userId: userId },
       );
     }
@@ -145,6 +146,7 @@ export class TokenService {
         this.logger.error(
           InternalServerErrorException,
           err.root.Envelope.Body.Fault.detail.faultdetails,
+          true,
           { userId: userId },
         );
       });
@@ -171,6 +173,7 @@ export class TokenService {
         this.logger.error(
           InternalServerErrorException,
           err.root.Envelope.Body.Fault.detail.faultdetails,
+          true,
           { token: token, clientIp: clientIp },
         );
       });
@@ -193,6 +196,7 @@ export class TokenService {
       this.logger.error(
         BadRequestException,
         'No valid session exists for the user. Please log in to create a valid session.',
+        true,
         { token: token, clientIp: clientIp },
       );
     }

@@ -21,7 +21,8 @@ export class AuthGuard implements CanActivate {
     if (request.headers.authorization === undefined) {
       this.logger.error(
         BadRequestException,
-        'Prior Authorization Token Is Required.',
+        'Prior Authorization Token is Required.',
+        true
       );
     }
 
@@ -29,7 +30,8 @@ export class AuthGuard implements CanActivate {
     if (splitString.lenth !== 2 && splitString[0] !== 'Bearer') {
       this.logger.error(
         BadRequestException,
-        'Prior Authorization Token Is Required.',
+        'Prior Authorization Token is Required.',
+        true
       );
     }
 
@@ -40,7 +42,8 @@ export class AuthGuard implements CanActivate {
     if (session === undefined) {
       this.logger.error(
         BadRequestException,
-        'Prior Authorization Token IS Required',
+        'Prior Authorization Token is Required',
+        true
       );
     }
 

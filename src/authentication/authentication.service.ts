@@ -12,7 +12,6 @@ import { parseToken } from '@us-epa-camd/easey-common/utilities';
 
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { config } from 'dotenv';
-import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
 
 @Injectable()
 export class AuthenticationService {
@@ -29,9 +28,10 @@ export class AuthenticationService {
       );
 
       if (!acceptedUsers.find(x => x === userId)) {
-        this.logger.error(
+        const errorId = this.logger.error(
           InternalServerErrorException,
-          'Incorrect bypass userId',
+          "Incorrect Bypass userId",
+          true
         );
       }
 
@@ -52,6 +52,7 @@ export class AuthenticationService {
         this.logger.error(
           InternalServerErrorException,
           'Incorrect bypass password',
+          true
         );
       }
     }
@@ -83,11 +84,12 @@ export class AuthenticationService {
           this.logger.error(
             InternalServerErrorException,
             err.root.Envelope,
+            true,
             { userId: userId },
           );
         }
 
-        this.logger.error(InternalServerErrorException, err.message, {
+        this.logger.error(InternalServerErrorException, err.message, true ,{
           userId: userId,
         });
         return null;
@@ -114,11 +116,12 @@ export class AuthenticationService {
           this.logger.error(
             InternalServerErrorException,
             err.root.Envelope,
+            true,
             { userId: userId },
           );
         }
 
-        this.logger.error(InternalServerErrorException, err.message, {
+        this.logger.error(InternalServerErrorException, err.message, true,{
           userId: userId,
         });
         return null;
@@ -150,7 +153,7 @@ export class AuthenticationService {
       await this.tokenService.removeUserSession(sessionStatus.sessionEntity);
 
     if (sessionStatus.exists && !sessionStatus.expired) {
-      this.logger.error(BadRequestException, "Valid session already exists", {userId: userId});
+      this.logger.error(BadRequestException, "Valid session already exists", true, {userId: userId});
     }
 
     const session = await this.tokenService.createUserSession(userId);
@@ -186,12 +189,12 @@ export class AuthenticationService {
         if (err.root && err.root.Envelope) {
           this.logger.error(
             InternalServerErrorException,
-            err.root.Envelope.Body.Fault.detail.RegisterAuthFault.description,
+            err.root.Envelope.Body.Fault.detail.RegisterAuthFault.description, true,
             { userId: userId },
           );
         }
 
-        this.logger.error(InternalServerErrorException, err.message, {
+        this.logger.error(InternalServerErrorException, err.message, true,{
           userId: userId,
         });
         return null;
@@ -208,7 +211,7 @@ export class AuthenticationService {
     if (parsed.clientIp !== clientIp) {
       this.logger.error(
         BadRequestException,
-        'Sign out request coming from invalid IP address',
+        'Sign out request coming from invalid IP address', true,
         { userId: parsed.userId, clientIp: clientIp },
       );
     }
@@ -224,7 +227,7 @@ export class AuthenticationService {
     } else {
       this.logger.error(
         BadRequestException,
-        'No valid session exists for the current user',
+        'No valid session exists for the current user', true,
         { userId: parsed.userId },
       );
     }
