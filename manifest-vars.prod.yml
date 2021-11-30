@@ -3,4 +3,3 @@ host: easey.app.cloud.gov
 memory: 2048M
 cdxSvcs: ''
 naasSvcs: ''
-naasAppId: ''
