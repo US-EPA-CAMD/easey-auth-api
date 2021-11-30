@@ -75,9 +75,22 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.ARTIFACTS_STORAGE_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.ARTIFACTS_STORAGE_SECRET_ACCESS_KEY }}
-      - name: Deployment
+      - name: Init Application
+        run: devops/scripts/cf-app-init.sh
+      - name: Configure Env Vars (secrets)
         run: |
-          devops/scripts/deploy.sh
+          echo "Configuring EASEY_AUTH_API_NAASID environment variable..."
+          cf set-env $APP_NAME EASEY_AUTH_API_NAASID $EASEY_AUTH_API_NAASID
+          echo "Configuring EASEY_AUTH_API_NAASPWD environment variable..."
+          cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD          
+          echo "Configuring EASEY_AUTH_API_CDX_BYPASS_PASSWORD environment variable..."
+          cf set-env $APP_NAME EASEY_AUTH_API_CDX_BYPASS_PASSWORD $EASEY_AUTH_API_CDX_BYPASS_PASSWORD
+        env:
+          EASEY_AUTH_API_NAASID: ${{ secrets.EASEY_AUTH_API_NAASID }}
+          EASEY_AUTH_API_NAASPWD: ${{ secrets.EASEY_AUTH_API_NAASPWD }}
+          EASEY_AUTH_API_CDX_BYPASS_PASSWORD: ${{ secrets.EASEY_AUTH_API_CDX_BYPASS_PASSWORD }}
+      - name: Deployment
+        run: devops/scripts/deploy.sh
   Beta-Deployment:
     needs: Build-Test-Package
     runs-on: ubuntu-latest
@@ -110,9 +123,22 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.ARTIFACTS_STORAGE_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.ARTIFACTS_STORAGE_SECRET_ACCESS_KEY }}
-      - name: Deployment
+      - name: Init Application
+        run: devops/scripts/cf-app-init.sh
+      - name: Configure Env Vars (secrets)
         run: |
-          devops/scripts/deploy.sh
+          echo "Configuring EASEY_AUTH_API_NAASID environment variable..."
+          cf set-env $APP_NAME EASEY_AUTH_API_NAASID $EASEY_AUTH_API_NAASID
+          echo "Configuring EASEY_AUTH_API_NAASPWD environment variable..."
+          cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD          
+          echo "Configuring EASEY_AUTH_API_CDX_BYPASS_PASSWORD environment variable..."
+          cf set-env $APP_NAME EASEY_AUTH_API_CDX_BYPASS_PASSWORD $EASEY_AUTH_API_CDX_BYPASS_PASSWORD
+        env:
+          EASEY_AUTH_API_NAASID: ${{ secrets.EASEY_AUTH_API_NAASID }}
+          EASEY_AUTH_API_NAASPWD: ${{ secrets.EASEY_AUTH_API_NAASPWD }}
+          EASEY_AUTH_API_CDX_BYPASS_PASSWORD: ${{ secrets.EASEY_AUTH_API_CDX_BYPASS_PASSWORD }}
+      - name: Deployment
+        run: devops/scripts/deploy.sh
   Stage-Deployment:
     needs: Test-Deployment
     runs-on: ubuntu-latest
@@ -145,6 +171,19 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.ARTIFACTS_STORAGE_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.ARTIFACTS_STORAGE_SECRET_ACCESS_KEY }}
-      - name: Deployment
+      - name: Init Application
+        run: devops/scripts/cf-app-init.sh
+      - name: Configure Env Vars (secrets)
         run: |
-          devops/scripts/deploy.sh
+          echo "Configuring EASEY_AUTH_API_NAASID environment variable..."
+          cf set-env $APP_NAME EASEY_AUTH_API_NAASID $EASEY_AUTH_API_NAASID
+          echo "Configuring EASEY_AUTH_API_NAASPWD environment variable..."
+          cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD          
+          echo "Configuring EASEY_AUTH_API_CDX_BYPASS_PASSWORD environment variable..."
+          cf set-env $APP_NAME EASEY_AUTH_API_CDX_BYPASS_PASSWORD $EASEY_AUTH_API_CDX_BYPASS_PASSWORD
+        env:
+          EASEY_AUTH_API_NAASID: ${{ secrets.EASEY_AUTH_API_NAASID }}
+          EASEY_AUTH_API_NAASPWD: ${{ secrets.EASEY_AUTH_API_NAASPWD }}
+          EASEY_AUTH_API_CDX_BYPASS_PASSWORD: ${{ secrets.EASEY_AUTH_API_CDX_BYPASS_PASSWORD }}
+      - name: Deployment
+        run: devops/scripts/deploy.sh

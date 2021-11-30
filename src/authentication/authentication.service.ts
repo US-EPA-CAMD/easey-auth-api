@@ -29,7 +29,8 @@ export class AuthenticationService {
       if (!acceptedUsers.find(x => x === userId)) {
         this.logger.error(
           InternalServerErrorException,
-          'Incorrect bypass userId',
+          "Incorrect Bypass userId",
+          true
         );
       }
 
@@ -50,11 +51,80 @@ export class AuthenticationService {
         this.logger.error(
           InternalServerErrorException,
           'Incorrect bypass password',
+          true
         );
       }
     }
 
     return false;
+  }
+
+  async getStreamlinedRegistrationToken(userId: string){
+    const url = `${this.configService.get<string>(
+      'app.cdxSvcs',
+    )}/StreamlinedRegistrationService?wsdl`;
+
+    return createClientAsync(url)
+      .then(client => {
+        return client.AuthenticateAsync({
+          userId: this.configService.get<string>(
+            'app.naasAppId',
+          ),
+          credential: this.configService.get<string>(
+            'app.nassAppPwd',
+          ),
+        });
+      })
+      .then(res => {
+        return res[0].securityToken;
+      })
+      .catch(err => {
+        if (err.root && err.root.Envelope) {
+          this.logger.error(
+            InternalServerErrorException,
+            err.root.Envelope,
+            true,
+            { userId: userId },
+          );
+        }
+
+        this.logger.error(InternalServerErrorException, err.message, true ,{
+          userId: userId,
+        });
+        return null;
+      });
+  }
+
+  async getUserEmail(userId: string, naasToken: string){
+    const url = `${this.configService.get<string>(
+      'app.cdxSvcs',
+    )}/StreamlinedRegistrationService?wsdl`;
+
+    return createClientAsync(url)
+      .then(client => {
+        return client.RetrievePrimaryOrganizationAsync({
+          securityToken: naasToken,
+          user: {userId: userId}
+        });
+      })
+      .then(res => {
+        return res[0].result.email;
+      })
+      .catch(err => {
+        if (err.root && err.root.Envelope) {
+          this.logger.error(
+            InternalServerErrorException,
+            err.root.Envelope,
+            true,
+            { userId: userId },
+          );
+        }
+
+        this.logger.error(InternalServerErrorException, err.message, true,{
+          userId: userId,
+        });
+        return null;
+      });
   }
 
   async signIn(
@@ -72,6 +142,9 @@ export class AuthenticationService {
       user.lastName = '';
     } else {
       user = await this.login(userId, password);
+      const streamlinedRegistrationToken = await this.getStreamlinedRegistrationToken(userId);
+      const email = await this.getUserEmail(userId, streamlinedRegistrationToken);
+      user.email = email;
     }
 
     const sessionStatus = await this.tokenService.getSessionStatus(userId);
@@ -79,12 +152,7 @@ export class AuthenticationService {
       await this.tokenService.removeUserSession(sessionStatus.sessionEntity);
 
     if (sessionStatus.exists && !sessionStatus.expired) {
-      const sessionDTO = sessionStatus.session;
-
-      user.token = sessionDTO.securityToken;
-      user.tokenExpiration = sessionDTO.tokenExpiration;
-
-      return user;
+      this.logger.error(BadRequestException, "Valid session already exists", true, {userId: userId});
     }
 
     const session = await this.tokenService.createUserSession(userId);
@@ -120,12 +188,12 @@ export class AuthenticationService {
         if (err.root && err.root.Envelope) {
           this.logger.error(
             InternalServerErrorException,
-            err.root.Envelope.Body.Fault.detail.RegisterAuthFault.description,
+            err.root.Envelope.Body.Fault.detail.RegisterAuthFault.description, true,
             { userId: userId },
           );
         }
 
-        this.logger.error(InternalServerErrorException, err.message, {
+        this.logger.error(InternalServerErrorException, err.message, true,{
           userId: userId,
         });
         return null;
@@ -142,7 +210,7 @@ export class AuthenticationService {
     if (parsed.clientIp !== clientIp) {
       this.logger.error(
         BadRequestException,
-        'Sign out request coming from invalid IP address',
+        'Sign out request coming from invalid IP address', true,
         { userId: parsed.userId, clientIp: clientIp },
       );
     }
@@ -158,7 +226,7 @@ export class AuthenticationService {
     } else {
       this.logger.error(
         BadRequestException,
-        'No valid session exists for the current user',
+        'No valid session exists for the current user', true,
         { userId: parsed.userId },
       );
     }

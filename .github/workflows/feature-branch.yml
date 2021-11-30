@@ -25,10 +25,6 @@ jobs:
           node-version: 16
           registry-url: https://npm.pkg.github.com/
           scope: '@us-epa-camd'
-      - name: Configure Env Vars
-        run: devops/scripts/environment-variables.sh
-        env:
-          ENV_VAR_PREFIX: EASEY
       - name: Build
         run: devops/scripts/yarn/build.sh
         env:

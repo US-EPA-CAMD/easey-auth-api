@@ -3,7 +3,7 @@ import { registerAs } from '@nestjs/config';
 const path = process.env.EASEY_AUTH_API_PATH || 'api/auth-mgmt';
 const host = process.env.EASEY_AUTH_API_HOST || 'localhost';
 const port = process.env.EASEY_AUTH_API_PORT || 8080;
-////
+
 let uri = `https://${host}/${path}`;
 
 if (host == 'localhost') {
@@ -20,8 +20,8 @@ export default registerAs('app', () => ({
   env: process.env.EASEY_AUTH_API_ENV || 'local-dev',
   version: process.env.EASEY_AUTH_API_VERSION || 'v0.0.0',
   published: process.env.EASEY_AUTH_API_PUBLISHED || 'local',
-  naasAppId: process.env.EASEY_AUTH_API_NAASID || 'easey.camd.oar.dev@epa.gov',
-  nassAppPwd: process.env.EASEY_AUTH_API_NAASPWD || 'DEVeasey01!',
+  naasAppId: process.env.EASEY_AUTH_API_NAASID,
+  nassAppPwd: process.env.EASEY_AUTH_API_NAASPWD,
   cdxSvcs:
     process.env.EASEY_CDX_SERVICES ||
     'https://devngn.epacdxnode.net/cdx-register-II/services',

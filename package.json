@@ -21,6 +21,11 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
+  "resolutions": {
+    "ansi-regex": "^5.0.1",
+    "class-transformer": "^0.5.1",
+    "uuid": "^8.3.2"
+  },
   "dependencies": {
     "@elastic/ecs-winston-format": "^1.3.1",
     "@golevelup/ts-jest": "^0.3.1",
@@ -30,8 +35,8 @@
     "@nestjs/platform-express": "^8.1.1",
     "@nestjs/swagger": "^5.1.2",
     "@nestjs/typeorm": "^8.0.2",
-    "@us-epa-camd/easey-common": "^1.8.5",
-    "class-transformer": "^0.4.0",
+    "@us-epa-camd/easey-common": "^1.11.3",
+    "class-transformer": "^0.5.1",
     "class-validator": "^0.13.1",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
