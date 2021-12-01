@@ -22,8 +22,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "resolutions": {
-    "ansi-regex": "^5.0.1",
-    "uuid": "^8.3.2"
+    "ansi-regex": "^5.0.1"
   },
   "dependencies": {
     "@elastic/ecs-winston-format": "^1.3.1",
@@ -33,7 +32,7 @@
     "@nestjs/platform-express": "^8.1.1",
     "@nestjs/swagger": "^5.1.2",
     "@nestjs/typeorm": "^8.0.2",
-    "@us-epa-camd/easey-common": "^1.11.1",
+    "@us-epa-camd/easey-common": "^1.11.8",
     "class-transformer": "^0.4.0",
     "class-validator": "^0.13.2",
     "dotenv": "^10.0.0",
