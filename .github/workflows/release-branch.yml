@@ -79,11 +79,8 @@ jobs:
         run: devops/scripts/cf-app-init.sh
       - name: Configure Env Vars (secrets)
         run: |
-          echo "Configuring EASEY_AUTH_API_NAASID environment variable..."
           cf set-env $APP_NAME EASEY_AUTH_API_NAASID $EASEY_AUTH_API_NAASID
-          echo "Configuring EASEY_AUTH_API_NAASPWD environment variable..."
-          cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD          
-          echo "Configuring EASEY_AUTH_API_CDX_BYPASS_PASSWORD environment variable..."
+          cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD
           cf set-env $APP_NAME EASEY_AUTH_API_CDX_BYPASS_PASSWORD $EASEY_AUTH_API_CDX_BYPASS_PASSWORD
         env:
           EASEY_AUTH_API_NAASID: ${{ secrets.EASEY_AUTH_API_NAASID }}
@@ -127,11 +124,8 @@ jobs:
         run: devops/scripts/cf-app-init.sh
       - name: Configure Env Vars (secrets)
         run: |
-          echo "Configuring EASEY_AUTH_API_NAASID environment variable..."
           cf set-env $APP_NAME EASEY_AUTH_API_NAASID $EASEY_AUTH_API_NAASID
-          echo "Configuring EASEY_AUTH_API_NAASPWD environment variable..."
-          cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD          
-          echo "Configuring EASEY_AUTH_API_CDX_BYPASS_PASSWORD environment variable..."
+          cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD
           cf set-env $APP_NAME EASEY_AUTH_API_CDX_BYPASS_PASSWORD $EASEY_AUTH_API_CDX_BYPASS_PASSWORD
         env:
           EASEY_AUTH_API_NAASID: ${{ secrets.EASEY_AUTH_API_NAASID }}
@@ -175,11 +169,8 @@ jobs:
         run: devops/scripts/cf-app-init.sh
       - name: Configure Env Vars (secrets)
         run: |
-          echo "Configuring EASEY_AUTH_API_NAASID environment variable..."
           cf set-env $APP_NAME EASEY_AUTH_API_NAASID $EASEY_AUTH_API_NAASID
-          echo "Configuring EASEY_AUTH_API_NAASPWD environment variable..."
-          cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD          
-          echo "Configuring EASEY_AUTH_API_CDX_BYPASS_PASSWORD environment variable..."
+          cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD
           cf set-env $APP_NAME EASEY_AUTH_API_CDX_BYPASS_PASSWORD $EASEY_AUTH_API_CDX_BYPASS_PASSWORD
         env:
           EASEY_AUTH_API_NAASID: ${{ secrets.EASEY_AUTH_API_NAASID }}

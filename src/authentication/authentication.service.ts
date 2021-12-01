@@ -11,7 +11,6 @@ import { TokenService } from '../token/token.service';
 import { parseToken } from '@us-epa-camd/easey-common/utilities';
 
 import { Logger } from '@us-epa-camd/easey-common/logger';
-import { config } from 'dotenv';
 
 @Injectable()
 export class AuthenticationService {
@@ -28,7 +27,7 @@ export class AuthenticationService {
       );
 
       if (!acceptedUsers.find(x => x === userId)) {
-        const errorId = this.logger.error(
+        this.logger.error(
           InternalServerErrorException,
           "Incorrect Bypass userId",
           true
@@ -59,8 +58,9 @@ export class AuthenticationService {
 
     return false;
   }
-
+  
   async getStreamlinedRegistrationToken(userId: string){
+    
     const url = `${this.configService.get<string>(
       'app.cdxSvcs',
     )}/StreamlinedRegistrationService?wsdl`;
@@ -94,9 +94,12 @@ export class AuthenticationService {
         });
         return null;
       });
+      
+     return "";
   }
 
   async getUserEmail(userId: string, naasToken: string){
+    
     const url = `${this.configService.get<string>(
       'app.cdxSvcs',
     )}/StreamlinedRegistrationService?wsdl`;
@@ -126,6 +129,8 @@ export class AuthenticationService {
         });
         return null;
       });
+    
+     return "";
   }
 
   async signIn(
