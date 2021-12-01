@@ -58,8 +58,9 @@ export class AuthenticationService {
 
     return false;
   }
-
+  
   async getStreamlinedRegistrationToken(userId: string){
+    
     const url = `${this.configService.get<string>(
       'app.cdxSvcs',
     )}/StreamlinedRegistrationService?wsdl`;
@@ -93,9 +94,12 @@ export class AuthenticationService {
         });
         return null;
       });
+      
+     return "";
   }
 
   async getUserEmail(userId: string, naasToken: string){
+    
     const url = `${this.configService.get<string>(
       'app.cdxSvcs',
     )}/StreamlinedRegistrationService?wsdl`;
@@ -125,6 +129,8 @@ export class AuthenticationService {
         });
         return null;
       });
+    
+     return "";
   }
 
   async signIn(
