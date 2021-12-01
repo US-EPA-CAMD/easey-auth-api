@@ -12,7 +12,7 @@ import { UserSessionMap } from '../maps/user-session.map';
 import { SessionStatus } from './session-status.interface';
 import { parseToken } from '@us-epa-camd/easey-common/utilities';
 import { UserSession } from '../entities/user-session.entity';
-import { v4 as uuidv4 } from 'uuid';
+import { uuid } from 'uuidv4';
 import { UserSessionDTO } from '../dtos/user-session.dto';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { encode, decode } from 'js-base64';
@@ -60,7 +60,7 @@ export class TokenService {
   }
 
   async createUserSession(userId: string): Promise<UserSessionDTO> {
-    const sessionId = uuidv4();
+    const sessionId = uuid();
 
     this.logger.info('Creating user session', {
       userId: userId,
