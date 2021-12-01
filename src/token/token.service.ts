@@ -191,7 +191,14 @@ export class TokenService {
     const stringifiedToken = await this.getStringifiedToken(token, clientIp);
     const parsed = parseToken(stringifiedToken);
 
+    this.logger.info(stringifiedToken);
+    this.logger.info(parsed);
+    this.logger.info("Validating Token From: " + parsed.userId);
+
     const sessionStatus = await this.getSessionStatus(parsed.userId);
+    this.logger.info("Session exists: " + sessionStatus.exists);
+    this.logger.info("Session expired: " + sessionStatus.expired)
+
     if (!sessionStatus.exists || sessionStatus.expired) {
       this.logger.error(
         BadRequestException,
