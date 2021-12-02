@@ -4,7 +4,7 @@ import { AuthGuard } from './auth.guard';
 import { createMock } from '@golevelup/ts-jest';
 import { ExecutionContext } from '@nestjs/common';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
-import { uuid } from 'uuidv4';
+import { v4 as uuid } from 'uuid';
 
 const mockRepository = () => ({
   findOne: jest.fn().mockResolvedValue(''),
