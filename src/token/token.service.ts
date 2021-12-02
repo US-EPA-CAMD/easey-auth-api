@@ -12,7 +12,7 @@ import { UserSessionMap } from '../maps/user-session.map';
 import { SessionStatus } from './session-status.interface';
 import { parseToken } from '@us-epa-camd/easey-common/utilities';
 import { UserSession } from '../entities/user-session.entity';
-import { uuid } from 'uuidv4';
+import { v4 as uuid } from 'uuid';
 import { UserSessionDTO } from '../dtos/user-session.dto';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { encode, decode } from 'js-base64';
@@ -197,7 +197,7 @@ export class TokenService {
 
     const sessionStatus = await this.getSessionStatus(parsed.userId);
     this.logger.info("Session exists: " + sessionStatus.exists);
-    this.logger.info("Session expired: " + sessionStatus.expired)
+    this.logger.info("Session expired: " + sessionStatus.expired);
 
     if (!sessionStatus.exists || sessionStatus.expired) {
       this.logger.error(
