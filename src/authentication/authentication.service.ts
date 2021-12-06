@@ -94,8 +94,6 @@ export class AuthenticationService {
         });
         return null;
       });
-      
-     return "";
   }
 
   async getUserEmail(userId: string, naasToken: string){
@@ -129,8 +127,6 @@ export class AuthenticationService {
         });
         return null;
       });
-    
-     return "";
   }
 
   async signIn(
