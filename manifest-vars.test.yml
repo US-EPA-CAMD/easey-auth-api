@@ -2,6 +2,6 @@ instances: 1
 memory: 512M
 environment: testing
 host: api-easey-tst.app.cloud.gov
-apiHost: https://api.epa.gov/easey/test
+apiHost: api.epa.gov/easey/test
 cdxSvcs: https://testngn.epacdxnode.net/cdx-register-II/services
 naasSvcs: https://naas.epacdxnode.net/xml/securitytoken_v30.wsdl

@@ -6,6 +6,6 @@ instances: 1
 memory: 512M
 environment: development
 host: api-easey-dev.app.cloud.gov
-apiHost: https://api.epa.gov/easey/dev
+apiHost: api.epa.gov/easey/dev
 cdxSvcs: https://devngn.epacdxnode.net/cdx-register-II/services
 naasSvcs: https://naasdev.epacdxnode.net/xml/securitytoken_v30.wsdl

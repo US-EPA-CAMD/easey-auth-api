@@ -2,6 +2,6 @@ instances: 2
 memory: 1024M
 environment: staging
 host: api-easey-stg.app.cloud.gov
-apiHost: https://api.epa.gov/easey/staging
+apiHost: api.epa.gov/easey/staging
 cdxSvcs: https://testngn.epacdxnode.net/cdx-register-II/services
 naasSvcs: https://naas.epacdxnode.net/xml/securitytoken_v30.wsdl

@@ -2,6 +2,6 @@ instances: 2
 memory: 2048M
 environment: production
 host: api-easey.app.cloud.gov
-apiHost: https://api.epa.gov/easey
+apiHost: api.epa.gov/easey
 cdxSvcs: 
 naasSvcs: 
