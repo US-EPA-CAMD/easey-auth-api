@@ -1,9 +1,11 @@
 #THIS FILE SHOULD CONTAIN DEV SETTINGS AND CI/CD WORKFLOW WILL CHANGE SETTINGS BASED ON ENV
 name: auth-api
 title: Authenication & Authorization
-path: api/auth-mgmt
-environment: development
-host: easey-dev.app.cloud.gov
+path: auth-mgmt
+instances: 1
 memory: 512M
-cdxSvcs: 'https://devngn.epacdxnode.net/cdx-register-II/services'
-naasSvcs: 'https://naasdev.epacdxnode.net/xml/securitytoken_v30.wsdl'
+environment: development
+host: api-easey-dev.app.cloud.gov
+apiHost: https://api.epa.gov/easey/dev
+cdxSvcs: https://devngn.epacdxnode.net/cdx-register-II/services
+naasSvcs: https://naasdev.epacdxnode.net/xml/securitytoken_v30.wsdl

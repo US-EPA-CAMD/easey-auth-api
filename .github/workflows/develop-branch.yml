@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: Dev
-      url: https://easey-dev.app.cloud.gov/api/auth-mgmt/swagger
+      url: https://api-easey-dev.app.cloud.gov/auth-mgmt/swagger
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2

@@ -1,6 +1,6 @@
 import { registerAs } from '@nestjs/config';
 
-const path = process.env.EASEY_AUTH_API_PATH || 'api/auth-mgmt';
+const path = process.env.EASEY_AUTH_API_PATH || 'auth-mgmt';
 const host = process.env.EASEY_AUTH_API_HOST || 'localhost';
 const port = process.env.EASEY_AUTH_API_PORT || 8080;
 
@@ -15,6 +15,7 @@ export default registerAs('app', () => ({
   title: process.env.EASEY_AUTH_API_TITLE || 'Authentication & Authorization',
   path,
   host,
+  apiHost: process.env.EASEY_API_GATEWAY_HOST || 'api.epa.gov/easey/dev',
   port,
   uri,
   env: process.env.EASEY_AUTH_API_ENV || 'local-dev',

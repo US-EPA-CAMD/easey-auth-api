@@ -16,6 +16,8 @@ async function bootstrap() {
   const appTitle = configService.get<string>('app.title');
   const appPath = configService.get<string>('app.path');
   const appEnv = configService.get<string>('app.env');
+  const appHost = configService.get<string>('app.host');
+  const apiHost = configService.get<string>('app.apiHost');    
   const appVersion = configService.get<string>('app.version');
   const appPublished = configService.get<string>('app.published');
 
@@ -49,10 +51,13 @@ async function bootstrap() {
         in: 'header',
       },
       'Token',
-    )
-    .build();
+    );
 
-  const document = SwaggerModule.createDocument(app, swaggerDocOptions);
+  if (appHost !== 'localhost') {
+    swaggerDocOptions.addServer(`https://${apiHost}`);
+  }
+
+  const document = SwaggerModule.createDocument(app, swaggerDocOptions.build());
   SwaggerModule.setup(
     `${appPath}/swagger`,
     app,

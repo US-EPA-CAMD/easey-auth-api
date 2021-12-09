@@ -1,5 +1,7 @@
-environment: beta
-host: easey-beta.app.cloud.gov
+instances: 2
 memory: 1024M
-cdxSvcs: 'https://testngn.epacdxnode.net/cdx-register-II/services'
-naasSvcs: 'https://naas.epacdxnode.net/xml/securitytoken_v30.wsdl'
+environment: beta
+host: api-easey-beta.app.cloud.gov
+apiHost: https://api.epa.gov/easey/beta
+cdxSvcs: https://testngn.epacdxnode.net/cdx-register-II/services
+naasSvcs: https://naas.epacdxnode.net/xml/securitytoken_v30.wsdl

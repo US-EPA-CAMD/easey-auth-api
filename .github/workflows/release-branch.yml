@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: Test
-      url: https://easey-tst.app.cloud.gov/api/auth-mgmt/swagger
+      url: https://api-easey-tst.app.cloud.gov/auth-mgmt/swagger
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -93,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: Beta
-      url: https://easey-beta.app.cloud.gov/api/auth-mgmt/swagger
+      url: https://api-easey-beta.app.cloud.gov/auth-mgmt/swagger
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -138,7 +138,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: Staging
-      url: https://easey-stg.app.cloud.gov/api/auth-mgmt/swagger
+      url: https://api-easey-stg.app.cloud.gov/auth-mgmt/swagger
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2

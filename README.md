@@ -33,11 +33,11 @@ Please reach out to an EPA tech lead (see Mike Heese or Jason Whitehead) to get 
 
 2. Target the development org (you will need to be granted permission to access this):
 ```bash
-cf target -o epa-easey -s dev
+$ cf target -o epa-easey -s dev
 ```
 3. Open SSH tunnel
 ```bash
-cf ssh auth-api -L <LOCAL_PORT>:<DB_HOST>:5432
+$ cf ssh auth-api -L <LOCAL_PORT>:<DB_HOST>:5432
 ```
 4. Keep the SSH tunnel open while running the application
 
@@ -50,22 +50,22 @@ cf ssh auth-api -L <LOCAL_PORT>:<DB_HOST>:5432
 
     ```shell
     # If using SSH
-    git clone git@github.com:US-EPA-CAMD/easey-auth-api.git
+    $ git clone git@github.com:US-EPA-CAMD/easey-auth-api.git
     
     # If using HTTPS
-    git clone https://github.com/US-EPA-CAMD/easey-auth-api.git
+    $ git clone https://github.com/US-EPA-CAMD/easey-auth-api.git
     ```
 
 3. Navigate to the root project directory
 
     ```
-    cd easey-auth-api
+    $ cd easey-auth-api
     ```
 
 4. Install dependencies 
     
     ```
-    npm install
+    $ yarn install
     ```
 ### Run the appication 
 
@@ -73,10 +73,10 @@ From within the `easey-auth-api` project directory, you can run:
 
 ```bash
 # Runs the api in the development mode
-npm run start:dev
+$ yarn start:dev
 ```
 
-Open [http://localhost:8080/api/auth-mgmt/swagger/](http://localhost:8080/api/auth-mgmt/swagger/) to view swagger documentation.
+Open [http://localhost:8080/api/auth-mgmt/swagger/](http://localhost:8080/auth-mgmt/swagger/) to view swagger documentation.
 > NOTE: The port can be changed by setting the EASEY_AUTH_MGMT_API_PORT environment variable
 
 The page will reload if you make edits via the use of nodemon.<br />
@@ -84,24 +84,24 @@ You will also see any lint errors in the console.
 
 ```bash
 # for production mode
-npm run start
+$ yarn start
 ```
 
 ### Run the tests
 
 ```bash
 # unit tests
-$ npm run test
+$ yarn test
 
 # e2e tests
-$ npm run test:e2e
+$ yarn test:e2e
 
 # test coverage
-$ npm run test:cov
+$ yarn test:cov
 ```
 ## API Endpoints
 
-Please refer to the [Auth Management API Swagger Documentation](https://easey-dev.app.cloud.gov/api/auth-mgmt/swagger/) for descriptions of the endpoints.
+Please refer to the [Auth Management API Swagger Documentation](https://api-easey-dev.app.cloud.gov/auth-mgmt/swagger/) for descriptions of the endpoints.
 
 ## Built With
 ​
@@ -116,6 +116,3 @@ This project is licensed under the MIT License. We encourage you to read this pr
 
 ## Disclaimer
 The United States Environmental Protection Agency (EPA) GitHub project code is provided on an "as is" basis and the user assumes responsibility for its use. EPA has relinquished control of the information and no longer has responsibility to protect the integrity , confidentiality, or availability of the information. Any reference to specific commercial products, processes, or services by service mark, trademark, manufacturer, or otherwise, does not constitute or imply their endorsement, recommendation or favoring by EPA. The EPA seal and logo shall not be used in any manner to imply endorsement of any commercial product or activity by EPA or the United States Government.
-
-
-
