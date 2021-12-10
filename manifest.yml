@@ -14,7 +14,6 @@ applications:
       EASEY_AUTH_API_ENV: ((environment))
       EASEY_CDX_SERVICES: ((cdxSvcs))
       EASEY_NAAS_SERVICES: ((naasSvcs))
-      EASEY_AUTH_API_CDX_BYPASS_ENABLED: false
     routes:
       - route: ((host))/((path))
     services:
