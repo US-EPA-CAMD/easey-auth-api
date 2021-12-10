@@ -2,6 +2,7 @@
 name: auth-api
 title: Authenication & Authorization
 path: auth-mgmt
+port: 8080
 instances: 1
 memory: 512M
 environment: development

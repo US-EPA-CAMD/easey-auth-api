@@ -44,17 +44,24 @@ async function bootstrap() {
     .setVersion(`${appVersion} published: ${appPublished}`)
     .addBearerAuth(
       {
+        in: 'header',
         type: 'http',
         scheme: 'bearer',
         name: 'Token',
-        description: 'Enter Auth token',
-        in: 'header',
+        description: 'Authorization token required for operations with padlock!',
       },
       'Token',
     );
 
   if (appHost !== 'localhost') {
-    swaggerDocOptions.addServer(`https://${apiHost}`);
+    swaggerDocOptions
+      .addServer(`https://${apiHost}`)
+      .addApiKey({
+        in: 'header',
+        type: 'apiKey',
+        name: 'x-api-key',
+        description: 'API Gateway requires x-api-key request header!',
+      }, "API Key");
   }
 
   const document = SwaggerModule.createDocument(app, swaggerDocOptions.build());

@@ -2,7 +2,7 @@ import { registerAs } from '@nestjs/config';
 
 const path = process.env.EASEY_AUTH_API_PATH || 'auth-mgmt';
 const host = process.env.EASEY_AUTH_API_HOST || 'localhost';
-const port = process.env.EASEY_AUTH_API_PORT || 8080;
+const port = process.env.EASEY_AUTH_API_PORT || 8000;
 
 let uri = `https://${host}/${path}`;
 

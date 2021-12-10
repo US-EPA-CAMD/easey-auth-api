@@ -9,6 +9,7 @@ applications:
       EASEY_API_GATEWAY_HOST: ((apiHost))
       EASEY_AUTH_API_TITLE: ((title))
       EASEY_AUTH_API_HOST: ((host))
+      EASEY_AUTH_API_PORT: ((port))
       EASEY_AUTH_API_PATH: ((path))
       EASEY_AUTH_API_ENV: ((environment))
       EASEY_CDX_SERVICES: ((cdxSvcs))
