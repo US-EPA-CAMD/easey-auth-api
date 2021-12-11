@@ -1,4 +1,4 @@
-import { ApiTags, ApiOkResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse, ApiBearerAuth, ApiSecurity } from '@nestjs/swagger';
 import { Post, Controller, Body } from '@nestjs/common';
 import { ClientIP } from './../decorators/client-ip.decorator';
 import { UserIdDTO } from '../dtos/user-id.dto';
@@ -7,8 +7,9 @@ import { TokenService } from './token.service';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../guards/auth.guard';
 
-@ApiTags('Tokens')
 @Controller()
+@ApiSecurity('APIKey')
+@ApiTags('Tokens')
 export class TokenController {
   constructor(private service: TokenService) {}
 

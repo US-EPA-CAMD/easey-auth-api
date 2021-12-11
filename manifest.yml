@@ -14,6 +14,10 @@ applications:
       EASEY_AUTH_API_ENV: ((environment))
       EASEY_CDX_SERVICES: ((cdxSvcs))
       EASEY_NAAS_SERVICES: ((naasSvcs))
+      EASEY_AUTH_API_ENABLE_CORS: true
+      EASEY_AUTH_API_ENABLE_API_KEY: true
+      EASEY_AUTH_API_ENABLE_AUTH_TOKEN: true
+      EASEY_AUTH_API_ENABLE_GLOBAL_VALIDATION_PIPE: true
     routes:
       - route: ((host))/((path))
     services:

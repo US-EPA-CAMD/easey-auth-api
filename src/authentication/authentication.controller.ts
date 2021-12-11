@@ -1,4 +1,4 @@
-import { ApiTags, ApiOkResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse, ApiBearerAuth, ApiSecurity } from '@nestjs/swagger';
 import { Post, Controller, Body, UseGuards, Delete, Req } from '@nestjs/common';
 import { Request } from '@nestjs/common';
 
@@ -9,8 +9,9 @@ import { ClientIP } from './../decorators/client-ip.decorator';
 import { AuthenticationService } from './authentication.service';
 import { AuthGuard } from '../guards/auth.guard';
 
-@ApiTags('Authentication')
 @Controller()
+@ApiSecurity('APIKey')
+@ApiTags('Authentication')
 export class AuthenticationController {
   constructor(private service: AuthenticationService) {}
 
