@@ -77,7 +77,7 @@ export class TokenService {
     session.lastLoginDate = current;
     await this.repository.save(session);
 
-    return await this.map.one(session);
+    return this.map.one(session);
   }
 
   async removeUserSession(session: UserSession): Promise<void> {
@@ -183,7 +183,7 @@ export class TokenService {
     if (this.isBypassSet()) {
       return decode(token);
     } else {
-      return await this.unpackToken(token, clientIp);
+      return this.unpackToken(token, clientIp);
     }
   }
 
