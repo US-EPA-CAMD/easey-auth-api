@@ -34,15 +34,7 @@ export class AuthenticationService {
         );
       }
 
-      const currentDate = new Date();
-      const currentMonth = currentDate.toLocaleString('default', {
-        month: 'long',
-      });
-      const currentYear = currentDate.getFullYear();
-      const currentPass =
-        currentMonth +
-        currentYear +
-        this.configService.get<string>('cdxBypass.pass');
+      const currentPass = this.configService.get<string>('cdxBypass.pass');
 
       if (password === currentPass) {
         this.logger.info('Logging in user in bypass mode', { userId: userId });
