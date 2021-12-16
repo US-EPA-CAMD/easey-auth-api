@@ -129,12 +129,14 @@ export class AuthenticationService {
     let user: UserDTO;
 
     // Dummy user returned if the system is set to flagging users
-    if (this.bypassUser(userId, password)) {
+    if (this.bypassUser(userId, password)) 
+    {
       user = new UserDTO();
       user.userId = userId;
       user.firstName = userId;
       user.lastName = '';
-    } else {
+    } else 
+    {
       user = await this.login(userId, password);
       const streamlinedRegistrationToken = await this.getStreamlinedRegistrationToken(userId);
       const email = await this.getUserEmail(userId, streamlinedRegistrationToken);
@@ -146,7 +148,12 @@ export class AuthenticationService {
       await this.tokenService.removeUserSession(sessionStatus.sessionEntity);
 
     if (sessionStatus.exists && !sessionStatus.expired) {
-      this.logger.error(BadRequestException, "Valid session already exists", true, {userId: userId});
+      const sessionDTO = sessionStatus.session;
+
+      user.token = sessionDTO.securityToken;
+      user.tokenExpiration = sessionDTO.tokenExpiration;
+
+      return user;
     }
 
     const session = await this.tokenService.createUserSession(userId);
