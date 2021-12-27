@@ -12,12 +12,6 @@ Follow these [instructions](https://github.com/US-EPA-CAMD/devops/blob/master/GE
 
 Please refer to the [Auth Management API Swagger Documentation](https://api-easey-dev.app.cloud.gov/auth-mgmt/swagger/) for descriptions of the endpoints.
 
-## Built With
-​
-[NestJS](https://nestjs.com/) - server-side Node.js framework
-
-[Cloud.gov](https://cloud.gov/) - Platform as a Service (PaaS)
-​ 
 ​
 
 ## License & Contributing
