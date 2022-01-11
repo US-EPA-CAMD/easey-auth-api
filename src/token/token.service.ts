@@ -28,9 +28,16 @@ export class TokenService {
   ) {}
 
   isBypassSet() {
+    this.logger.info(this.configService.get<string>('app.env'));
+    this.logger.info(this.configService.get<boolean>('cdxBypass.enabled'));
+
+    this.logger.info(
+      this.configService.get<boolean>('cdxBypass.enabled') === true,
+    );
+
     if (
       this.configService.get<string>('app.env') !== 'production' &&
-      this.configService.get<boolean>('cdxBypass.enabled')
+      this.configService.get<boolean>('cdxBypass.enabled') === true
     ) {
       return true;
     }
@@ -193,11 +200,11 @@ export class TokenService {
 
     this.logger.info(stringifiedToken);
     this.logger.info(parsed);
-    this.logger.info("Validating Token From: " + parsed.userId);
+    this.logger.info('Validating Token From: ' + parsed.userId);
 
     const sessionStatus = await this.getSessionStatus(parsed.userId);
-    this.logger.info("Session exists: " + sessionStatus.exists);
-    this.logger.info("Session expired: " + sessionStatus.expired);
+    this.logger.info('Session exists: ' + sessionStatus.exists);
+    this.logger.info('Session expired: ' + sessionStatus.expired);
 
     if (!sessionStatus.exists || sessionStatus.expired) {
       this.logger.error(
