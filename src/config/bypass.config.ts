@@ -5,3 +5,4 @@ export default registerAs('cdxBypass', () => ({
   pass: process.env.EASEY_AUTH_API_CDX_BYPASS_PASSWORD,
   users: process.env.EASEY_AUTH_API_CDX_BYPASS_USERS,
 }));
+  
