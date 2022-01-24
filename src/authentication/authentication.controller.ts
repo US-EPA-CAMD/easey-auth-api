@@ -1,6 +1,12 @@
-import { ApiTags, ApiOkResponse, ApiBearerAuth, ApiSecurity } from '@nestjs/swagger';
+import { Request } from 'express';
+
+import {
+  ApiTags,
+  ApiOkResponse,
+  ApiBearerAuth,
+  ApiSecurity,
+} from '@nestjs/swagger';
 import { Post, Controller, Body, UseGuards, Delete, Req } from '@nestjs/common';
-import { Request } from '@nestjs/common';
 
 import { UserDTO } from './../dtos/user.dto';
 import { CredentialsDTO } from './../dtos/credentials.dto';
@@ -20,15 +26,21 @@ export class AuthenticationController {
     type: UserDTO,
     description: 'Authenticates a user using EPA CDX Services',
   })
-  signIn(
+  async signIn(
     @Body() credentials: CredentialsDTO,
     @ClientIP() clientIp: string,
+    @Req() req: Request,
   ): Promise<UserDTO> {
-    return this.service.signIn(
+    const userInfo = await this.service.signIn(
       credentials.userId,
       credentials.password,
       clientIp,
     );
+
+    req.res.cookie('cdxToken', userInfo.token, {
+      domain: req.hostname,
+    });
+    return userInfo;
   }
 
   @Delete('/sign-out')
@@ -37,8 +49,13 @@ export class AuthenticationController {
   @ApiOkResponse({
     description: 'Authenticates a user using EPA CDX Services',
   })
-  signOut(@Req() req: Request, @ClientIP() clientIp: string): Promise<void> {
+  async signOut(
+    @Req() req: Request,
+    @ClientIP() clientIp: string,
+  ): Promise<void> {
     const token = req.headers['authorization'].split(' ')[1];
-    return this.service.signOut(token, clientIp);
+    const signOutResponse = await this.service.signOut(token, clientIp);
+
+    req.res.clearCookie('cdxToken', { domain: req.hostname });
   }
 }
