@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
-  Response,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClientAsync } from 'soap';

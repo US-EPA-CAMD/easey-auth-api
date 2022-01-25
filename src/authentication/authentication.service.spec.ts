@@ -6,6 +6,7 @@ import { UserDTO } from '../dtos/user.dto';
 import { UserSessionDTO } from '../dtos/user-session.dto';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { Logger } from '@us-epa-camd/easey-common/logger';
+import { getHeapStatistics } from 'v8';
 
 const client = {
   AuthenticateAsync: jest.fn(() =>
@@ -13,6 +14,9 @@ const client = {
       { User: { userId: '1', firstName: 'Jeff', lastName: 'Bob' } },
     ]),
   ),
+  RetrievePrimaryOrganizationAsync: jest
+    .fn()
+    .mockResolvedValue([{ result: { email: '' } }]),
 };
 
 let responseVals = {
@@ -89,15 +93,7 @@ describe('Authentication Service', () => {
         ['cdxBypass.pass']: 'IC@nn0tL0g1nIn',
       };
       jest.spyOn(tokenService, 'isBypassSet').mockReturnValue(true);
-      const currentDate = new Date();
-      const currentMonth = currentDate.toLocaleString('default', {
-        month: 'long',
-      });
-      const currentYear = currentDate.getFullYear();
-      const currentPass =
-        currentMonth + currentYear + responseVals['cdxBypass.pass'];
-
-      const user = await service.bypassUser('kherceg-dp', currentPass);
+      const user = await service.bypassUser('kherceg-dp', 'IC@nn0tL0g1nIn');
       expect(user).toEqual(true);
     });
 
