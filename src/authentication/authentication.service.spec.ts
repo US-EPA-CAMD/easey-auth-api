@@ -6,7 +6,6 @@ import { UserDTO } from '../dtos/user.dto';
 import { UserSessionDTO } from '../dtos/user-session.dto';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { Logger } from '@us-epa-camd/easey-common/logger';
-import { getHeapStatistics } from 'v8';
 
 const client = {
   AuthenticateAsync: jest.fn(() =>
