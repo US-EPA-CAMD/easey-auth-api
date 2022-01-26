@@ -54,8 +54,7 @@ export class AuthenticationController {
     @ClientIP() clientIp: string,
   ): Promise<void> {
     const token = req.headers['authorization'].split(' ')[1];
-    const signOutResponse = await this.service.signOut(token, clientIp);
-
+    await this.service.signOut(token, clientIp);
     req.res.clearCookie('cdxToken', { domain: req.hostname });
   }
 }
