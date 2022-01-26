@@ -169,7 +169,10 @@ export class AuthenticationService {
       );
       user.email = email;
 
-      const permissions = await this.getMockPermissions(userId);
+      let permissions;
+      if (this.configService.get<boolean>('cdxBypass.mockPermissionsEnabled'))
+        permissions = await this.getMockPermissions(userId);
+      else permissions = { facilities: [], roles: [] };
 
       user.facilities = permissions.facilities;
       user.roles = permissions.roles;
