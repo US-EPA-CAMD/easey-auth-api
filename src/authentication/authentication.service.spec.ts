@@ -1,4 +1,5 @@
 import { ConfigService } from '@nestjs/config';
+import { HttpModule } from '@nestjs/axios';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TokenService } from '../token/token.service';
 import { AuthenticationService } from './authentication.service';
@@ -6,6 +7,7 @@ import { UserDTO } from '../dtos/user.dto';
 import { UserSessionDTO } from '../dtos/user-session.dto';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { Logger } from '@us-epa-camd/easey-common/logger';
+import { UsingJoinTableIsNotAllowedError } from 'typeorm';
 
 const client = {
   AuthenticateAsync: jest.fn(() =>
@@ -56,7 +58,7 @@ describe('Authentication Service', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [LoggerModule],
+      imports: [LoggerModule, HttpModule],
       providers: [
         AuthenticationService,
         {
@@ -140,6 +142,9 @@ describe('Authentication Service', () => {
         ['cdxBypass.users']: '["kherceg-dp"]',
         ['cdxBypass.pass']: 'password',
       };
+      jest
+        .spyOn(service, 'getMockPermissions')
+        .mockResolvedValue({ facilities: [], roles: [] });
       jest.spyOn(tokenService, 'getSessionStatus').mockResolvedValue({
         exists: false,
         expired: false,
@@ -160,6 +165,10 @@ describe('Authentication Service', () => {
         ['cdxBypass.users']: '["kherceg-dp"]',
         ['cdxBypass.pass']: 'password',
       };
+
+      jest
+        .spyOn(service, 'getMockPermissions')
+        .mockResolvedValue({ facilities: [], roles: [] });
       jest.spyOn(tokenService, 'getSessionStatus').mockResolvedValue({
         exists: true,
         expired: false,

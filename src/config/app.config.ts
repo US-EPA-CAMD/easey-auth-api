@@ -22,7 +22,8 @@ export default registerAs('app', () => ({
   enableCors: process.env.EASEY_AUTH_API_ENABLE_CORS || true,
   enableApiKey: process.env.EASEY_AUTH_API_ENABLE_API_KEY || true,
   enableAuthToken: process.env.EASEY_AUTH_API_ENABLE_AUTH_TOKEN || true,
-  enableGlobalValidationPipes: process.env.EASEY_AUTH_API_ENABLE_GLOBAL_VALIDATION_PIPE || true,
+  enableGlobalValidationPipes:
+    process.env.EASEY_AUTH_API_ENABLE_GLOBAL_VALIDATION_PIPE || true,
   version: process.env.EASEY_AUTH_API_VERSION || 'v0.0.0',
   published: process.env.EASEY_AUTH_API_PUBLISHED || 'local',
   naasAppId: process.env.EASEY_AUTH_API_NAASID,
@@ -33,4 +34,7 @@ export default registerAs('app', () => ({
   naasSvcs:
     process.env.EASEY_NAAS_SERVICES ||
     'https://naasdev.epacdxnode.net/xml/securitytoken_v30.wsdl',
+  contentUrl:
+    process.env.EASEY_CONTENT_API ||
+    'https://api.epa.gov/easey/dev/content-mgmt',
 }));

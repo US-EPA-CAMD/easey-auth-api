@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import { HttpModule } from '@nestjs/axios';
 import { TokenService } from '../token/token.service';
 import { UserSessionRepository } from '../user-session/user-session.repository';
 import { UserSessionMap } from '../maps/user-session.map';
@@ -38,7 +39,7 @@ describe('Token Service', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [LoggerModule],
+      imports: [LoggerModule, HttpModule],
       providers: [
         TokenService,
         {

@@ -5,12 +5,15 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClientAsync } from 'soap';
+import { HttpService } from '@nestjs/axios';
 
 import { UserDTO } from './../dtos/user.dto';
 import { TokenService } from '../token/token.service';
 import { parseToken } from '@us-epa-camd/easey-common/utilities';
 
 import { Logger } from '@us-epa-camd/easey-common/logger';
+import { firstValueFrom, Observable } from 'rxjs';
+import { MockPermissions } from './mock-permissions.interface';
 
 @Injectable()
 export class AuthenticationService {
@@ -18,6 +21,7 @@ export class AuthenticationService {
     private configService: ConfigService,
     private tokenService: TokenService,
     private logger: Logger,
+    private httpService: HttpService,
   ) {}
 
   bypassUser(userId: string, password: string) {
@@ -115,6 +119,32 @@ export class AuthenticationService {
       });
   }
 
+  async getMockPermissions(userId: string): Promise<MockPermissions> {
+    const mockPermissions = {
+      facilities: [],
+      roles: [],
+    };
+
+    const mockPermissionObject = await firstValueFrom(
+      this.httpService.get(
+        `${this.configService.get<string>(
+          'app.contentUrl',
+        )}/auth/mockPermissions.json`,
+      ),
+    );
+
+    const userPermissions = mockPermissionObject['data'].filter(
+      entry => entry.userid === userId,
+    );
+
+    if (userPermissions.length > 0) {
+      mockPermissions.facilities = userPermissions[0]['facilities'];
+      mockPermissions.roles = userPermissions[0]['roles'];
+    }
+
+    return mockPermissions;
+  }
+
   async signIn(
     userId: string,
     password: string,
@@ -138,6 +168,11 @@ export class AuthenticationService {
         streamlinedRegistrationToken,
       );
       user.email = email;
+
+      const permissions = await this.getMockPermissions(userId);
+
+      user.facilities = permissions.facilities;
+      user.roles = permissions.roles;
     }
 
     const sessionStatus = await this.tokenService.getSessionStatus(userId);
@@ -156,6 +191,8 @@ export class AuthenticationService {
     const session = await this.tokenService.createUserSession(userId);
     user.token = await this.tokenService.createToken(userId, clientIp);
     user.tokenExpiration = session.tokenExpiration;
+
+    console.log(user);
 
     return user;
   }
