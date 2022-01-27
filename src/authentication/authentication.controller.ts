@@ -37,9 +37,8 @@ export class AuthenticationController {
       clientIp,
     );
 
-    req.res.cookie('cdxToken', userInfo.token, {
-      domain: req.hostname,
-    });
+    const params = this.service.getCookieOptions(req);
+    req.res.cookie('cdxToken', userInfo.token, params);
     return userInfo;
   }
 
@@ -55,6 +54,8 @@ export class AuthenticationController {
   ): Promise<void> {
     const token = req.headers['authorization'].split(' ')[1];
     await this.service.signOut(token, clientIp);
-    req.res.clearCookie('cdxToken', { domain: req.hostname });
+
+    const params = this.service.getCookieOptions(req);
+    req.res.clearCookie('cdxToken', params);
   }
 }
