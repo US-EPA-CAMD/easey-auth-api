@@ -26,6 +26,7 @@ const mockRequest = createMock<Request>({
 const mockService = () => ({
   signIn: jest.fn().mockResolvedValue(new UserDTO()),
   signOut: jest.fn().mockResolvedValue(true),
+  getCookieOptions: jest.fn().mockReturnValue({}),
 });
 
 describe('Authentication Controller', () => {

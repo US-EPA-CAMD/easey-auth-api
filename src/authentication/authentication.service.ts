@@ -1,3 +1,4 @@
+import { CookieOptions, Request } from 'express';
 import {
   BadRequestException,
   Injectable,
@@ -23,6 +24,15 @@ export class AuthenticationService {
     private logger: Logger,
     private httpService: HttpService,
   ) {}
+
+  getCookieOptions(req: Request): CookieOptions {
+    let params = { domain: req.hostname };
+    if (req.hostname !== 'localhost') {
+      return { ...params, sameSite: 'none', secure: true };
+    }
+
+    return params;
+  }
 
   bypassUser(userId: string, password: string) {
     if (this.tokenService.isBypassSet()) {
