@@ -26,13 +26,11 @@ export class AuthenticationService {
   ) {}
 
   getCookieOptions(req: Request): CookieOptions {
-    //let params = { domain: req.hostname };
-    let params = {};
-    if (req.hostname !== 'localhost') {
-      return { ...params, sameSite: 'none', secure: true };
+    if (!req.header('Origin').includes('localhost')) {
+      return { domain: req.header('Origin'), sameSite: 'none', secure: true };
     }
 
-    return params;
+    return {};
   }
 
   bypassUser(userId: string, password: string) {
