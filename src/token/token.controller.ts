@@ -1,5 +1,11 @@
-import { ApiTags, ApiOkResponse, ApiBearerAuth, ApiSecurity } from '@nestjs/swagger';
-import { Post, Controller, Body } from '@nestjs/common';
+import { Request } from 'express';
+import {
+  ApiTags,
+  ApiOkResponse,
+  ApiBearerAuth,
+  ApiSecurity,
+} from '@nestjs/swagger';
+import { Post, Controller, Body, Req } from '@nestjs/common';
 import { ClientIP } from './../decorators/client-ip.decorator';
 import { UserIdDTO } from '../dtos/user-id.dto';
 import { ValidateTokenDTO } from '../dtos/validate-token.dto';
@@ -20,11 +26,18 @@ export class TokenController {
     type: String,
     description: 'Creates a security token (user must be authenticated)',
   })
-  createToken(
+  async createToken(
     @Body() dto: UserIdDTO,
     @ClientIP() clientIp: string,
+    @Req() req: Request,
   ): Promise<string> {
-    return this.service.createToken(dto.userId, clientIp);
+    const token = await this.service.createToken(dto.userId, clientIp);
+
+    req.res.cookie('cdxToken', token, {
+      domain: req.hostname,
+    });
+
+    return token;
   }
 
   @Post('/validate')

@@ -16,7 +16,7 @@ import { v4 as uuid } from 'uuid';
 import { UserSessionDTO } from '../dtos/user-session.dto';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { encode, decode } from 'js-base64';
-
+//
 @Injectable()
 export class TokenService {
   constructor(

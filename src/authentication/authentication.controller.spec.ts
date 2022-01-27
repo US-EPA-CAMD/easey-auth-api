@@ -1,3 +1,4 @@
+import { Request } from 'express';
 import { AuthenticationController } from './authentication.controller';
 import { AuthenticationService } from './authentication.service';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -13,6 +14,13 @@ jest.mock('./authentication.service');
 
 const mockRepo = () => ({
   findOne: jest.fn().mockResolvedValue(''),
+});
+
+const mockRequest = createMock<Request>({
+  res: {
+    cookie: jest.fn(),
+    clearCookie: jest.fn(),
+  },
 });
 
 const mockService = () => ({
@@ -52,14 +60,13 @@ describe('Authentication Controller', () => {
 
       const cred = new CredentialsDTO();
 
-      expect(await controller.signIn(cred, '')).toBe(data);
+      expect(await controller.signIn(cred, '', mockRequest)).toBe(data);
     });
   });
 
   describe('Sign-Out Controller', () => {
     it('Should call the service sign out given a valid request', async () => {
       const signOut = jest.spyOn(service, 'signOut').mockResolvedValue();
-      const mockRequest = createMock<Request>();
 
       mockRequest.headers['authorization'] = 'Bearer 1';
 

@@ -1,13 +1,22 @@
+import { Request } from 'express';
 import { Test, TestingModule } from '@nestjs/testing';
+import { LoggerModule } from '@us-epa-camd/easey-common/logger';
+import { createMock } from '@golevelup/ts-jest';
 import { AuthGuard } from '../guards/auth.guard';
 import { UserIdDTO } from '../dtos/user-id.dto';
 import { ValidateTokenDTO } from '../dtos/validate-token.dto';
 import { TokenController } from './token.controller';
 import { TokenService } from './token.service';
 import { UserSessionRepository } from '../user-session/user-session.repository';
-import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 
 jest.mock('./token.service');
+
+const mockRequest = createMock<Request>({
+  res: {
+    cookie: jest.fn(),
+    clearCookie: jest.fn(),
+  },
+});
 
 const mockRepo = () => ({
   findOne: jest.fn().mockResolvedValue(''),
@@ -42,7 +51,9 @@ describe('Token Controller', () => {
 
       jest.spyOn(service, 'createToken').mockResolvedValue(data);
 
-      expect(await controller.createToken(new UserIdDTO(), '')).toBe(data);
+      expect(
+        await controller.createToken(new UserIdDTO(), '', mockRequest),
+      ).toBe(data);
     });
 
     it('Should return a validated token to the user', async () => {

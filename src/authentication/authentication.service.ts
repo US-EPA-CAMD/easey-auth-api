@@ -5,12 +5,15 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClientAsync } from 'soap';
+import { HttpService } from '@nestjs/axios';
 
 import { UserDTO } from './../dtos/user.dto';
 import { TokenService } from '../token/token.service';
 import { parseToken } from '@us-epa-camd/easey-common/utilities';
 
 import { Logger } from '@us-epa-camd/easey-common/logger';
+import { firstValueFrom, Observable } from 'rxjs';
+import { MockPermissions } from './mock-permissions.interface';
 
 @Injectable()
 export class AuthenticationService {
@@ -18,6 +21,7 @@ export class AuthenticationService {
     private configService: ConfigService,
     private tokenService: TokenService,
     private logger: Logger,
+    private httpService: HttpService,
   ) {}
 
   bypassUser(userId: string, password: string) {
@@ -29,8 +33,8 @@ export class AuthenticationService {
       if (!acceptedUsers.find(x => x === userId)) {
         this.logger.error(
           InternalServerErrorException,
-          "Incorrect Bypass userId",
-          true
+          'Incorrect Bypass userId',
+          true,
         );
       }
 
@@ -43,16 +47,15 @@ export class AuthenticationService {
         this.logger.error(
           InternalServerErrorException,
           'Incorrect bypass password',
-          true
+          true,
         );
       }
     }
 
     return false;
   }
-  
-  async getStreamlinedRegistrationToken(userId: string){
-    
+
+  async getStreamlinedRegistrationToken(userId: string) {
     const url = `${this.configService.get<string>(
       'app.cdxSvcs',
     )}/StreamlinedRegistrationService?wsdl`;
@@ -60,12 +63,8 @@ export class AuthenticationService {
     return createClientAsync(url)
       .then(client => {
         return client.AuthenticateAsync({
-          userId: this.configService.get<string>(
-            'app.naasAppId',
-          ),
-          credential: this.configService.get<string>(
-            'app.nassAppPwd',
-          ),
+          userId: this.configService.get<string>('app.naasAppId'),
+          credential: this.configService.get<string>('app.nassAppPwd'),
         });
       })
       .then(res => {
@@ -81,15 +80,14 @@ export class AuthenticationService {
           );
         }
 
-        this.logger.error(InternalServerErrorException, err.message, true ,{
+        this.logger.error(InternalServerErrorException, err.message, true, {
           userId: userId,
         });
         return null;
       });
   }
 
-  async getUserEmail(userId: string, naasToken: string){
-    
+  async getUserEmail(userId: string, naasToken: string) {
     const url = `${this.configService.get<string>(
       'app.cdxSvcs',
     )}/StreamlinedRegistrationService?wsdl`;
@@ -98,7 +96,7 @@ export class AuthenticationService {
       .then(client => {
         return client.RetrievePrimaryOrganizationAsync({
           securityToken: naasToken,
-          user: {userId: userId}
+          user: { userId: userId },
         });
       })
       .then(res => {
@@ -114,11 +112,37 @@ export class AuthenticationService {
           );
         }
 
-        this.logger.error(InternalServerErrorException, err.message, true,{
+        this.logger.error(InternalServerErrorException, err.message, true, {
           userId: userId,
         });
         return null;
       });
+  }
+
+  async getMockPermissions(userId: string): Promise<MockPermissions> {
+    const mockPermissions = {
+      facilities: [],
+      roles: [],
+    };
+
+    const mockPermissionObject = await firstValueFrom(
+      this.httpService.get(
+        `${this.configService.get<string>(
+          'app.contentUrl',
+        )}/auth/mockPermissions.json`,
+      ),
+    );
+
+    const userPermissions = mockPermissionObject['data'].filter(
+      entry => entry.userid === userId,
+    );
+
+    if (userPermissions.length > 0) {
+      mockPermissions.facilities = userPermissions[0]['facilities'];
+      mockPermissions.roles = userPermissions[0]['roles'];
+    }
+
+    return mockPermissions;
   }
 
   async signIn(
@@ -129,18 +153,29 @@ export class AuthenticationService {
     let user: UserDTO;
 
     // Dummy user returned if the system is set to flagging users
-    if (this.bypassUser(userId, password)) 
-    {
+    if (this.bypassUser(userId, password)) {
       user = new UserDTO();
       user.userId = userId;
       user.firstName = userId;
       user.lastName = '';
-    } else 
-    {
+    } else {
       user = await this.login(userId, password);
-      const streamlinedRegistrationToken = await this.getStreamlinedRegistrationToken(userId);
-      const email = await this.getUserEmail(userId, streamlinedRegistrationToken);
+      const streamlinedRegistrationToken = await this.getStreamlinedRegistrationToken(
+        userId,
+      );
+      const email = await this.getUserEmail(
+        userId,
+        streamlinedRegistrationToken,
+      );
       user.email = email;
+
+      let permissions;
+      if (this.configService.get<boolean>('cdxBypass.mockPermissionsEnabled'))
+        permissions = await this.getMockPermissions(userId);
+      else permissions = { facilities: [], roles: [] };
+
+      user.facilities = permissions.facilities;
+      user.roles = permissions.roles;
     }
 
     const sessionStatus = await this.tokenService.getSessionStatus(userId);
@@ -159,6 +194,8 @@ export class AuthenticationService {
     const session = await this.tokenService.createUserSession(userId);
     user.token = await this.tokenService.createToken(userId, clientIp);
     user.tokenExpiration = session.tokenExpiration;
+
+    console.log(user);
 
     return user;
   }
@@ -186,15 +223,18 @@ export class AuthenticationService {
         return dto;
       })
       .catch(err => {
+        this.logger.info(err);
+
         if (err.root && err.root.Envelope) {
           this.logger.error(
             InternalServerErrorException,
-            err.root.Envelope.Body.Fault.detail.RegisterAuthFault.description, true,
+            err.root.Envelope.Body.Fault.detail.RegisterAuthFault.description,
+            true,
             { userId: userId },
           );
         }
 
-        this.logger.error(InternalServerErrorException, err.message, true,{
+        this.logger.error(InternalServerErrorException, err.message, true, {
           userId: userId,
         });
         return null;
@@ -211,7 +251,8 @@ export class AuthenticationService {
     if (parsed.clientIp !== clientIp) {
       this.logger.error(
         BadRequestException,
-        'Sign out request coming from invalid IP address', true,
+        'Sign out request coming from invalid IP address',
+        true,
         { userId: parsed.userId, clientIp: clientIp },
       );
     }
@@ -227,7 +268,8 @@ export class AuthenticationService {
     } else {
       this.logger.error(
         BadRequestException,
-        'No valid session exists for the current user', true,
+        'No valid session exists for the current user',
+        true,
         { userId: parsed.userId },
       );
     }
