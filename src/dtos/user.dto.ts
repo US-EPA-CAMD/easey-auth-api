@@ -1,3 +1,5 @@
+import { PermissionsDTO } from './permissions.dto';
+
 export class UserDTO {
   userId: string;
   firstName: string;
@@ -5,6 +7,5 @@ export class UserDTO {
   token: string;
   tokenExpiration: string;
   email: string;
-  roles: string[];
-  facilities: number[];
+  permissions: PermissionsDTO[];
 }
