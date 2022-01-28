@@ -1,6 +1,6 @@
 export class PermissionsDTO {
-  id: number;
-  oris: number;
+  facilityId: number;
+  orisCode: number;
   name: string;
   roles: string[];
 }

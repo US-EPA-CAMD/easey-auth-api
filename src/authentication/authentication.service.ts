@@ -151,9 +151,9 @@ export class AuthenticationService {
       for (let i = 0; i < userPermissions[0].facilities.length; i++) {
         const facility = userPermissions[0].facilities[i];
         const dto = new PermissionsDTO();
-        dto.id = facility.id;
+        dto.facilityId = facility.id;
         dto.name = facility.name;
-        dto.oris = facility.oris;
+        dto.orisCode = facility.oris;
         dto.roles = facility.roles;
         mockPermissions.push(dto);
       }
