@@ -142,9 +142,7 @@ describe('Authentication Service', () => {
         ['cdxBypass.users']: '["kherceg-dp"]',
         ['cdxBypass.pass']: 'password',
       };
-      jest
-        .spyOn(service, 'getMockPermissions')
-        .mockResolvedValue({ facilities: [], roles: [] });
+      jest.spyOn(service, 'getMockPermissions').mockResolvedValue([]);
       jest.spyOn(tokenService, 'getSessionStatus').mockResolvedValue({
         exists: false,
         expired: false,
@@ -166,9 +164,7 @@ describe('Authentication Service', () => {
         ['cdxBypass.pass']: 'password',
       };
 
-      jest
-        .spyOn(service, 'getMockPermissions')
-        .mockResolvedValue({ facilities: [], roles: [] });
+      jest.spyOn(service, 'getMockPermissions').mockResolvedValue([]);
       jest.spyOn(tokenService, 'getSessionStatus').mockResolvedValue({
         exists: true,
         expired: false,

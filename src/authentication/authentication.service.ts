@@ -13,9 +13,8 @@ import { TokenService } from '../token/token.service';
 import { parseToken } from '@us-epa-camd/easey-common/utilities';
 
 import { Logger } from '@us-epa-camd/easey-common/logger';
-import { firstValueFrom, Observable } from 'rxjs';
-import { MockPermissions } from './mock-permissions.interface';
-import { PermissionsDTO } from 'src/dtos/permissions.dto';
+import { firstValueFrom } from 'rxjs';
+import { PermissionsDTO } from '../dtos/permissions.dto';
 
 @Injectable()
 export class AuthenticationService {
@@ -142,14 +141,13 @@ export class AuthenticationService {
       entry => entry.userid === userId,
     );
 
-    let mockPermissions: PermissionsDTO[] = [];
+    const mockPermissions: PermissionsDTO[] = [];
 
     if (
       userPermissions.length > 0 &&
       userPermissions[0].facilities.length > 0
     ) {
-      for (let i = 0; i < userPermissions[0].facilities.length; i++) {
-        const facility = userPermissions[0].facilities[i];
+      for (let facility of userPermissions[0].facilities) {
         const dto = new PermissionsDTO();
         dto.facilityId = facility.id;
         dto.name = facility.name;
