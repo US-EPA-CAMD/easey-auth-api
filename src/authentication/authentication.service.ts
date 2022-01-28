@@ -13,8 +13,8 @@ import { TokenService } from '../token/token.service';
 import { parseToken } from '@us-epa-camd/easey-common/utilities';
 
 import { Logger } from '@us-epa-camd/easey-common/logger';
-import { firstValueFrom, Observable } from 'rxjs';
-import { MockPermissions } from './mock-permissions.interface';
+import { firstValueFrom } from 'rxjs';
+import { PermissionsDTO } from '../dtos/permissions.dto';
 
 @Injectable()
 export class AuthenticationService {
@@ -128,12 +128,7 @@ export class AuthenticationService {
       });
   }
 
-  async getMockPermissions(userId: string): Promise<MockPermissions> {
-    const mockPermissions = {
-      facilities: [],
-      roles: [],
-    };
-
+  async getMockPermissions(userId: string): Promise<PermissionsDTO[]> {
     const mockPermissionObject = await firstValueFrom(
       this.httpService.get(
         `${this.configService.get<string>(
@@ -146,9 +141,20 @@ export class AuthenticationService {
       entry => entry.userid === userId,
     );
 
-    if (userPermissions.length > 0) {
-      mockPermissions.facilities = userPermissions[0]['facilities'];
-      mockPermissions.roles = userPermissions[0]['roles'];
+    const mockPermissions: PermissionsDTO[] = [];
+
+    if (
+      userPermissions.length > 0 &&
+      userPermissions[0].facilities.length > 0
+    ) {
+      for (let facility of userPermissions[0].facilities) {
+        const dto = new PermissionsDTO();
+        dto.facilityId = facility.id;
+        dto.name = facility.name;
+        dto.orisCode = facility.oris;
+        dto.roles = facility.roles;
+        mockPermissions.push(dto);
+      }
     }
 
     return mockPermissions;
@@ -181,10 +187,9 @@ export class AuthenticationService {
       let permissions;
       if (this.configService.get<boolean>('cdxBypass.mockPermissionsEnabled'))
         permissions = await this.getMockPermissions(userId);
-      else permissions = { facilities: [], roles: [] };
+      else permissions = [];
 
-      user.facilities = permissions.facilities;
-      user.roles = permissions.roles;
+      user.permissions = permissions;
     }
 
     const sessionStatus = await this.tokenService.getSessionStatus(userId);
