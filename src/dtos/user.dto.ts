@@ -1,4 +1,4 @@
-import { PermissionsDTO } from './permissions.dto';
+import { FacilitiesDTO } from './facilities.dto';
 
 export class UserDTO {
   userId: string;
@@ -7,5 +7,5 @@ export class UserDTO {
   token: string;
   tokenExpiration: string;
   email: string;
-  permissions: PermissionsDTO[];
+  facilities: FacilitiesDTO[];
 }
