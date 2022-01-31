@@ -14,7 +14,7 @@ import { parseToken } from '@us-epa-camd/easey-common/utilities';
 
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { firstValueFrom } from 'rxjs';
-import { PermissionsDTO } from '../dtos/permissions.dto';
+import { FacilitiesDTO } from '../dtos/facilities.dto';
 
 @Injectable()
 export class AuthenticationService {
@@ -128,7 +128,7 @@ export class AuthenticationService {
       });
   }
 
-  async getMockPermissions(userId: string): Promise<PermissionsDTO[]> {
+  async getMockPermissions(userId: string): Promise<FacilitiesDTO[]> {
     const mockPermissionObject = await firstValueFrom(
       this.httpService.get(
         `${this.configService.get<string>(
@@ -141,14 +141,14 @@ export class AuthenticationService {
       entry => entry.userid === userId,
     );
 
-    const mockPermissions: PermissionsDTO[] = [];
+    const mockPermissions: FacilitiesDTO[] = [];
 
     if (
       userPermissions.length > 0 &&
       userPermissions[0].facilities.length > 0
     ) {
       for (let facility of userPermissions[0].facilities) {
-        const dto = new PermissionsDTO();
+        const dto = new FacilitiesDTO();
         dto.facilityId = facility.id;
         dto.name = facility.name;
         dto.orisCode = facility.oris;
@@ -189,7 +189,7 @@ export class AuthenticationService {
         permissions = await this.getMockPermissions(userId);
       else permissions = [];
 
-      user.permissions = permissions;
+      user.facilities = permissions;
     }
 
     const sessionStatus = await this.tokenService.getSessionStatus(userId);
