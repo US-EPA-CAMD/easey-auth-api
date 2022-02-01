@@ -38,6 +38,7 @@ export class AuthenticationService {
     return {};*/
 
     return {
+      domain: 'localhost',
       httpOnly: false,
       sameSite: 'none',
       secure: true,
