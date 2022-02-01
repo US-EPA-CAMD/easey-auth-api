@@ -28,10 +28,8 @@ export class AuthenticationService {
   getCookieOptions(req: Request): CookieOptions {
     if (!req.header('Origin').includes('localhost')) {
       return {
-        domain: 'api-easey-dev.app.cloud.gov',
         httpOnly: false,
         sameSite: 'none',
-        maxAge: 90000,
         secure: true,
       };
     }
