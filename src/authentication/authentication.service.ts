@@ -31,6 +31,7 @@ export class AuthenticationService {
         domain: 'api-easey-dev.app.cloud.gov',
         httpOnly: false,
         sameSite: 'none',
+        maxAge: 90000,
         secure: true,
       };
     }
