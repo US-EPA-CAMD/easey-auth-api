@@ -27,7 +27,7 @@ export class AuthenticationService {
 
   getCookieOptions(req: Request): CookieOptions {
     if (!req.header('Origin').includes('localhost')) {
-      return { domain: req.header('Origin'), sameSite: 'none', secure: true };
+      return { sameSite: 'none', secure: true };
     }
 
     return {};
