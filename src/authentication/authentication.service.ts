@@ -26,6 +26,7 @@ export class AuthenticationService {
   ) {}
 
   getCookieOptions(req: Request): CookieOptions {
+    /*
     if (!req.header('Origin').includes('localhost')) {
       return {
         httpOnly: false,
@@ -34,7 +35,13 @@ export class AuthenticationService {
       };
     }
 
-    return {};
+    return {};*/
+
+    return {
+      httpOnly: false,
+      sameSite: 'none',
+      secure: true,
+    };
   }
 
   bypassUser(userId: string, password: string) {
