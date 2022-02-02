@@ -38,7 +38,7 @@ export class AuthenticationService {
     return {};*/
 
     return {
-      domain: '.cloud.gov',
+      domain: 'cloud.gov',
       httpOnly: false,
       sameSite: 'none',
       secure: true,
