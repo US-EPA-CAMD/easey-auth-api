@@ -39,6 +39,10 @@ export class AuthenticationController {
 
     const params = this.service.getCookieOptions(req);
     req.res.cookie('cdxToken', userInfo.token, params);
+    req.res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, x-api-key, *',
+    );
     return userInfo;
   }
 
