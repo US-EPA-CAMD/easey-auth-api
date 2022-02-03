@@ -38,7 +38,6 @@ export class AuthenticationService {
     return {};*/
 
     return {
-      httpOnly: true,
       sameSite: 'none',
       secure: true,
     };
