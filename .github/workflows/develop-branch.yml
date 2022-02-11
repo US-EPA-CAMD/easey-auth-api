@@ -4,7 +4,10 @@ on:
   push:
     branches: [develop]
     paths-ignore:
+      - '**/*.md'
+      - 'LICENSE'
       - '.github/**'
+      - '.gitignore'
 
 jobs:
   Build-Test-Deploy:

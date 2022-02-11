@@ -2,7 +2,7 @@ name: Release Branch Workflow
 
 on:
   push:
-    branches: [ release/v* ]
+    branches: [release/v*]
 
 jobs:
   Build-Test-Package:
@@ -37,7 +37,7 @@ jobs:
         uses: sonarsource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}          
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Package App
         run: devops/scripts/package-artifact.sh
         env:
