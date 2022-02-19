@@ -16,7 +16,7 @@ import { v4 as uuid } from 'uuid';
 import { UserSessionDTO } from '../dtos/user-session.dto';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { encode, decode } from 'js-base64';
-//
+
 @Injectable()
 export class TokenService {
   constructor(
@@ -28,16 +28,9 @@ export class TokenService {
   ) {}
 
   isBypassSet() {
-    this.logger.info(this.configService.get<string>('app.env'));
-    this.logger.info(this.configService.get<boolean>('cdxBypass.enabled'));
-
-    this.logger.info(
-      this.configService.get<boolean>('cdxBypass.enabled') === true,
-    );
-
     if (
       this.configService.get<string>('app.env') !== 'production' &&
-      this.configService.get<string>('cdxBypass.enabled') === 'true'
+      this.configService.get<string>('cdxBypass.enabled')
     ) {
       return true;
     }

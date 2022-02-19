@@ -2,7 +2,7 @@ name: Release Branch Workflow
 
 on:
   push:
-    branches: [release/v*]
+    branches: [release/*]
 
 jobs:
   Build-Test-Package:
