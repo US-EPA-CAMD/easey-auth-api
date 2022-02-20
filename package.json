@@ -1,6 +1,6 @@
 {
   "name": "easey-auth-api",
-  "version": "v0.0.0",
+  "version": "0.0.0",
   "description": "EPA CAMD Authentication & Authorization Management API",
   "license": "MIT",
   "private": true,

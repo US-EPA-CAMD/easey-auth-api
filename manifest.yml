@@ -19,7 +19,6 @@ applications:
       EASEY_AUTH_API_ENABLE_API_KEY: true
       EASEY_AUTH_API_ENABLE_AUTH_TOKEN: true
       EASEY_AUTH_API_ENABLE_GLOBAL_VALIDATION_PIPE: true
-      NODE_OPTIONS: --max-old-space-size=((heap))
     routes:
       - route: ((host))/((path))
     services:
