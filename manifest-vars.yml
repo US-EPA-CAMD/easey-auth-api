@@ -4,7 +4,6 @@ title: Authenication & Authorization
 path: auth-mgmt
 port: 8080
 memory: 1024
-heap: 512
 disk: 1024
 instances: 1
 environment: development
