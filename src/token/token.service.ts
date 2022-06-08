@@ -115,7 +115,7 @@ export class TokenService {
         },
         apiRecord.encryptionKey,
         {
-          expiresIn: '5m',
+          expiresIn: this.configService.get<string>('app.clientTokenDuration'),
         },
       );
     } else {
