@@ -20,6 +20,7 @@ import { encode, decode } from 'js-base64';
 import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
 import { ApiRepository } from './api.repository';
 import { ValidateClientTokenParamsDTO } from '../dtos/validate-client-token.dto';
+import { ClientTokenDTO } from 'src/dtos/clientToken.dto';
 
 @Injectable()
 export class TokenService {
@@ -88,7 +89,7 @@ export class TokenService {
 
   async generateClientToken(
     validateClientIdParams: ValidateClientIdParamsDTO,
-  ): Promise<string> {
+  ): Promise<ClientTokenDTO> {
     //Ensure fields have been set
     if (
       !validateClientIdParams.clientId ||
@@ -109,15 +110,22 @@ export class TokenService {
 
     // If the record exists, encrypt the passcode associated with that app
     if (apiRecord) {
-      return sign(
+      const expiration =
+        this.configService.get<number>('app.clientTokenDurationMinutes') * 60;
+
+      const tokenDTO = new ClientTokenDTO();
+      tokenDTO.token = sign(
         {
           passCode: apiRecord.passCode,
         },
         apiRecord.encryptionKey,
         {
-          expiresIn: this.configService.get<string>('app.clientTokenDuration'),
+          expiresIn: expiration,
         },
       );
+      tokenDTO.expiration = new Date(Date.now() + 1000 * expiration);
+
+      return tokenDTO;
     } else {
       this.logger.error(
         BadRequestException,

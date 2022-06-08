@@ -14,6 +14,7 @@ import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../guards/auth.guard';
 import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
 import { ValidateClientTokenParamsDTO } from 'src/dtos/validate-client-token.dto';
+import { ClientTokenDTO } from '../dtos/clientToken.dto';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -40,7 +41,7 @@ export class TokenController {
   })
   genClientToken(
     @Body() validateClientIdParams: ValidateClientIdParamsDTO,
-  ): Promise<string> {
+  ): Promise<ClientTokenDTO> {
     // app Name
     return this.service.generateClientToken(validateClientIdParams);
   }
