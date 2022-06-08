@@ -38,6 +38,7 @@ export default registerAs('app', () => ({
   published: process.env.EASEY_AUTH_API_PUBLISHED || 'local',
   naasAppId: process.env.EASEY_AUTH_API_NAASID,
   nassAppPwd: process.env.EASEY_AUTH_API_NAASPWD,
+  clientEncryptionKey: process.env.EASEY_AUTH_API_CLIENT_TOKEN_ENCRYPTION_KEY,
   cdxSvcs:
     process.env.EASEY_CDX_SERVICES ||
     'https://devngn.epacdxnode.net/cdx-register-II/services',

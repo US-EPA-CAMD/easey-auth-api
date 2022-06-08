@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClientAsync } from 'soap';
+import { sign, verify, decode as jwtDecode } from 'jsonwebtoken';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserSessionRepository } from '../user-session/user-session.repository';
@@ -16,12 +17,19 @@ import { v4 as uuid } from 'uuid';
 import { UserSessionDTO } from '../dtos/user-session.dto';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { encode, decode } from 'js-base64';
+import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
+import { ApiRepository } from './api.repository';
+import { ValidateClientTokenParamsDTO } from '../dtos/validate-client-token.dto';
 
 @Injectable()
 export class TokenService {
   constructor(
     @InjectRepository(UserSessionRepository)
     private repository: UserSessionRepository,
+
+    @InjectRepository(ApiRepository)
+    private apiRepository: ApiRepository,
+
     private map: UserSessionMap,
     private configService: ConfigService,
     private logger: Logger,
@@ -35,6 +43,88 @@ export class TokenService {
       return true;
     }
     return false;
+  }
+
+  async validateClientToken(
+    validateClientTokenParams: ValidateClientTokenParamsDTO,
+  ): Promise<boolean> {
+    //Ensure fields have been set
+    if (
+      !validateClientTokenParams.clientId ||
+      !validateClientTokenParams.clientToken
+    ) {
+      this.logger.error(
+        BadRequestException,
+        'Must provide an app name and client token',
+        true,
+      );
+    }
+
+    try {
+      const dbRecord = await this.apiRepository.findOne({
+        clientId: validateClientTokenParams.clientId,
+      });
+
+      //Determine if a match exists
+      if (!dbRecord) {
+        this.logger.error(BadRequestException, 'Invalid ClientId', true);
+      }
+
+      //Attempt to verify the incoming token
+      const decoded = verify(
+        validateClientTokenParams.clientToken,
+        dbRecord.encryptionKey,
+      );
+
+      if (decoded.passCode !== dbRecord.passCode) {
+        this.logger.error(BadRequestException, 'Invalid Token', true);
+      }
+
+      return true;
+    } catch (err) {
+      this.logger.error(BadRequestException, err.message, true);
+    }
+  }
+
+  async generateClientToken(
+    validateClientIdParams: ValidateClientIdParamsDTO,
+  ): Promise<string> {
+    //Ensure fields have been set
+    if (
+      !validateClientIdParams.clientId ||
+      !validateClientIdParams.clientSecret
+    ) {
+      this.logger.error(
+        BadRequestException,
+        'Must provide a clientId and clientSecret',
+        true,
+      );
+    }
+
+    // Lookup record by clientId, clientSecret
+    const apiRecord = await this.apiRepository.findOne({
+      clientId: validateClientIdParams.clientId,
+      clientSecret: validateClientIdParams.clientSecret,
+    });
+
+    // If the record exists, encrypt the passcode associated with that app
+    if (apiRecord) {
+      return sign(
+        {
+          passCode: apiRecord.passCode,
+        },
+        apiRecord.encryptionKey,
+        {
+          expiresIn: '5m',
+        },
+      );
+    } else {
+      this.logger.error(
+        BadRequestException,
+        'Invalid clientId or clientSecret',
+        true,
+      );
+    }
   }
 
   async getSessionStatus(userid: string): Promise<SessionStatus> {
