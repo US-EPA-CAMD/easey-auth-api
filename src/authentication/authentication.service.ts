@@ -1,78 +1,28 @@
-import { CookieOptions, Request } from 'express';
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClientAsync } from 'soap';
 import { HttpService } from '@nestjs/axios';
-
 import { UserDTO } from './../dtos/user.dto';
 import { TokenService } from '../token/token.service';
-import { parseToken } from '@us-epa-camd/easey-common/utilities';
-
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { firstValueFrom } from 'rxjs';
 import { FacilitiesDTO } from '../dtos/facilities.dto';
+import { AuthenticationBypassService } from './authentication-bypass.service';
+import { TokenBypassService } from '../token/token-bypass.service';
+import { UserSessionService } from 'src/user-session/user-session.service';
+import { parseToken } from '@us-epa-camd/easey-common/utilities';
 
 @Injectable()
 export class AuthenticationService {
   constructor(
-    private configService: ConfigService,
-    private tokenService: TokenService,
-    private logger: Logger,
-    private httpService: HttpService,
+    private readonly configService: ConfigService,
+    private readonly bypassService: AuthenticationBypassService,
+    private readonly tokenBypassService: TokenBypassService,
+    private readonly tokenService: TokenService,
+    private readonly userSessionService: UserSessionService,
+    private readonly logger: Logger,
+    private readonly httpService: HttpService,
   ) {}
-
-  getCookieOptions(req: Request): CookieOptions {
-    /*
-    if (!req.header('Origin').includes('localhost')) {
-      return {
-        httpOnly: false,
-        sameSite: 'none',
-        secure: true,
-      };
-    }
-
-    return {};*/
-
-    return {
-      sameSite: 'none',
-      secure: true,
-    };
-  }
-
-  bypassUser(userId: string, password: string) {
-    if (this.tokenService.isBypassSet()) {
-      const acceptedUsers = JSON.parse(
-        this.configService.get<string>('cdxBypass.users'),
-      );
-
-      if (!acceptedUsers.find(x => x === userId)) {
-        this.logger.error(
-          InternalServerErrorException,
-          'Incorrect Bypass userId',
-          true,
-        );
-      }
-
-      const currentPass = this.configService.get<string>('cdxBypass.pass');
-
-      if (password === currentPass) {
-        this.logger.info('Logging in user in bypass mode', { userId: userId });
-        return true;
-      } else {
-        this.logger.error(
-          InternalServerErrorException,
-          'Incorrect bypass password',
-          true,
-        );
-      }
-    }
-
-    return false;
-  }
 
   async getStreamlinedRegistrationToken(userId: string) {
     const url = `${this.configService.get<string>(
@@ -170,61 +120,37 @@ export class AuthenticationService {
     return mockPermissions;
   }
 
-  async signIn(
-    userId: string,
-    password: string,
-    clientIp: string,
-  ): Promise<UserDTO> {
-    let user: UserDTO;
-
-    // Dummy user returned if the system is set to flagging users
-    if (this.bypassUser(userId, password)) {
-      user = new UserDTO();
-      user.userId = userId;
-      user.firstName = userId;
-      user.lastName = '';
-    } else {
-      user = await this.login(userId, password);
-      const streamlinedRegistrationToken = await this.getStreamlinedRegistrationToken(
-        userId,
-      );
-      const email = await this.getUserEmail(
-        userId,
-        streamlinedRegistrationToken,
-      );
-      user.email = email;
-
-      let permissions;
-      if (this.configService.get<boolean>('cdxBypass.mockPermissionsEnabled'))
-        permissions = await this.getMockPermissions(userId);
-      else permissions = [];
-
-      user.facilities = permissions;
+  async signIn(userId: string, password: string, clientIp: string) {
+    if (this.tokenBypassService.isBypassSet()) {
+      return this.bypassService.bypassSignIn(userId, password, clientIp);
     }
 
-    const sessionStatus = await this.tokenService.getSessionStatus(userId);
-    if (sessionStatus.exists && sessionStatus.expired)
-      await this.tokenService.removeUserSession(sessionStatus.sessionEntity);
+    const user = await this.loginCdx(userId, password);
+    const tokenDTO = await this.userSessionService.createUserSession(
+      userId,
+      clientIp,
+    );
 
-    if (sessionStatus.exists && !sessionStatus.expired) {
-      const sessionDTO = sessionStatus.session;
+    user.token = tokenDTO.token;
+    user.tokenExpiration = tokenDTO.expiration;
 
-      user.token = sessionDTO.securityToken;
-      user.tokenExpiration = sessionDTO.tokenExpiration;
+    const streamlinedRegistrationToken = await this.getStreamlinedRegistrationToken(
+      userId,
+    );
+    const email = await this.getUserEmail(userId, streamlinedRegistrationToken);
+    user.email = email;
 
-      return user;
-    }
+    let permissions;
+    if (this.configService.get<boolean>('cdxBypass.mockPermissionsEnabled'))
+      permissions = await this.getMockPermissions(userId);
+    else permissions = [];
 
-    const session = await this.tokenService.createUserSession(userId);
-    user.token = await this.tokenService.createToken(userId, clientIp);
-    user.tokenExpiration = session.tokenExpiration;
-
-    console.log(user);
+    user.facilities = permissions;
 
     return user;
   }
 
-  async login(userId: string, password: string): Promise<UserDTO> {
+  async loginCdx(userId: string, password: string): Promise<UserDTO> {
     let dto: UserDTO;
     const url = `${this.configService.get<string>(
       'app.cdxSvcs',
@@ -247,8 +173,6 @@ export class AuthenticationService {
         return dto;
       })
       .catch(err => {
-        this.logger.info(err);
-
         if (err.root && err.root.Envelope) {
           this.logger.error(
             InternalServerErrorException,
@@ -265,37 +189,19 @@ export class AuthenticationService {
       });
   }
 
-  async signOut(token: string, clientIp: string): Promise<void> {
-    const stringifiedToken = await this.tokenService.getStringifiedToken(
+  async signOut(
+    userId: string,
+    token: string,
+    clientIp: string,
+  ): Promise<void> {
+    const unencryptedToken = await this.tokenService.unencryptToken(
       token,
       clientIp,
     );
-    const parsed = parseToken(stringifiedToken);
+    const parsed = parseToken(unencryptedToken);
 
-    if (parsed.clientIp !== clientIp) {
-      this.logger.error(
-        BadRequestException,
-        'Sign out request coming from invalid IP address',
-        true,
-        { userId: parsed.userId, clientIp: clientIp },
-      );
-    }
-
-    const sessionStatus = await this.tokenService.getSessionStatus(
-      parsed.userId,
-    );
-    if (sessionStatus.exists) {
-      await this.tokenService.removeUserSession(sessionStatus.sessionEntity);
-      this.logger.info('User successfully signed out', {
-        userId: parsed.userId,
-      });
-    } else {
-      this.logger.error(
-        BadRequestException,
-        'No valid session exists for the current user',
-        true,
-        { userId: parsed.userId },
-      );
-    }
+    await this.tokenService.validateClientIp(parsed, clientIp);
+    await this.userSessionService.findSessionByUserIdAndToken(userId, token);
+    await this.userSessionService.removeUserSessionByUserId(userId);
   }
 }

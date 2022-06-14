@@ -12,18 +12,13 @@ import appConfig from './config/app.config';
 import cdxBypass from './config/bypass.config';
 import { TypeOrmConfigService } from './config/typeorm.config';
 import { AuthenticationModule } from './authentication/authentication.module';
-import { TokenModule } from './token/token.module';
 
 @Module({
   imports: [
     RouterModule.forRoutes(routes),
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [
-        dbConfig,
-        appConfig,
-        cdxBypass
-      ],
+      load: [dbConfig, appConfig, cdxBypass],
     }),
     TypeOrmModule.forRootAsync({
       useClass: TypeOrmConfigService,
@@ -31,7 +26,6 @@ import { TokenModule } from './token/token.module';
     LoggerModule,
     CorsOptionsModule,
     AuthenticationModule,
-    TokenModule,
   ],
 })
 export class AppModule {}

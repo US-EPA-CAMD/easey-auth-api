@@ -1,19 +1,14 @@
 import { Request } from 'express';
 
-import {
-  ApiTags,
-  ApiOkResponse,
-  ApiBearerAuth,
-  ApiSecurity,
-} from '@nestjs/swagger';
-import { Post, Controller, Body, UseGuards, Delete, Req } from '@nestjs/common';
+import { ApiTags, ApiOkResponse, ApiSecurity } from '@nestjs/swagger';
+import { Post, Controller, Body, Req, Delete } from '@nestjs/common';
 
 import { UserDTO } from './../dtos/user.dto';
 import { CredentialsDTO } from './../dtos/credentials.dto';
 
 import { ClientIP } from './../decorators/client-ip.decorator';
 import { AuthenticationService } from './authentication.service';
-import { AuthGuard } from '../guards/auth.guard';
+import { UserTokenDTO } from 'src/dtos/userToken.dto';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -31,31 +26,23 @@ export class AuthenticationController {
     @ClientIP() clientIp: string,
     @Req() req: Request,
   ): Promise<UserDTO> {
-    const userInfo = await this.service.signIn(
+    return this.service.signIn(
       credentials.userId,
       credentials.password,
       clientIp,
     );
-
-    const params = this.service.getCookieOptions(req);
-    req.res.cookie('cdxToken', userInfo.token, params);
-    return userInfo;
   }
 
   @Delete('/sign-out')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth('Token')
   @ApiOkResponse({
     description: 'Authenticates a user using EPA CDX Services',
   })
   async signOut(
-    @Req() req: Request,
+    @Body() credentials: UserTokenDTO,
     @ClientIP() clientIp: string,
   ): Promise<void> {
-    const token = req.headers['authorization'].split(' ')[1];
-    await this.service.signOut(token, clientIp);
+    console.log(credentials);
 
-    const params = this.service.getCookieOptions(req);
-    req.res.clearCookie('cdxToken', params);
+    await this.service.signOut(credentials.userId, credentials.token, clientIp);
   }
 }
