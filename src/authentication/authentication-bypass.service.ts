@@ -1,9 +1,4 @@
-import {
-  forwardRef,
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { UserDTO } from 'src/dtos/user.dto';
@@ -12,9 +7,9 @@ import { UserSessionService } from 'src/user-session/user-session.service';
 @Injectable()
 export class AuthenticationBypassService {
   constructor(
-    private configService: ConfigService,
-    private logger: Logger,
-    private userSessionService: UserSessionService,
+    private readonly configService: ConfigService,
+    private readonly logger: Logger,
+    private readonly userSessionService: UserSessionService,
   ) {}
 
   async bypassSignIn(userId: string, password: string, clientIp: string) {
@@ -54,5 +49,7 @@ export class AuthenticationBypassService {
         true,
       );
     }
+
+    return null;
   }
 }

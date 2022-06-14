@@ -21,9 +21,9 @@ export class TokenService {
   constructor(
     private configService: ConfigService,
     @Inject(forwardRef(() => UserSessionService))
-    private userSessionServie: UserSessionService,
-    private tokenBypassService: TokenBypassService,
-    private logger: Logger,
+    private readonly userSessionServie: UserSessionService,
+    private readonly tokenBypassService: TokenBypassService,
+    private readonly logger: Logger,
   ) {}
 
   async refreshToken(userId: string, token: string, clientIp: string) {

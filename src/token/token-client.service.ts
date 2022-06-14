@@ -13,10 +13,10 @@ import { TokenDTO } from 'src/dtos/token.dto';
 export class TokenClientService {
   constructor(
     @InjectRepository(ApiRepository)
-    private apiRepository: ApiRepository,
+    private readonly apiRepository: ApiRepository,
 
-    private configService: ConfigService,
-    private logger: Logger,
+    private readonly configService: ConfigService,
+    private readonly logger: Logger,
   ) {}
 
   async validateClientToken(
@@ -58,6 +58,8 @@ export class TokenClientService {
     } catch (err) {
       this.logger.error(BadRequestException, err.message, true);
     }
+
+    return null;
   }
 
   async generateClientToken(
@@ -108,5 +110,7 @@ export class TokenClientService {
         true,
       );
     }
+
+    return null;
   }
 }

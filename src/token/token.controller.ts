@@ -1,5 +1,5 @@
 import { ApiTags, ApiOkResponse, ApiSecurity } from '@nestjs/swagger';
-import { Post, Controller, Body, Req } from '@nestjs/common';
+import { Post, Controller, Body } from '@nestjs/common';
 import { ClientIP } from './../decorators/client-ip.decorator';
 import { ValidateTokenDTO } from '../dtos/validate-token.dto';
 import { TokenService } from './token.service';
@@ -14,8 +14,8 @@ import { UserTokenDTO } from 'src/dtos/userToken.dto';
 @ApiTags('Tokens')
 export class TokenController {
   constructor(
-    private service: TokenService,
-    private clientService: TokenClientService,
+    private readonly service: TokenService,
+    private readonly clientService: TokenClientService,
   ) {}
 
   @Post('/client/validate')

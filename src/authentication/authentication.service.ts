@@ -15,13 +15,13 @@ import { parseToken } from '@us-epa-camd/easey-common/utilities';
 @Injectable()
 export class AuthenticationService {
   constructor(
-    private configService: ConfigService,
-    private bypassService: AuthenticationBypassService,
-    private tokenBypassService: TokenBypassService,
-    private tokenService: TokenService,
-    private userSessionService: UserSessionService,
-    private logger: Logger,
-    private httpService: HttpService,
+    private readonly configService: ConfigService,
+    private readonly bypassService: AuthenticationBypassService,
+    private readonly tokenBypassService: TokenBypassService,
+    private readonly tokenService: TokenService,
+    private readonly userSessionService: UserSessionService,
+    private readonly logger: Logger,
+    private readonly httpService: HttpService,
   ) {}
 
   async getStreamlinedRegistrationToken(userId: string) {

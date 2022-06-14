@@ -13,21 +13,20 @@ import { Logger } from '@us-epa-camd/easey-common/logger';
 import { TokenBypassService } from '../token/token-bypass.service';
 import { TokenService } from '../token/token.service';
 import { TokenDTO } from 'src/dtos/token.dto';
-import { parseToken } from '@us-epa-camd/easey-common/utilities';
 
 @Injectable()
 export class UserSessionService {
   constructor(
     @InjectRepository(UserSessionRepository)
-    private repository: UserSessionRepository,
+    private readonly repository: UserSessionRepository,
 
     @Inject(forwardRef(() => TokenBypassService))
-    private tokenBypassService: TokenBypassService,
+    private readonly tokenBypassService: TokenBypassService,
 
     @Inject(forwardRef(() => TokenService))
-    private tokenService: TokenService,
+    private readonly tokenService: TokenService,
 
-    private logger: Logger,
+    private readonly logger: Logger,
   ) {}
 
   async createUserSession(userId: string, clientIp: string): Promise<TokenDTO> {
@@ -83,6 +82,8 @@ export class UserSessionService {
       true,
       { sessionId: sessionId },
     );
+
+    return null;
   }
 
   async removeUserSessionByUserId(userId: string) {
@@ -108,6 +109,8 @@ export class UserSessionService {
       true,
       { userId: userId },
     );
+
+    return null;
   }
 
   async updateUserSessionToken(

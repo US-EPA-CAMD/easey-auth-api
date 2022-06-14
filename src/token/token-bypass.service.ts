@@ -8,11 +8,11 @@ import { UserSessionService } from 'src/user-session/user-session.service';
 @Injectable()
 export class TokenBypassService {
   constructor(
-    private configService: ConfigService,
-    private logger: Logger,
+    private readonly configService: ConfigService,
+    private readonly logger: Logger,
 
     @Inject(forwardRef(() => UserSessionService))
-    private userSessionService: UserSessionService,
+    private readonly userSessionService: UserSessionService,
   ) {}
 
   isBypassSet() {
