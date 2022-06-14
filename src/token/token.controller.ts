@@ -1,26 +1,22 @@
-import { Request } from 'express';
-import {
-  ApiTags,
-  ApiOkResponse,
-  ApiBearerAuth,
-  ApiSecurity,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse, ApiSecurity } from '@nestjs/swagger';
 import { Post, Controller, Body, Req } from '@nestjs/common';
 import { ClientIP } from './../decorators/client-ip.decorator';
-import { UserIdDTO } from '../dtos/user-id.dto';
 import { ValidateTokenDTO } from '../dtos/validate-token.dto';
 import { TokenService } from './token.service';
-import { UseGuards } from '@nestjs/common';
-import { AuthGuard } from '../guards/auth.guard';
 import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
 import { ValidateClientTokenParamsDTO } from 'src/dtos/validate-client-token.dto';
-import { ClientTokenDTO } from '../dtos/clientToken.dto';
+import { TokenDTO } from '../dtos/token.dto';
+import { TokenClientService } from './token-client.service';
+import { UserTokenDTO } from 'src/dtos/userToken.dto';
 
 @Controller()
 @ApiSecurity('APIKey')
 @ApiTags('Tokens')
 export class TokenController {
-  constructor(private service: TokenService) {}
+  constructor(
+    private service: TokenService,
+    private clientService: TokenClientService,
+  ) {}
 
   @Post('/client/validate')
   @ApiOkResponse({
@@ -31,7 +27,7 @@ export class TokenController {
     @Body() validateClientTokenParamsDTO: ValidateClientTokenParamsDTO,
   ): Promise<boolean> {
     // app Name
-    return this.service.validateClientToken(validateClientTokenParamsDTO);
+    return this.clientService.validateClientToken(validateClientTokenParamsDTO);
   }
 
   @Post('/client')
@@ -41,30 +37,21 @@ export class TokenController {
   })
   genClientToken(
     @Body() validateClientIdParams: ValidateClientIdParamsDTO,
-  ): Promise<ClientTokenDTO> {
+  ): Promise<TokenDTO> {
     // app Name
-    return this.service.generateClientToken(validateClientIdParams);
+    return this.clientService.generateClientToken(validateClientIdParams);
   }
 
   @Post()
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth('Token')
   @ApiOkResponse({
     type: String,
     description: 'Creates a security token (user must be authenticated)',
   })
   async createToken(
-    @Body() dto: UserIdDTO,
+    @Body() dto: UserTokenDTO,
     @ClientIP() clientIp: string,
-    @Req() req: Request,
   ): Promise<string> {
-    const token = await this.service.createToken(dto.userId, clientIp);
-
-    req.res.cookie('cdxToken', token, {
-      domain: req.hostname,
-    });
-
-    return token;
+    return this.service.refreshToken(dto.userId, dto.token, clientIp);
   }
 
   @Post('/validate')
