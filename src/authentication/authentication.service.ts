@@ -2,10 +2,8 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClientAsync } from 'soap';
 import { HttpService } from '@nestjs/axios';
-
 import { UserDTO } from './../dtos/user.dto';
 import { TokenService } from '../token/token.service';
-
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { firstValueFrom } from 'rxjs';
 import { FacilitiesDTO } from '../dtos/facilities.dto';

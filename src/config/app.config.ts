@@ -22,16 +22,13 @@ export default registerAs('app', () => ({
   uri,
   env: process.env.EASEY_AUTH_API_ENV || 'local-dev',
   enableCors: parseBool(process.env.EASEY_FACILITIES_API_ENABLE_CORS, true),
-  enableApiKey: parseBool(
-    process.env.EASEY_FACILITIES_API_ENABLE_API_KEY,
-    true,
-  ),
+  enableApiKey: parseBool(process.env.EASEY_AUTH_API_ENABLE_API_KEY, true),
   enableAuthToken: parseBool(
-    process.env.EASEY_FACILITIES_API_ENABLE_AUTH_TOKEN,
-    true,
+    process.env.EASEY_AUTH_API_ENABLE_AUTH_TOKEN,
+    false,
   ),
   enableGlobalValidationPipes: parseBool(
-    process.env.EASEY_FACILITIES_API_ENABLE_GLOBAL_VALIDATION_PIPE,
+    process.env.EASEY_AUTH_API_ENABLE_GLOBAL_VALIDATION_PIPE,
     true,
   ),
   version: process.env.EASEY_AUTH_API_VERSION || 'v0.0.0',
@@ -39,7 +36,7 @@ export default registerAs('app', () => ({
   naasAppId: process.env.EASEY_AUTH_API_NAASID,
   nassAppPwd: process.env.EASEY_AUTH_API_NAASPWD,
   tokenExpirationDurationMinutes:
-    process.env.EASEY_AUTH_API_TOKEN_EXPIRATION_MINUTES || 1,
+    process.env.EASEY_AUTH_API_TOKEN_EXPIRATION_MINUTES || 20,
   clientTokenDurationMinutes:
     process.env.EASEY_AUTH_API_CLIENT_TOKEN_DURATION_MINUTES || 5,
   cdxSvcs:

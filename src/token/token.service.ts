@@ -150,7 +150,7 @@ export class TokenService {
         token,
       )
     ) {
-      return true;
+      return unencryptedToken;
     }
 
     return false;

@@ -41,6 +41,8 @@ export class AuthenticationController {
     @Body() credentials: UserTokenDTO,
     @ClientIP() clientIp: string,
   ): Promise<void> {
+    console.log(credentials);
+
     await this.service.signOut(credentials.userId, credentials.token, clientIp);
   }
 }
