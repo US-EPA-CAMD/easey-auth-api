@@ -189,18 +189,7 @@ export class AuthenticationService {
       });
   }
 
-  async signOut(
-    userId: string,
-    token: string,
-    clientIp: string,
-  ): Promise<void> {
-    const unencryptedToken = await this.tokenService.unencryptToken(
-      token,
-      clientIp,
-    );
-    const parsed = parseToken(unencryptedToken);
-
-    await this.tokenService.validateClientIp(parsed, clientIp);
+  async signOut(userId: string, token: string): Promise<void> {
     await this.userSessionService.findSessionByUserIdAndToken(userId, token);
     await this.userSessionService.removeUserSessionByUserId(userId);
   }
