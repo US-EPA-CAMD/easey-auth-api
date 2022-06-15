@@ -11,10 +11,10 @@ import { createClientAsync } from 'soap';
 import { parseToken } from '@us-epa-camd/easey-common/utilities';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { decode } from 'js-base64';
-import { UserSessionService } from 'src/user-session/user-session.service';
-import { TokenDTO } from 'src/dtos/token.dto';
+import { UserSessionService } from '../user-session/user-session.service';
+import { TokenDTO } from '../dtos/token.dto';
 import { TokenBypassService } from './token-bypass.service';
-import { UserSession } from 'src/entities/user-session.entity';
+import { UserSession } from '../entities/user-session.entity';
 
 @Injectable()
 export class TokenService {

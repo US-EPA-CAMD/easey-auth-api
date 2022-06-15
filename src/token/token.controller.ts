@@ -4,10 +4,10 @@ import { ClientIP } from './../decorators/client-ip.decorator';
 import { ValidateTokenDTO } from '../dtos/validate-token.dto';
 import { TokenService } from './token.service';
 import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
-import { ValidateClientTokenParamsDTO } from 'src/dtos/validate-client-token.dto';
+import { ValidateClientTokenParamsDTO } from '../dtos/validate-client-token.dto';
 import { TokenDTO } from '../dtos/token.dto';
 import { TokenClientService } from './token-client.service';
-import { UserTokenDTO } from 'src/dtos/userToken.dto';
+import { UserTokenDTO } from '../dtos/userToken.dto';
 
 @Controller()
 @ApiSecurity('APIKey')

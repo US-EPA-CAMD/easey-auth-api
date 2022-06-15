@@ -1,14 +1,10 @@
-import { Request } from 'express';
-
 import { ApiTags, ApiOkResponse, ApiSecurity } from '@nestjs/swagger';
-import { Post, Controller, Body, Req, Delete } from '@nestjs/common';
-
+import { Post, Controller, Body, Delete } from '@nestjs/common';
 import { UserDTO } from './../dtos/user.dto';
 import { CredentialsDTO } from './../dtos/credentials.dto';
-
 import { ClientIP } from './../decorators/client-ip.decorator';
 import { AuthenticationService } from './authentication.service';
-import { UserTokenDTO } from 'src/dtos/userToken.dto';
+import { UserTokenDTO } from '../dtos/userToken.dto';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -37,8 +33,6 @@ export class AuthenticationController {
     description: 'Authenticates a user using EPA CDX Services',
   })
   async signOut(@Body() credentials: UserTokenDTO): Promise<void> {
-    console.log(credentials);
-
     await this.service.signOut(credentials.userId, credentials.token);
   }
 }

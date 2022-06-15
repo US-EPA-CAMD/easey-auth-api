@@ -1,4 +1,3 @@
-import { Request } from 'express';
 import { AuthenticationController } from './authentication.controller';
 import { AuthenticationService } from './authentication.service';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -6,21 +5,14 @@ import { UserDTO } from '../dtos/user.dto';
 import { CredentialsDTO } from '../dtos/credentials.dto';
 import { AuthGuard } from '../guards/auth.guard';
 import { UserSessionRepository } from '../user-session/user-session.repository';
-import { createMock } from '@golevelup/ts-jest';
 import { Logger } from '@nestjs/common';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
+import { UserTokenDTO } from '../dtos/userToken.dto';
 
 jest.mock('./authentication.service');
 
 const mockRepo = () => ({
   findOne: jest.fn().mockResolvedValue(''),
-});
-
-const mockRequest = createMock<Request>({
-  res: {
-    cookie: jest.fn(),
-    clearCookie: jest.fn(),
-  },
 });
 
 const mockService = () => ({
@@ -53,26 +45,19 @@ describe('Authentication Controller', () => {
     expect(controller).toBeDefined();
   });
 
-  describe('Post Methods', () => {
+  describe('signIn', () => {
     it('should return a new or existing UserDTO', async () => {
       const data = new UserDTO();
-
       jest.spyOn(service, 'signIn').mockResolvedValue(data);
-
       const cred = new CredentialsDTO();
-
-      expect(await controller.signIn(cred, '', mockRequest)).toBe(data);
+      expect(await controller.signIn(cred, '')).toBe(data);
     });
   });
 
-  describe('Sign-Out Controller', () => {
-    it('Should call the service sign out given a valid request', async () => {
+  describe('signOut', () => {
+    it('should call the service sign out given a valid request', async () => {
       const signOut = jest.spyOn(service, 'signOut').mockResolvedValue();
-
-      mockRequest.headers['authorization'] = 'Bearer 1';
-
-      controller.signOut(mockRequest, '0');
-
+      controller.signOut(new UserTokenDTO());
       expect(signOut).toHaveBeenCalled();
     });
   });

@@ -3,14 +3,12 @@ import { ConfigService } from '@nestjs/config';
 import { createClientAsync } from 'soap';
 import { HttpService } from '@nestjs/axios';
 import { UserDTO } from './../dtos/user.dto';
-import { TokenService } from '../token/token.service';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { firstValueFrom } from 'rxjs';
 import { FacilitiesDTO } from '../dtos/facilities.dto';
 import { AuthenticationBypassService } from './authentication-bypass.service';
 import { TokenBypassService } from '../token/token-bypass.service';
-import { UserSessionService } from 'src/user-session/user-session.service';
-import { parseToken } from '@us-epa-camd/easey-common/utilities';
+import { UserSessionService } from '../user-session/user-session.service';
 
 @Injectable()
 export class AuthenticationService {
@@ -18,7 +16,6 @@ export class AuthenticationService {
     private readonly configService: ConfigService,
     private readonly bypassService: AuthenticationBypassService,
     private readonly tokenBypassService: TokenBypassService,
-    private readonly tokenService: TokenService,
     private readonly userSessionService: UserSessionService,
     private readonly logger: Logger,
     private readonly httpService: HttpService,
@@ -97,11 +94,15 @@ export class AuthenticationService {
       ),
     );
 
+    console.log(mockPermissionObject);
+
     const userPermissions = mockPermissionObject['data'].filter(
       entry => entry.userid === userId,
     );
 
     const mockPermissions: FacilitiesDTO[] = [];
+
+    console.log('DATA', userPermissions);
 
     if (
       userPermissions.length > 0 &&
