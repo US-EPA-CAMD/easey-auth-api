@@ -102,8 +102,6 @@ export class AuthenticationService {
 
     const mockPermissions: FacilitiesDTO[] = [];
 
-    console.log('DATA', userPermissions);
-
     if (
       userPermissions.length > 0 &&
       userPermissions[0].facilities.length > 0
