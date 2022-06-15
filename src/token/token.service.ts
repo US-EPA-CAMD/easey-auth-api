@@ -27,11 +27,6 @@ export class TokenService {
   ) {}
 
   async refreshToken(userId: string, token: string, clientIp: string) {
-    const unencryptedToken = await this.unencryptToken(token, clientIp);
-    const parsed = parseToken(unencryptedToken);
-
-    await this.validateClientIp(parsed, clientIp);
-
     const session: UserSession = await this.userSessionServie.findSessionByUserIdAndToken(
       userId,
       token,

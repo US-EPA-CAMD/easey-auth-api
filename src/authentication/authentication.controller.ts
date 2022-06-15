@@ -24,7 +24,6 @@ export class AuthenticationController {
   async signIn(
     @Body() credentials: CredentialsDTO,
     @ClientIP() clientIp: string,
-    @Req() req: Request,
   ): Promise<UserDTO> {
     return this.service.signIn(
       credentials.userId,
@@ -37,12 +36,9 @@ export class AuthenticationController {
   @ApiOkResponse({
     description: 'Authenticates a user using EPA CDX Services',
   })
-  async signOut(
-    @Body() credentials: UserTokenDTO,
-    @ClientIP() clientIp: string,
-  ): Promise<void> {
+  async signOut(@Body() credentials: UserTokenDTO): Promise<void> {
     console.log(credentials);
 
-    await this.service.signOut(credentials.userId, credentials.token, clientIp);
+    await this.service.signOut(credentials.userId, credentials.token);
   }
 }
