@@ -7,7 +7,7 @@ import { Logger } from '@us-epa-camd/easey-common/logger';
 import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
 import { ApiRepository } from './api.repository';
 import { ValidateClientTokenParamsDTO } from '../dtos/validate-client-token.dto';
-import { TokenDTO } from 'src/dtos/token.dto';
+import { TokenDTO } from '../dtos/token.dto';
 
 @Injectable()
 export class TokenClientService {

@@ -2,8 +2,8 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { encode } from 'js-base64';
-import { TokenDTO } from 'src/dtos/token.dto';
-import { UserSessionService } from 'src/user-session/user-session.service';
+import { TokenDTO } from '../dtos/token.dto';
+import { UserSessionService } from '../user-session/user-session.service';
 
 @Injectable()
 export class TokenBypassService {

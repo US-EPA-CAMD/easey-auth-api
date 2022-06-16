@@ -1,8 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@us-epa-camd/easey-common/logger';
-import { UserDTO } from 'src/dtos/user.dto';
-import { UserSessionService } from 'src/user-session/user-session.service';
+import { UserDTO } from '../dtos/user.dto';
+import { UserSessionService } from '../user-session/user-session.service';
 
 @Injectable()
 export class AuthenticationBypassService {
