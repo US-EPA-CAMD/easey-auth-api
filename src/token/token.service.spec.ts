@@ -1,214 +1,154 @@
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
-import { HttpModule } from '@nestjs/axios';
-import { TokenService } from '../token/token.service';
-import { UserSessionRepository } from '../user-session/user-session.repository';
-import { UserSessionMap } from '../maps/user-session.map';
+import { Logger } from '@us-epa-camd/easey-common/logger';
+import { TokenBypassService } from './token-bypass.service';
+import { UserSessionService } from '../user-session/user-session.service';
+import { TokenDTO } from '../dtos/token.dto';
+import { TokenService } from './token.service';
 import { UserSession } from '../entities/user-session.entity';
-import { UserSessionDTO } from '../dtos/user-session.dto';
-import { LoggerModule } from '@us-epa-camd/easey-common/logger';
-
-const client = {
-  CreateSecurityTokenAsync: jest.fn(() => Promise.resolve([{ return: '' }])),
-  ValidateAsync: jest.fn(() => Promise.resolve([{ return: '' }])),
-};
 
 jest.mock('soap', () => ({
   createClientAsync: jest.fn(() => Promise.resolve(client)),
 }));
 
+let responseVals = {
+  ['app.env']: 'development',
+  ['app.cdxSvcs']: '',
+  ['cdxBypass.mockPermissionsEnabled']: false,
+};
+
+const client = {
+  CreateSecurityTokenAsync: jest.fn().mockResolvedValue([{ return: 'token' }]),
+  ValidateAsync: jest.fn().mockResolvedValue([{ return: 'validated' }]),
+};
+
 jest.mock('@us-epa-camd/easey-common/utilities', () => ({
-  parseToken: jest.fn().mockResolvedValue(''),
+  parseToken: jest.fn().mockReturnValue({ clientIp: '1' }),
 }));
-
-const mockRepository = () => ({
-  findOne: jest.fn().mockResolvedValue(''),
-  save: jest.fn().mockResolvedValue(''),
-  update: jest.fn().mockResolvedValue(''),
-  remove: jest.fn().mockResolvedValue(''),
-});
-
-const mockMap = () => ({
-  one: jest.fn().mockResolvedValue(''),
-});
 
 describe('Token Service', () => {
   let service: TokenService;
-  let repo: UserSessionRepository;
-  let map: UserSessionMap;
+  let tokenBypassService: TokenBypassService;
+  let userSessionService: UserSessionService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [LoggerModule, HttpModule],
       providers: [
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              return responseVals[key];
+            }),
+          },
+        },
+        {
+          provide: UserSessionService,
+          useFactory: () => ({
+            findSessionByUserIdAndToken: jest.fn(),
+            removeUserSessionByUserId: jest.fn(),
+            createUserSession: jest.fn().mockResolvedValue(new TokenDTO()),
+            updateUserSessionToken: jest.fn(),
+            isValidSessionForToken: jest.fn().mockResolvedValue(true),
+          }),
+        },
+        Logger,
+        TokenBypassService,
         TokenService,
-        {
-          provide: UserSessionRepository,
-          useFactory: mockRepository,
-        },
-        {
-          provide: UserSessionMap,
-          useFactory: mockMap,
-        },
-        ConfigService,
       ],
     }).compile();
 
+    tokenBypassService = module.get(TokenBypassService);
     service = module.get(TokenService);
-    repo = module.get(UserSessionRepository);
-    map = module.get(UserSessionMap);
+    userSessionService = module.get(UserSessionService);
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  describe('getSessionStatus()', () => {
-    it('should return a new existing, unexpired userDTO given a non-existing session', async () => {
-      const userSession = new UserSession();
-      userSession.userId = '';
-      userSession.securityToken = '';
-      userSession.sessionId = '';
-      userSession.tokenExpiration = new Date(
-        Date.now() + 20 * 60000,
-      ).toUTCString();
+  describe('refreshToken', () => {
+    it('should issue a token for the user', async () => {
+      jest.spyOn(tokenBypassService, 'isBypassSet').mockReturnValue(false);
+      jest.spyOn(service, 'generateToken').mockResolvedValue('');
+      jest
+        .spyOn(userSessionService, 'findSessionByUserIdAndToken')
+        .mockResolvedValue(new UserSession());
 
-      const sessionDTO = new UserSessionDTO();
-      sessionDTO.userId = '';
-      sessionDTO.securityToken = '';
-      sessionDTO.sessionId = '';
-      sessionDTO.tokenExpiration = new Date(
-        Date.now() + 20 * 60000,
-      ).toUTCString();
+      await service.refreshToken('', '', '');
 
-      jest.spyOn(repo, 'findOne').mockResolvedValue(userSession);
-      jest.spyOn(map, 'one').mockResolvedValue(sessionDTO);
-
-      const sessionStatus = await service.getSessionStatus('');
-
-      expect(sessionStatus.exists).toEqual(true);
-      expect(sessionStatus.expired).toEqual(false);
-      expect(sessionStatus.sessionEntity).toEqual(userSession);
-      expect(sessionStatus.session).toEqual(sessionDTO);
+      expect(service.generateToken).toHaveBeenCalled();
     });
 
-    it('should return a new existing, expired userDTO given an expired session', async () => {
-      const userSession = new UserSession();
-      userSession.userId = '';
-      userSession.securityToken = '';
-      userSession.sessionId = '';
-      userSession.tokenExpiration = new Date(
-        Date.now() - 20 * 60000,
-      ).toUTCString();
+    it('should issue a new bypass token for the user', async () => {
+      jest.spyOn(tokenBypassService, 'isBypassSet').mockReturnValue(true);
+      jest
+        .spyOn(tokenBypassService, 'generateBypassToken')
+        .mockResolvedValue(new TokenDTO());
+      jest.spyOn(service, 'generateToken').mockResolvedValue('');
+      jest
+        .spyOn(userSessionService, 'findSessionByUserIdAndToken')
+        .mockResolvedValue(new UserSession());
 
-      const sessionDTO = new UserSessionDTO();
-      sessionDTO.userId = '';
-      sessionDTO.securityToken = '';
-      sessionDTO.sessionId = '';
-      sessionDTO.tokenExpiration = new Date(
-        Date.now() - 20 * 60000,
-      ).toUTCString();
+      await service.refreshToken('', '', '');
 
-      jest.spyOn(repo, 'findOne').mockResolvedValue(userSession);
-      jest.spyOn(map, 'one').mockResolvedValue(sessionDTO);
-
-      const sessionStatus = await service.getSessionStatus('');
-
-      expect(sessionStatus.exists).toEqual(true);
-      expect(sessionStatus.expired).toEqual(true);
-      expect(sessionStatus.sessionEntity).toEqual(userSession);
-      expect(sessionStatus.session).toEqual(sessionDTO);
-    });
-
-    it('should return a non existing, expired userDTO given an non existing session', async () => {
-      jest.spyOn(repo, 'findOne').mockResolvedValue(undefined);
-
-      const sessionStatus = await service.getSessionStatus('');
-
-      expect(sessionStatus.exists).toEqual(false);
-      expect(sessionStatus.expired).toEqual(true);
-      expect(sessionStatus.sessionEntity).toEqual(null);
-      expect(sessionStatus.session).toEqual(null);
+      expect(tokenBypassService.generateBypassToken).toHaveBeenCalled();
     });
   });
 
-  describe('createUserSession()', () => {
-    it('should return value of mocked session map', async () => {
-      const result = await service.createUserSession('');
-      expect(result).toEqual('');
+  describe('generateToken', () => {
+    it('should generate a token for user', async () => {
+      const tok = await service.generateToken('', '', '');
+      expect(tok.token).toEqual('token');
     });
   });
 
-  describe('removeUserSession()', () => {
-    it('should execute', async () => {
-      expect(
-        service.removeUserSession(new UserSession()),
-      ).resolves.not.toThrowError();
+  describe('unencryptToken', () => {
+    it('should unencrypt a user token', async () => {
+      jest.spyOn(tokenBypassService, 'isBypassSet').mockReturnValue(false);
+      const tok = await service.unencryptToken('', '');
+      expect(tok).toEqual('validated');
     });
   });
 
-  describe('createToken()', () => {
-    it('should return value of mocked session map', async () => {
-      jest.spyOn(service, 'getSessionStatus').mockResolvedValue({
-        exists: false,
-        expired: true,
-        session: null,
-        sessionEntity: null,
-      });
+  describe('validateClientIp', () => {
+    it('should fail when client Ip does not match', async () => {
+      const testIp = { clientIp: '1' };
+      let errored = false;
+      try {
+        await service.validateClientIp(testIp, '2');
+      } catch (error) {
+        errored = true;
+      }
 
+      expect(errored).toBe(true);
+    });
+
+    it('should fail when client Ip does not match', async () => {
+      const testIp = { clientIp: '1' };
       expect(async () => {
-        await service.createToken('', '');
-      }).rejects.toThrowError();
-    });
-
-    it('should return a user token given a valid userid', async () => {
-      jest.spyOn(service, 'getSessionStatus').mockResolvedValue({
-        exists: true,
-        expired: false,
-        session: new UserSessionDTO(),
-        sessionEntity: new UserSession(),
-      });
-
-      const token = await service.createToken('', '');
-      expect(token).toEqual('');
+        service.validateClientIp(testIp, '1');
+      }).not.toThrowError();
     });
   });
 
-  describe('unpackToken()', () => {
-    it('should return an unencrypted token', async () => {
-      const unpacked = await service.unpackToken('', '');
-      expect(unpacked).toEqual('');
-    });
-  });
+  describe('validateToken', () => {
+    it('should validate and return unecnrypted token', async () => {
+      jest.spyOn(service, 'unencryptToken').mockResolvedValue('token');
+      jest.spyOn(service, 'validateClientIp').mockImplementation(jest.fn());
 
-  describe('validateToken()', () => {
-    it('should throw an error given an expired session', async () => {
-      jest.spyOn(service, 'unpackToken').mockResolvedValue('');
-
-      jest.spyOn(service, 'getSessionStatus').mockResolvedValue({
-        exists: true,
-        expired: true,
-        session: new UserSessionDTO(),
-        sessionEntity: new UserSession(),
-      });
-
-      expect(async () => {
-        await service.validateToken('', '');
-      }).rejects.toThrowError();
+      expect(await service.validateToken('', '')).toEqual('token');
     });
 
-    it('should return a unencrypted token given a valid session', async () => {
-      jest.spyOn(service, 'unpackToken').mockResolvedValue('');
+    it('should validate and return false given invalid token', async () => {
+      jest.spyOn(service, 'unencryptToken').mockResolvedValue('token');
+      jest.spyOn(service, 'validateClientIp').mockImplementation(jest.fn());
 
-      jest.spyOn(service, 'getSessionStatus').mockResolvedValue({
-        exists: true,
-        expired: false,
-        session: new UserSessionDTO(),
-        sessionEntity: new UserSession(),
-      });
+      userSessionService.isValidSessionForToken = jest
+        .fn()
+        .mockResolvedValue(false);
 
-      const uToken = await service.validateToken('', '');
-      expect(uToken).toEqual('');
+      expect(await service.validateToken('', '')).toEqual(false);
     });
   });
 });
