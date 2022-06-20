@@ -5,10 +5,12 @@ import { ValidateClientTokenParamsDTO } from '../dtos/validate-client-token.dto'
 import { ApiRepository } from './api.repository';
 import { TokenClientService } from './token-client.service';
 import { Api } from '../entities/api.entity';
+import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
 
 let responseVals = {
   ['app.env']: '["dev"]',
   ['cdxBypass.enabled']: true,
+  ['app.clientTokenDurationMinutes']: 10,
 };
 
 const mockRepo = () => ({
@@ -48,6 +50,58 @@ describe('Token Client Service', () => {
     expect(service).toBeDefined();
   });
 
+  describe('generateClientToken', () => {
+    it('should generate new token successfully', async () => {
+      const validateClientTokenParams = new ValidateClientIdParamsDTO();
+      validateClientTokenParams.clientId = 'test';
+      validateClientTokenParams.clientSecret = 'test';
+      const dbResult = new Api();
+      dbResult.passCode = 'pass';
+      dbResult.encryptionKey = 'phrase';
+      repo.findOne = jest.fn().mockResolvedValue(dbResult);
+
+      let errored = false;
+      try {
+        await service.generateClientToken(validateClientTokenParams);
+      } catch (e) {
+        errored = true;
+      }
+
+      expect(errored).toBe(false);
+    });
+
+    it('should error not given proper paramaters', async () => {
+      const validateClientTokenParams = new ValidateClientIdParamsDTO();
+      validateClientTokenParams.clientId = 'test';
+
+      let errored = false;
+      try {
+        await service.generateClientToken(validateClientTokenParams);
+      } catch (e) {
+        errored = true;
+      }
+
+      expect(errored).toBe(true);
+    });
+
+    it('should error not finding a corresponding database record', async () => {
+      const validateClientTokenParams = new ValidateClientIdParamsDTO();
+      validateClientTokenParams.clientId = 'test';
+      validateClientTokenParams.clientSecret = 'test';
+
+      repo.findOne = jest.fn().mockResolvedValue(undefined);
+
+      let errored = false;
+      try {
+        await service.generateClientToken(validateClientTokenParams);
+      } catch (e) {
+        errored = true;
+      }
+
+      expect(errored).toBe(true);
+    });
+  });
+
   describe('validateClientToken', () => {
     it('should return true given valid token', async () => {
       const validateClientTokenParams = new ValidateClientTokenParamsDTO();
@@ -69,6 +123,47 @@ describe('Token Client Service', () => {
     it('should error given missing params', async () => {
       const validateClientTokenParams = new ValidateClientTokenParamsDTO();
       validateClientTokenParams.clientId = 'TEST';
+
+      let errored = false;
+
+      try {
+        await service.validateClientToken(validateClientTokenParams);
+      } catch (e) {
+        errored = true;
+      }
+
+      expect(errored).toBe(true);
+    });
+
+    it('should fail given no matching database records', async () => {
+      const validateClientTokenParams = new ValidateClientTokenParamsDTO();
+      validateClientTokenParams.clientId = 'TEST';
+      validateClientTokenParams.clientToken = 'TEST';
+
+      repo.findOne = jest.fn().mockResolvedValue(undefined);
+
+      let errored = false;
+
+      try {
+        await service.validateClientToken(validateClientTokenParams);
+      } catch (e) {
+        errored = true;
+      }
+
+      expect(errored).toBe(true);
+    });
+
+    it('should fail given invalid passcode', async () => {
+      const validateClientTokenParams = new ValidateClientTokenParamsDTO();
+      validateClientTokenParams.clientId = 'TEST';
+      validateClientTokenParams.clientToken =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXNzQ29kZSI6InBhc3NlZCIsImlhdCI6MTY1NTM5MzM4OH0.J0qeCekHjBELCrDtpYJyd-VAAH9hreGp378CxUoRIo8';
+
+      const dbResult = new Api();
+      dbResult.passCode = 'pass';
+      dbResult.encryptionKey = 'phrase';
+
+      repo.findOne = jest.fn().mockResolvedValue(dbResult);
 
       let errored = false;
 

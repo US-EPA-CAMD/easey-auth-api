@@ -1,69 +1,63 @@
-import { Request } from 'express';
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
-import { createMock } from '@golevelup/ts-jest';
-import { AuthGuard } from '../guards/auth.guard';
-import { UserIdDTO } from '../dtos/user-id.dto';
-import { ValidateTokenDTO } from '../dtos/validate-token.dto';
 import { TokenController } from './token.controller';
 import { TokenService } from './token.service';
-import { UserSessionRepository } from '../user-session/user-session.repository';
+import { TokenClientService } from './token-client.service';
+import { ValidateClientTokenParamsDTO } from '../dtos/validate-client-token.dto';
+import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
+import { UserTokenDTO } from '../dtos/userToken.dto';
 
-jest.mock('./token.service');
-
-const mockRequest = createMock<Request>({
-  res: {
-    cookie: jest.fn(),
-    clearCookie: jest.fn(),
-  },
+const mockTokenService = () => ({
+  refreshToken: jest.fn(),
+  validateToken: jest.fn(),
 });
 
-const mockRepo = () => ({
-  findOne: jest.fn().mockResolvedValue(''),
+const mockClientTokenService = () => ({
+  validateClientToken: jest.fn(),
+  generateClientToken: jest.fn(),
 });
 
-describe('Token Controller', () => {
+describe('Authentication Controller', () => {
   let controller: TokenController;
   let service: TokenService;
+  let clientService: TokenClientService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [LoggerModule],
       controllers: [TokenController],
       providers: [
-        TokenService,
-        AuthGuard,
-        { provide: UserSessionRepository, useFactory: mockRepo },
+        { provide: TokenService, useFactory: mockTokenService },
+        { provide: TokenClientService, useFactory: mockClientTokenService },
       ],
     }).compile();
 
     controller = module.get(TokenController);
     service = module.get(TokenService);
+    clientService = module.get(TokenClientService);
   });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
-  describe('Post Methods', () => {
-    it('Should create a security token for a valid user', async () => {
-      const data = 'csm:enneofnoe';
+  it('validateClientToken', async () => {
+    await controller.validateClientToken(new ValidateClientTokenParamsDTO());
+    expect(clientService.validateClientToken).toHaveBeenCalled();
+  });
 
-      jest.spyOn(service, 'createToken').mockResolvedValue(data);
+  it('genClientToken', async () => {
+    await controller.genClientToken(new ValidateClientIdParamsDTO());
+    expect(clientService.generateClientToken).toHaveBeenCalled();
+  });
 
-      expect(
-        await controller.createToken(new UserIdDTO(), '', mockRequest),
-      ).toBe(data);
-    });
+  it('createToken', async () => {
+    await controller.createToken(new UserTokenDTO(), '');
+    expect(service.refreshToken).toHaveBeenCalled();
+  });
 
-    it('Should return a validated token to the user', async () => {
-      const data = 'csm:enneofnoe';
-
-      jest.spyOn(service, 'validateToken').mockResolvedValue(data);
-
-      expect(await controller.validateToken(new ValidateTokenDTO(), '')).toBe(
-        data,
-      );
-    });
+  it('validateToken', async () => {
+    await controller.validateToken(new UserTokenDTO(), '');
+    expect(service.validateToken).toHaveBeenCalled();
   });
 });
