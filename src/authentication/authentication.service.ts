@@ -94,8 +94,6 @@ export class AuthenticationService {
       ),
     );
 
-    console.log(mockPermissionObject);
-
     const userPermissions = mockPermissionObject['data'].filter(
       entry => entry.userid === userId,
     );
