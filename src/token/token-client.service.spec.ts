@@ -4,7 +4,6 @@ import { Logger } from '@us-epa-camd/easey-common/logger';
 import { ValidateClientTokenParamsDTO } from '../dtos/validate-client-token.dto';
 import { ApiRepository } from './api.repository';
 import { TokenClientService } from './token-client.service';
-import { sign } from 'jsonwebtoken';
 import { Api } from '../entities/api.entity';
 
 let responseVals = {

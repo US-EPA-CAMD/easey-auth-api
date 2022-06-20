@@ -35,9 +35,9 @@ export class TokenClientService {
     }
 
     try {
-      const dbRecord = await this.apiRepository.findOne({
-        clientId: validateClientTokenParams.clientId,
-      });
+      const dbRecord = await this.apiRepository.findOne(
+        validateClientTokenParams.clientId,
+      );
 
       //Determine if a match exists
       if (!dbRecord) {
@@ -79,7 +79,7 @@ export class TokenClientService {
 
     // Lookup record by clientId, clientSecret
     const apiRecord = await this.apiRepository.findOne({
-      clientId: validateClientIdParams.clientId,
+      id: validateClientIdParams.clientId,
       clientSecret: validateClientIdParams.clientSecret,
     });
 

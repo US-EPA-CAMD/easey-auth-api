@@ -1,22 +1,19 @@
 import { BaseEntity, Column, Entity, PrimaryColumn } from 'typeorm';
 
-@Entity({ name: 'camdaux.api' })
+@Entity({ name: 'camdaux.client_config' })
 export class Api extends BaseEntity {
-  @PrimaryColumn({ name: 'api_id' })
-  id: number;
+  @PrimaryColumn({ name: 'client_id' })
+  id: string;
 
-  @Column({ name: 'name' })
+  @Column({ name: 'client_name' })
   name: string;
 
-  @Column({ name: 'client_id' })
-  clientId?: string;
-
   @Column({ name: 'client_secret' })
-  clientSecret?: string;
+  clientSecret: string;
 
-  @Column({ name: 'pass_code' })
-  passCode?: string;
+  @Column({ name: 'client_passcode' })
+  passCode: string;
 
   @Column({ name: 'encryption_key' })
-  encryptionKey?: string;
+  encryptionKey: string;
 }
