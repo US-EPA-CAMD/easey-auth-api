@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   forwardRef,
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -15,6 +16,7 @@ import { UserSessionService } from '../user-session/user-session.service';
 import { TokenDTO } from '../dtos/token.dto';
 import { TokenBypassService } from './token-bypass.service';
 import { UserSession } from '../entities/user-session.entity';
+import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 
 @Injectable()
 export class TokenService {
@@ -84,10 +86,9 @@ export class TokenService {
         return authToken;
       })
       .catch(err => {
-        this.logger.error(
-          InternalServerErrorException,
+        throw new LoggingException(
           err.root.Envelope.Body.Fault.detail.faultdetails,
-          true,
+          HttpStatus.INTERNAL_SERVER_ERROR,
           { userId: userId },
         );
       });
@@ -115,10 +116,9 @@ export class TokenService {
         return res[0].return;
       })
       .catch(err => {
-        this.logger.error(
-          InternalServerErrorException,
+        throw new LoggingException(
           err.root.Envelope.Body.Fault.detail.faultdetails,
-          true,
+          HttpStatus.INTERNAL_SERVER_ERROR,
           { token: token, clientIp: clientIp },
         );
       });
@@ -126,10 +126,9 @@ export class TokenService {
 
   async validateClientIp(parsedToken: any, clientIp: string) {
     if (parsedToken.clientIp !== clientIp) {
-      this.logger.error(
-        BadRequestException,
+      throw new LoggingException(
         'Request coming from invalid IP address',
-        true,
+        HttpStatus.BAD_REQUEST,
         { userId: parsedToken.userId, clientIp: clientIp },
       );
     }

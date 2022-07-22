@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { sign, verify } from 'jsonwebtoken';
 
@@ -8,6 +14,7 @@ import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
 import { ApiRepository } from './api.repository';
 import { ValidateClientTokenParamsDTO } from '../dtos/validate-client-token.dto';
 import { TokenDTO } from '../dtos/token.dto';
+import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 
 @Injectable()
 export class TokenClientService {
@@ -27,10 +34,9 @@ export class TokenClientService {
       !validateClientTokenParams.clientId ||
       !validateClientTokenParams.clientToken
     ) {
-      this.logger.error(
-        BadRequestException,
-        'Must provide an app name and client token',
-        true,
+      throw new LoggingException(
+        'Must provide a clientId and clientToken',
+        HttpStatus.BAD_REQUEST,
       );
     }
 
@@ -41,7 +47,7 @@ export class TokenClientService {
 
       //Determine if a match exists
       if (!dbRecord) {
-        this.logger.error(BadRequestException, 'Invalid ClientId', true);
+        throw new LoggingException('Invalid clientId', HttpStatus.BAD_REQUEST);
       }
 
       //Attempt to verify the incoming token
@@ -51,12 +57,15 @@ export class TokenClientService {
       );
 
       if (decoded.passCode !== dbRecord.passCode) {
-        this.logger.error(BadRequestException, 'Invalid Token', true);
+        throw new LoggingException(
+          'Invalid clientToken',
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
       return true;
     } catch (err) {
-      this.logger.error(BadRequestException, err.message, true);
+      throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
     }
 
     return null;
@@ -70,10 +79,9 @@ export class TokenClientService {
       !validateClientIdParams.clientId ||
       !validateClientIdParams.clientSecret
     ) {
-      this.logger.error(
-        BadRequestException,
-        'Must provide a clientId and clientSecret',
-        true,
+      throw new LoggingException(
+        'Must provide a clientId and clientToken',
+        HttpStatus.BAD_REQUEST,
       );
     }
 
@@ -104,13 +112,10 @@ export class TokenClientService {
 
       return tokenDTO;
     } else {
-      this.logger.error(
-        BadRequestException,
+      throw new LoggingException(
         'Invalid clientId or clientSecret',
-        true,
+        HttpStatus.BAD_REQUEST,
       );
     }
-
-    return null;
   }
 }

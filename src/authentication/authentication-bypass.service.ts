@@ -1,5 +1,10 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { UserDTO } from '../dtos/user.dto';
 import { UserSessionService } from '../user-session/user-session.service';
@@ -18,10 +23,9 @@ export class AuthenticationBypassService {
     );
 
     if (!acceptedUsers.find(x => x === userId)) {
-      this.logger.error(
-        InternalServerErrorException,
+      throw new LoggingException(
         'Incorrect Bypass userId',
-        true,
+        HttpStatus.BAD_REQUEST,
       );
     }
 
@@ -43,10 +47,9 @@ export class AuthenticationBypassService {
 
       return user;
     } else {
-      this.logger.error(
-        InternalServerErrorException,
-        'Incorrect bypass password',
-        true,
+      throw new LoggingException(
+        'Incorrect Bypass password',
+        HttpStatus.BAD_REQUEST,
       );
     }
 
