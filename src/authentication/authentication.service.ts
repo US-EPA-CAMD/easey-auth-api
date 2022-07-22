@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClientAsync } from 'soap';
 import { HttpService } from '@nestjs/axios';
@@ -9,6 +13,7 @@ import { FacilitiesDTO } from '../dtos/facilities.dto';
 import { AuthenticationBypassService } from './authentication-bypass.service';
 import { TokenBypassService } from '../token/token-bypass.service';
 import { UserSessionService } from '../user-session/user-session.service';
+import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 
 @Injectable()
 export class AuthenticationService {
@@ -38,18 +43,16 @@ export class AuthenticationService {
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          this.logger.error(
-            InternalServerErrorException,
+          throw new LoggingException(
             err.root.Envelope,
-            true,
+            HttpStatus.BAD_REQUEST,
             { userId: userId },
           );
         }
 
-        this.logger.error(InternalServerErrorException, err.message, true, {
+        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST, {
           userId: userId,
         });
-        return null;
       });
   }
 
@@ -70,18 +73,16 @@ export class AuthenticationService {
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          this.logger.error(
-            InternalServerErrorException,
+          throw new LoggingException(
             err.root.Envelope,
-            true,
+            HttpStatus.BAD_REQUEST,
             { userId: userId },
           );
         }
 
-        this.logger.error(InternalServerErrorException, err.message, true, {
+        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST, {
           userId: userId,
         });
-        return null;
       });
   }
 
@@ -171,18 +172,18 @@ export class AuthenticationService {
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          this.logger.error(
-            InternalServerErrorException,
-            err.root.Envelope.Body.Fault.detail.RegisterAuthFault.description,
-            true,
-            { userId: userId },
+          throw new LoggingException(
+            'Error authenticating user',
+            HttpStatus.BAD_REQUEST,
+            {
+              userId: userId,
+            },
           );
         }
 
-        this.logger.error(InternalServerErrorException, err.message, true, {
+        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST, {
           userId: userId,
         });
-        return null;
       });
   }
 

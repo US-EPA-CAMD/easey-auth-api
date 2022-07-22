@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   forwardRef,
+  HttpStatus,
   Inject,
   Injectable,
 } from '@nestjs/common';
@@ -13,6 +14,7 @@ import { Logger } from '@us-epa-camd/easey-common/logger';
 import { TokenBypassService } from '../token/token-bypass.service';
 import { TokenService } from '../token/token.service';
 import { TokenDTO } from 'src/dtos/token.dto';
+import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 
 @Injectable()
 export class UserSessionService {
@@ -68,22 +70,18 @@ export class UserSessionService {
         return sessionRecord;
       }
 
-      this.logger.error(
-        BadRequestException,
+      throw new LoggingException(
         'Session associated with token has expired',
-        true,
+        HttpStatus.BAD_REQUEST,
         { sessionId: sessionId },
       );
     }
 
-    this.logger.error(
-      BadRequestException,
+    throw new LoggingException(
       'No existing session with that token',
-      true,
+      HttpStatus.BAD_REQUEST,
       { sessionId: sessionId },
     );
-
-    return null;
   }
 
   async removeUserSessionByUserId(userId: string) {
@@ -103,14 +101,11 @@ export class UserSessionService {
       return session;
     }
 
-    this.logger.error(
-      BadRequestException,
-      'No existing session for user with supplied token',
-      true,
+    throw new LoggingException(
+      'No existing session with that token',
+      HttpStatus.BAD_REQUEST,
       { userId: userId },
     );
-
-    return null;
   }
 
   async updateUserSessionToken(
