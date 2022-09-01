@@ -41,28 +41,4 @@ export class TokenController {
     // app Name
     return this.clientService.generateClientToken(validateClientIdParams);
   }
-
-  @Post()
-  @ApiOkResponse({
-    type: String,
-    description: 'Creates a security token (user must be authenticated)',
-  })
-  async createToken(
-    @Body() dto: UserTokenDTO,
-    @ClientIP() clientIp: string,
-  ): Promise<string> {
-    return this.service.refreshToken(dto.userId, dto.token, clientIp);
-  }
-
-  @Post('/validate')
-  @ApiOkResponse({
-    type: String,
-    description: 'Validates a security token (user must have valid session)',
-  })
-  validateToken(
-    @Body() dto: ValidateTokenDTO,
-    @ClientIP() clientIp: string,
-  ): Promise<string> {
-    return this.service.validateToken(dto.token, clientIp);
-  }
 }
