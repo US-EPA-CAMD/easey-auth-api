@@ -9,22 +9,23 @@ import { CorsOptionsModule } from '@us-epa-camd/easey-common/cors-options';
 
 import routes from './routes';
 import appConfig from './config/app.config';
+import cdxBypass from './config/bypass.config';
 import { TypeOrmConfigService } from './config/typeorm.config';
-import { TokenModule } from './token/token.module';
+import { AuthenticationModule } from './authentication/authentication.module';
 
 @Module({
   imports: [
     RouterModule.forRoutes(routes),
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [dbConfig, appConfig],
+      load: [dbConfig, appConfig, cdxBypass],
     }),
     TypeOrmModule.forRootAsync({
       useClass: TypeOrmConfigService,
     }),
     LoggerModule,
     CorsOptionsModule,
-    TokenModule,
+    AuthenticationModule,
   ],
 })
 export class AppModule {}

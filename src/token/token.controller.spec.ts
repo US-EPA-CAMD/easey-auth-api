@@ -1,9 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { TokenController } from './token.controller';
+import { TokenService } from './token.service';
 import { TokenClientService } from './token-client.service';
 import { ValidateClientTokenParamsDTO } from '../dtos/validate-client-token.dto';
 import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
+import { UserTokenDTO } from '../dtos/userToken.dto';
 
 const mockTokenService = () => ({
   refreshToken: jest.fn(),
@@ -17,6 +19,7 @@ const mockClientTokenService = () => ({
 
 describe('Authentication Controller', () => {
   let controller: TokenController;
+  let service: TokenService;
   let clientService: TokenClientService;
 
   beforeAll(async () => {
@@ -24,11 +27,13 @@ describe('Authentication Controller', () => {
       imports: [LoggerModule],
       controllers: [TokenController],
       providers: [
+        { provide: TokenService, useFactory: mockTokenService },
         { provide: TokenClientService, useFactory: mockClientTokenService },
       ],
     }).compile();
 
     controller = module.get(TokenController);
+    service = module.get(TokenService);
     clientService = module.get(TokenClientService);
   });
 
@@ -44,5 +49,15 @@ describe('Authentication Controller', () => {
   it('genClientToken', async () => {
     await controller.genClientToken(new ValidateClientIdParamsDTO());
     expect(clientService.generateClientToken).toHaveBeenCalled();
+  });
+
+  it('createToken', async () => {
+    await controller.createToken(new UserTokenDTO(), '');
+    expect(service.refreshToken).toHaveBeenCalled();
+  });
+
+  it('validateToken', async () => {
+    await controller.validateToken(new UserTokenDTO(), '');
+    expect(service.validateToken).toHaveBeenCalled();
   });
 });

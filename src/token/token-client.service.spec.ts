@@ -2,9 +2,9 @@ import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { ValidateClientTokenParamsDTO } from '../dtos/validate-client-token.dto';
-import { ClientConfigRepository } from './client-config.repository';
+import { ApiRepository } from './client-config.repository';
 import { TokenClientService } from './token-client.service';
-import { ClientConfig } from '../entities/client-config.entity';
+import { Api } from '../entities/client-config.entity';
 import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
 
 let responseVals = {
@@ -19,7 +19,7 @@ const mockRepo = () => ({
 
 describe('Token Client Service', () => {
   let service: TokenClientService;
-  let repo: ClientConfigRepository;
+  let repo: ApiRepository;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -28,7 +28,7 @@ describe('Token Client Service', () => {
         TokenClientService,
         Logger,
         {
-          provide: ClientConfigRepository,
+          provide: ApiRepository,
           useFactory: mockRepo,
         },
         {
@@ -42,7 +42,7 @@ describe('Token Client Service', () => {
       ],
     }).compile();
 
-    repo = module.get(ClientConfigRepository);
+    repo = module.get(ApiRepository);
     service = module.get(TokenClientService);
   });
 
@@ -55,7 +55,7 @@ describe('Token Client Service', () => {
       const validateClientTokenParams = new ValidateClientIdParamsDTO();
       validateClientTokenParams.clientId = 'test';
       validateClientTokenParams.clientSecret = 'test';
-      const dbResult = new ClientConfig();
+      const dbResult = new Api();
       dbResult.passCode = 'pass';
       dbResult.encryptionKey = 'phrase';
       repo.findOne = jest.fn().mockResolvedValue(dbResult);
@@ -109,7 +109,7 @@ describe('Token Client Service', () => {
       validateClientTokenParams.clientToken =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXNzQ29kZSI6InBhc3MiLCJpYXQiOjE2NTUzMTc4NzV9.B4pzbI8SBm5mExF3-zIzyXVzLONwIYPFwm3QhtdNiZ4';
 
-      const dbResult = new ClientConfig();
+      const dbResult = new Api();
       dbResult.passCode = 'pass';
       dbResult.encryptionKey = 'phrase';
 
@@ -159,7 +159,7 @@ describe('Token Client Service', () => {
       validateClientTokenParams.clientToken =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXNzQ29kZSI6InBhc3NlZCIsImlhdCI6MTY1NTM5MzM4OH0.J0qeCekHjBELCrDtpYJyd-VAAH9hreGp378CxUoRIo8';
 
-      const dbResult = new ClientConfig();
+      const dbResult = new Api();
       dbResult.passCode = 'pass';
       dbResult.encryptionKey = 'phrase';
 
