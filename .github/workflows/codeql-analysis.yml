@@ -17,10 +17,7 @@ on:
     paths-ignore:
       - '**/*.md'
       - 'LICENSE'
-      - '.github/**'
       - '.gitignore'
-  schedule:
-    - cron: '23 3 * * 2'
 
 jobs:
   analyze:
