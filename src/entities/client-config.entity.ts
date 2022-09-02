@@ -1,7 +1,7 @@
 import { BaseEntity, Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity({ name: 'camdaux.client_config' })
-export class Api extends BaseEntity {
+export class ClientConfig extends BaseEntity {
   @PrimaryColumn({ name: 'client_id' })
   id: string;
 

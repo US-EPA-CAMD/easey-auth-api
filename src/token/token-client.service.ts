@@ -1,9 +1,6 @@
 import {
-  BadRequestException,
-  HttpException,
   HttpStatus,
   Injectable,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { sign, verify } from 'jsonwebtoken';
@@ -11,7 +8,7 @@ import { sign, verify } from 'jsonwebtoken';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
-import { ApiRepository } from './api.repository';
+import { ClientConfigRepository } from './client-config.repository';
 import { ValidateClientTokenParamsDTO } from '../dtos/validate-client-token.dto';
 import { TokenDTO } from '../dtos/token.dto';
 import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
@@ -19,9 +16,8 @@ import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 @Injectable()
 export class TokenClientService {
   constructor(
-    @InjectRepository(ApiRepository)
-    private readonly apiRepository: ApiRepository,
-
+    @InjectRepository(ClientConfigRepository)
+    private readonly clientConfigRepository: ClientConfigRepository,
     private readonly configService: ConfigService,
     private readonly logger: Logger,
   ) {}
@@ -41,7 +37,7 @@ export class TokenClientService {
     }
 
     try {
-      const dbRecord = await this.apiRepository.findOne(
+      const dbRecord = await this.clientConfigRepository.findOne(
         validateClientTokenParams.clientId,
       );
 
@@ -67,8 +63,6 @@ export class TokenClientService {
     } catch (err) {
       throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
     }
-
-    return null;
   }
 
   async generateClientToken(
@@ -86,22 +80,22 @@ export class TokenClientService {
     }
 
     // Lookup record by clientId, clientSecret
-    const apiRecord = await this.apiRepository.findOne({
+    const dbRecord = await this.clientConfigRepository.findOne({
       id: validateClientIdParams.clientId,
       clientSecret: validateClientIdParams.clientSecret,
     });
 
     // If the record exists, encrypt the passcode associated with that app
-    if (apiRecord) {
+    if (dbRecord) {
       const expiration =
         this.configService.get<number>('app.clientTokenDurationMinutes') * 60;
 
       const tokenDTO = new TokenDTO();
       tokenDTO.token = sign(
         {
-          passCode: apiRecord.passCode,
+          passCode: dbRecord.passCode,
         },
-        apiRecord.encryptionKey,
+        dbRecord.encryptionKey,
         {
           expiresIn: expiration,
         },
