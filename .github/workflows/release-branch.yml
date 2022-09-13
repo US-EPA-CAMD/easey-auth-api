@@ -47,7 +47,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.ARTIFACTS_STORAGE_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.ARTIFACTS_STORAGE_SECRET_ACCESS_KEY }}
-  
+
   Test-Deployment:
     needs: Build-Test-Package
     runs-on: ubuntu-latest
@@ -87,13 +87,15 @@ jobs:
           cf set-env $APP_NAME EASEY_AUTH_API_NAASID $EASEY_AUTH_API_NAASID
           cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD
           cf set-env $APP_NAME EASEY_AUTH_API_CDX_BYPASS_PASSWORD $EASEY_AUTH_API_CDX_BYPASS_PASSWORD
+          cf set-env $APP_NAME EASEY_AUTH_API_SECRET_TOKEN $API_SECRET_TOKEN
         env:
           EASEY_AUTH_API_NAASID: ${{ secrets.EASEY_AUTH_API_NAASID }}
           EASEY_AUTH_API_NAASPWD: ${{ secrets.EASEY_AUTH_API_NAASPWD }}
           EASEY_AUTH_API_CDX_BYPASS_PASSWORD: ${{ secrets.EASEY_AUTH_API_CDX_BYPASS_PASSWORD }}
+          API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
       - name: Deployment
         run: devops/scripts/deploy.sh
-  
+
   Beta-Deployment:
     needs: Build-Test-Package
     runs-on: ubuntu-latest
@@ -133,13 +135,15 @@ jobs:
           cf set-env $APP_NAME EASEY_AUTH_API_NAASID $EASEY_AUTH_API_NAASID
           cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD
           cf set-env $APP_NAME EASEY_AUTH_API_CDX_BYPASS_PASSWORD $EASEY_AUTH_API_CDX_BYPASS_PASSWORD
+          cf set-env $APP_NAME EASEY_AUTH_API_SECRET_TOKEN $API_SECRET_TOKEN
         env:
           EASEY_AUTH_API_NAASID: ${{ secrets.EASEY_AUTH_API_NAASID }}
           EASEY_AUTH_API_NAASPWD: ${{ secrets.EASEY_AUTH_API_NAASPWD }}
           EASEY_AUTH_API_CDX_BYPASS_PASSWORD: ${{ secrets.EASEY_AUTH_API_CDX_BYPASS_PASSWORD }}
+          API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
       - name: Deployment
         run: devops/scripts/deploy.sh
-  
+
   Stage-Deployment:
     needs: Build-Test-Package
     runs-on: ubuntu-latest
@@ -179,10 +183,12 @@ jobs:
           cf set-env $APP_NAME EASEY_AUTH_API_NAASID $EASEY_AUTH_API_NAASID
           cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD
           cf set-env $APP_NAME EASEY_AUTH_API_CDX_BYPASS_PASSWORD $EASEY_AUTH_API_CDX_BYPASS_PASSWORD
+          cf set-env $APP_NAME EASEY_AUTH_API_SECRET_TOKEN $API_SECRET_TOKEN
         env:
           EASEY_AUTH_API_NAASID: ${{ secrets.EASEY_AUTH_API_NAASID }}
           EASEY_AUTH_API_NAASPWD: ${{ secrets.EASEY_AUTH_API_NAASPWD }}
           EASEY_AUTH_API_CDX_BYPASS_PASSWORD: ${{ secrets.EASEY_AUTH_API_CDX_BYPASS_PASSWORD }}
+          API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
       - name: Deployment
         run: devops/scripts/deploy.sh
 
@@ -225,9 +231,11 @@ jobs:
           cf set-env $APP_NAME EASEY_AUTH_API_NAASID $EASEY_AUTH_API_NAASID
           cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD
           cf set-env $APP_NAME EASEY_AUTH_API_CDX_BYPASS_PASSWORD $EASEY_AUTH_API_CDX_BYPASS_PASSWORD
+          cf set-env $APP_NAME EASEY_AUTH_API_SECRET_TOKEN $API_SECRET_TOKEN
         env:
           EASEY_AUTH_API_NAASID: ${{ secrets.EASEY_AUTH_API_NAASID }}
           EASEY_AUTH_API_NAASPWD: ${{ secrets.EASEY_AUTH_API_NAASPWD }}
           EASEY_AUTH_API_CDX_BYPASS_PASSWORD: ${{ secrets.EASEY_AUTH_API_CDX_BYPASS_PASSWORD }}
+          API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
       - name: Deployment
         run: devops/scripts/deploy.sh
