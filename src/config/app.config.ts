@@ -48,4 +48,8 @@ export default registerAs('app', () => ({
   contentUrl:
     process.env.EASEY_CONTENT_API ||
     'https://api.epa.gov/easey/dev/content-mgmt',
+  enableSecretToken: parseBool(
+    process.env.EASEY_AUTH_API_ENABLE_SECRET_TOKEN,
+    false,
+  ),
 }));
