@@ -21,6 +21,7 @@ applications:
       EASEY_AUTH_API_ENABLE_AUTH_TOKEN: true
       EASEY_AUTH_API_ENABLE_GLOBAL_VALIDATION_PIPE: true
       EASEY_AUTH_API_TOKEN_EXPIRATION_MINUTES: 20
+      EASEY_AUTH_API_ENABLE_SECRET_TOKEN: true
     routes:
       - route: ((host))/((path))
     services:
