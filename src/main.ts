@@ -10,7 +10,7 @@ import { AppModule } from './app.module';
 export async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  await applyMiddleware(AppModule, app);
+  await applyMiddleware(AppModule, app, true);
   await applySwagger(app);
 
   const configService = app.get(ConfigService);
