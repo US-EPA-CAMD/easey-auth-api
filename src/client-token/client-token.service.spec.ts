@@ -1,9 +1,8 @@
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Logger } from '@us-epa-camd/easey-common/logger';
 import { ValidateClientTokenParamsDTO } from '../dtos/validate-client-token.dto';
-import { ClientConfigRepository } from './client-config.repository';
-import { TokenClientService } from './token-client.service';
+import { ClientTokenRepository } from './client-token.repository';
+import { ClientTokenService } from './client-token.service';
 import { ClientConfig } from '../entities/client-config.entity';
 import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
 
@@ -13,23 +12,21 @@ let responseVals = {
   ['app.clientTokenDurationMinutes']: 10,
 };
 
-const mockRepo = () => ({
+const mockRepository = () => ({
   findOne: jest.fn(),
 });
 
-describe('Token Client Service', () => {
-  let service: TokenClientService;
-  let repo: ClientConfigRepository;
+describe('ClientTokenService', () => {
+  let service: ClientTokenService;
+  let repository: ClientTokenRepository;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [],
       providers: [
-        TokenClientService,
-        Logger,
+        ClientTokenService,
         {
-          provide: ClientConfigRepository,
-          useFactory: mockRepo,
+          provide: ClientTokenRepository,
+          useFactory: mockRepository,
         },
         {
           provide: ConfigService,
@@ -42,15 +39,16 @@ describe('Token Client Service', () => {
       ],
     }).compile();
 
-    repo = module.get(ClientConfigRepository);
-    service = module.get(TokenClientService);
+    service = module.get(ClientTokenService);
+    repository = module.get(ClientTokenRepository);
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+    expect(repository).toBeDefined();
   });
 
-  describe('generateClientToken', () => {
+  describe('generateToken', () => {
     it('should generate new token successfully', async () => {
       const validateClientTokenParams = new ValidateClientIdParamsDTO();
       validateClientTokenParams.clientId = 'test';
@@ -58,11 +56,11 @@ describe('Token Client Service', () => {
       const dbResult = new ClientConfig();
       dbResult.passCode = 'pass';
       dbResult.encryptionKey = 'phrase';
-      repo.findOne = jest.fn().mockResolvedValue(dbResult);
+      repository.findOne = jest.fn().mockResolvedValue(dbResult);
 
       let errored = false;
       try {
-        await service.generateClientToken(validateClientTokenParams);
+        await service.generateToken(validateClientTokenParams);
       } catch (e) {
         errored = true;
       }
@@ -76,7 +74,7 @@ describe('Token Client Service', () => {
 
       let errored = false;
       try {
-        await service.generateClientToken(validateClientTokenParams);
+        await service.generateToken(validateClientTokenParams);
       } catch (e) {
         errored = true;
       }
@@ -89,11 +87,11 @@ describe('Token Client Service', () => {
       validateClientTokenParams.clientId = 'test';
       validateClientTokenParams.clientSecret = 'test';
 
-      repo.findOne = jest.fn().mockResolvedValue(undefined);
+      repository.findOne = jest.fn().mockResolvedValue(undefined);
 
       let errored = false;
       try {
-        await service.generateClientToken(validateClientTokenParams);
+        await service.generateToken(validateClientTokenParams);
       } catch (e) {
         errored = true;
       }
@@ -102,7 +100,7 @@ describe('Token Client Service', () => {
     });
   });
 
-  describe('validateClientToken', () => {
+  describe('validateToken', () => {
     it('should return true given valid token', async () => {
       const validateClientTokenParams = new ValidateClientTokenParamsDTO();
       validateClientTokenParams.clientId = 'TEST';
@@ -113,9 +111,9 @@ describe('Token Client Service', () => {
       dbResult.passCode = 'pass';
       dbResult.encryptionKey = 'phrase';
 
-      repo.findOne = jest.fn().mockResolvedValue(dbResult);
+      repository.findOne = jest.fn().mockResolvedValue(dbResult);
 
-      expect(await service.validateClientToken(validateClientTokenParams)).toBe(
+      expect(await service.validateToken(validateClientTokenParams)).toBe(
         true,
       );
     });
@@ -127,7 +125,7 @@ describe('Token Client Service', () => {
       let errored = false;
 
       try {
-        await service.validateClientToken(validateClientTokenParams);
+        await service.validateToken(validateClientTokenParams);
       } catch (e) {
         errored = true;
       }
@@ -140,12 +138,12 @@ describe('Token Client Service', () => {
       validateClientTokenParams.clientId = 'TEST';
       validateClientTokenParams.clientToken = 'TEST';
 
-      repo.findOne = jest.fn().mockResolvedValue(undefined);
+      repository.findOne = jest.fn().mockResolvedValue(undefined);
 
       let errored = false;
 
       try {
-        await service.validateClientToken(validateClientTokenParams);
+        await service.validateToken(validateClientTokenParams);
       } catch (e) {
         errored = true;
       }
@@ -163,12 +161,12 @@ describe('Token Client Service', () => {
       dbResult.passCode = 'pass';
       dbResult.encryptionKey = 'phrase';
 
-      repo.findOne = jest.fn().mockResolvedValue(dbResult);
+      repository.findOne = jest.fn().mockResolvedValue(dbResult);
 
       let errored = false;
 
       try {
-        await service.validateClientToken(validateClientTokenParams);
+        await service.validateToken(validateClientTokenParams);
       } catch (e) {
         errored = true;
       }

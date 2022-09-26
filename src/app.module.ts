@@ -10,7 +10,7 @@ import { CorsOptionsModule } from '@us-epa-camd/easey-common/cors-options';
 import routes from './routes';
 import appConfig from './config/app.config';
 import { TypeOrmConfigService } from './config/typeorm.config';
-import { TokenModule } from './token/token.module';
+import { ClientTokenModule } from './client-token/client-token.module';
 
 @Module({
   imports: [
@@ -22,9 +22,9 @@ import { TokenModule } from './token/token.module';
     TypeOrmModule.forRootAsync({
       useClass: TypeOrmConfigService,
     }),
-    LoggerModule,
     CorsOptionsModule,
-    TokenModule,
+    ClientTokenModule,
+    LoggerModule,
   ],
 })
 export class AppModule {}

@@ -21,8 +21,14 @@ export default registerAs('app', () => ({
   port,
   uri,
   env: process.env.EASEY_AUTH_API_ENV || 'local-dev',
-  enableCors: parseBool(process.env.EASEY_FACILITIES_API_ENABLE_CORS, true),
-  enableApiKey: parseBool(process.env.EASEY_AUTH_API_ENABLE_API_KEY, true),
+  enableCors: parseBool(
+    process.env.EASEY_FACILITIES_API_ENABLE_CORS,
+    true
+  ),
+  enableApiKey: parseBool(
+    process.env.EASEY_AUTH_API_ENABLE_API_KEY,
+    true
+  ),
   enableAuthToken: parseBool(
     process.env.EASEY_AUTH_API_ENABLE_AUTH_TOKEN,
     false,
