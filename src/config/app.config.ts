@@ -21,11 +21,15 @@ export default registerAs('app', () => ({
   port,
   uri,
   env: process.env.EASEY_AUTH_API_ENV || 'local-dev',
-  enableCors: parseBool(process.env.EASEY_FACILITIES_API_ENABLE_CORS, true),
-  enableApiKey: parseBool(process.env.EASEY_AUTH_API_ENABLE_API_KEY, true),
+  enableCors: parseBool(
+    process.env.EASEY_FACILITIES_API_ENABLE_CORS,
+    true,
+  ),
+  enableApiKey: parseBool(
+    process.env.EASEY_AUTH_API_ENABLE_API_KEY,
+  ),
   enableAuthToken: parseBool(
     process.env.EASEY_AUTH_API_ENABLE_AUTH_TOKEN,
-    false,
   ),
   enableGlobalValidationPipes: parseBool(
     process.env.EASEY_AUTH_API_ENABLE_GLOBAL_VALIDATION_PIPE,
@@ -50,6 +54,9 @@ export default registerAs('app', () => ({
     'https://api.epa.gov/easey/dev/content-mgmt',
   enableSecretToken: parseBool(
     process.env.EASEY_AUTH_API_ENABLE_SECRET_TOKEN,
-    false,
+  ),
+  // ENABLES DEBUG CONSOLE LOGS
+  enableDebug: parseBool(
+    process.env.EASEY_AUTH_API_ENABLE_DEBUG,
   ),
 }));

@@ -1,13 +1,15 @@
+import { Post, Controller, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOkResponse, ApiSecurity } from '@nestjs/swagger';
-import { Post, Controller, Body } from '@nestjs/common';
+
+import { User } from '@us-epa-camd/easey-common/decorators';
+import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
+
 import { ClientIP } from './../decorators/client-ip.decorator';
-import { ValidateTokenDTO } from '../dtos/validate-token.dto';
+import { AuthToken } from '../decorators/auth-token.decorator';
+import { AuthGuard } from '../guards/auth.guard';
+
 import { TokenService } from './token.service';
-import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
-import { ValidateClientTokenParamsDTO } from '../dtos/validate-client-token.dto';
 import { TokenDTO } from '../dtos/token.dto';
-import { TokenClientService } from './token-client.service';
-import { UserTokenDTO } from '../dtos/userToken.dto';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -15,54 +17,32 @@ import { UserTokenDTO } from '../dtos/userToken.dto';
 export class TokenController {
   constructor(
     private readonly service: TokenService,
-    private readonly clientService: TokenClientService,
   ) {}
 
-  @Post('/client/validate')
-  @ApiOkResponse({
-    type: String,
-    description: 'Validates a jwt client token',
-  })
-  validateClientToken(
-    @Body() validateClientTokenParamsDTO: ValidateClientTokenParamsDTO,
-  ): Promise<boolean> {
-    // app Name
-    return this.clientService.validateClientToken(validateClientTokenParamsDTO);
-  }
-
-  @Post('/client')
-  @ApiOkResponse({
-    type: String,
-    description: 'Generates a client token, given a client id and secret',
-  })
-  genClientToken(
-    @Body() validateClientIdParams: ValidateClientIdParamsDTO,
-  ): Promise<TokenDTO> {
-    // app Name
-    return this.clientService.generateClientToken(validateClientIdParams);
-  }
-
   @Post()
+  @UseGuards(AuthGuard)
   @ApiOkResponse({
-    type: String,
-    description: 'Creates a security token (user must be authenticated)',
+    type: TokenDTO,
+    description: 'Creates a user security token (user must be authenticated)',
   })
   async createToken(
-    @Body() dto: UserTokenDTO,
+    @User() user: CurrentUser,
+    @AuthToken() authToken: string,
     @ClientIP() clientIp: string,
-  ): Promise<string> {
-    return this.service.refreshToken(dto.userId, dto.token, clientIp);
+  ): Promise<TokenDTO> {
+    return this.service.refreshToken(user.userId, authToken, clientIp);
   }
 
   @Post('/validate')
+  @UseGuards(AuthGuard)
   @ApiOkResponse({
     type: String,
-    description: 'Validates a security token (user must have valid session)',
+    description: 'Validates a user security token (user must have valid session)',
   })
   validateToken(
-    @Body() dto: ValidateTokenDTO,
+    @AuthToken() authToken: string,
     @ClientIP() clientIp: string,
   ): Promise<string> {
-    return this.service.validateToken(dto.token, clientIp);
+    return this.service.validateToken(authToken, clientIp);
   }
 }

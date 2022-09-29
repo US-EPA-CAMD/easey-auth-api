@@ -1,65 +1,34 @@
+import { v4 as uuid } from 'uuid';
 import {
-  BadRequestException,
-  forwardRef,
   HttpStatus,
-  Inject,
   Injectable,
 } from '@nestjs/common';
-
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserSessionRepository } from '../user-session/user-session.repository';
-import { UserSession } from '../entities/user-session.entity';
-import { v4 as uuid } from 'uuid';
-import { Logger } from '@us-epa-camd/easey-common/logger';
-import { TokenBypassService } from '../token/token-bypass.service';
-import { TokenService } from '../token/token.service';
-import { TokenDTO } from 'src/dtos/token.dto';
 import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
+
+import { UserSession } from '../entities/user-session.entity';
+import { UserSessionRepository } from '../user-session/user-session.repository';
 
 @Injectable()
 export class UserSessionService {
   constructor(
     @InjectRepository(UserSessionRepository)
     private readonly repository: UserSessionRepository,
-
-    @Inject(forwardRef(() => TokenBypassService))
-    private readonly tokenBypassService: TokenBypassService,
-
-    @Inject(forwardRef(() => TokenService))
-    private readonly tokenService: TokenService,
-
-    private readonly logger: Logger,
   ) {}
 
-  async createUserSession(userId: string, clientIp: string): Promise<TokenDTO> {
+  async createUserSession(userId: string): Promise<UserSession> {
+    const sessionId = uuid();
     await this.removeUserSessionByUserId(userId);
 
-    const sessionId = uuid();
-
-    this.logger.info('Creating user session', {
-      userId: userId,
-      sessionId: sessionId,
-    });
-
     const session = new UserSession();
-    session.userId = userId.toLowerCase();
     session.sessionId = sessionId;
+    session.userId = userId.toLowerCase();
     session.lastLoginDate = new Date().toUTCString();
-
     await this.repository.insert(session);
-
-    if (this.tokenBypassService.isBypassSet()) {
-      return this.tokenBypassService.generateBypassToken(
-        userId,
-        sessionId,
-        clientIp,
-      );
-    }
-
-    return this.tokenService.generateToken(userId, sessionId, clientIp);
+    return session;
   }
 
-  async isValidSessionForToken(sessionId: string, token: string) {
+  async isValidSessionForToken(sessionId: string, token: string): Promise<UserSession> {
     const sessionRecord = await this.repository.findOne({
       sessionId: sessionId,
       securityToken: token,
@@ -91,7 +60,7 @@ export class UserSessionService {
     }
   }
 
-  async findSessionByUserIdAndToken(userId: string, token: string) {
+  async findSessionByUserIdAndToken(userId: string, token: string): Promise<UserSession> {
     const session = await this.repository.findOne({
       userId: userId,
       securityToken: token,

@@ -11,7 +11,8 @@ import routes from './routes';
 import appConfig from './config/app.config';
 import cdxBypass from './config/bypass.config';
 import { TypeOrmConfigService } from './config/typeorm.config';
-import { AuthenticationModule } from './authentication/authentication.module';
+import { AuthModule } from './auth/auth.module';
+import { TokenModule } from './token/token.module';
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import { AuthenticationModule } from './authentication/authentication.module';
     }),
     LoggerModule,
     CorsOptionsModule,
-    AuthenticationModule,
+    AuthModule,
+    TokenModule,
   ],
 })
 export class AppModule {}

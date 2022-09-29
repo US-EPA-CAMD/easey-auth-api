@@ -1,17 +1,24 @@
 import { Routes } from 'nest-router';
 
-import { AuthenticationModule } from './authentication/authentication.module';
+import { AuthModule } from './auth/auth.module';
+import { ClientTokenModule } from './client-token/client-token.module';
 import { TokenModule } from './token/token.module';
 
 const routes: Routes = [
   {
     path: '/authentication',
-    module: AuthenticationModule,
+    module: AuthModule,
   },
   {
     path: '/tokens',
     module: TokenModule,
-  },
+    children: [
+      {
+        path: '/client',
+        module: ClientTokenModule,
+      }
+    ]
+  }
 ];
 
 export default routes;

@@ -1,34 +1,31 @@
+import { createClientAsync } from 'soap';
+import { encode, decode } from 'js-base64';
 import {
-  BadRequestException,
-  forwardRef,
   HttpStatus,
-  Inject,
   Injectable,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createClientAsync } from 'soap';
-
 import { parseToken } from '@us-epa-camd/easey-common/utilities';
-import { Logger } from '@us-epa-camd/easey-common/logger';
-import { decode } from 'js-base64';
-import { UserSessionService } from '../user-session/user-session.service';
-import { TokenDTO } from '../dtos/token.dto';
-import { TokenBypassService } from './token-bypass.service';
-import { UserSession } from '../entities/user-session.entity';
 import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
+
+import { UserSessionService } from '../user-session/user-session.service';
+import { UserSession } from '../entities/user-session.entity';
+import { TokenDTO } from '../dtos/token.dto';
 
 @Injectable()
 export class TokenService {
+  private bypass = false;
+  get bypassEnabled() { return this.bypass }
+
   constructor(
     private configService: ConfigService,
-    @Inject(forwardRef(() => UserSessionService))
     private readonly userSessionServie: UserSessionService,
-    private readonly logger: Logger,
-
-    @Inject(forwardRef(() => TokenBypassService))
-    private readonly tokenBypassService: TokenBypassService,
-  ) {}
+  ) {
+    this.bypass = (
+      this.configService.get<string>('app.env') !== 'production' &&
+      this.configService.get<boolean>('cdxBypass.enabled')
+    );
+  }
 
   async refreshToken(userId: string, token: string, clientIp: string) {
     const session: UserSession = await this.userSessionServie.findSessionByUserIdAndToken(
@@ -36,28 +33,15 @@ export class TokenService {
       token,
     );
 
-    if (this.tokenBypassService.isBypassSet()) {
-      return this.tokenBypassService.generateBypassToken(
-        userId,
-        session.sessionId,
-        clientIp,
-      );
-    }
-
     return this.generateToken(userId, session.sessionId, clientIp);
   }
 
-  async generateToken(
+  async getTokenFromCDX(
     userId: string,
     sessionId: string,
     clientIp: string,
-  ): Promise<any> {
-    const newExpiration = new Date(
-      Date.now() +
-        this.configService.get<number>('app.tokenExpirationDurationMinutes') *
-          60000,
-    ).toUTCString();
-
+    expiration: string,
+  ): Promise<string> {
     return createClientAsync(this.configService.get<string>('app.naasSvcs'))
       .then(client => {
         return client.CreateSecurityTokenAsync({
@@ -68,22 +52,12 @@ export class TokenService {
           issuer: this.configService.get<string>('app.naasAppId'),
           authMethod: 'password',
           subject: userId,
-          subjectData: `userId=${userId}&sessionId=${sessionId}&expiration=${newExpiration}&clientIp=${clientIp}`,
+          subjectData: `userId=${userId}&sessionId=${sessionId}&expiration=${expiration}&clientIp=${clientIp}`,
           ip: clientIp,
         });
       })
       .then(async res => {
-        await this.userSessionServie.updateUserSessionToken(
-          sessionId,
-          res[0].return,
-          newExpiration,
-        );
-
-        const authToken = new TokenDTO();
-        authToken.token = res[0].return;
-        authToken.expiration = newExpiration;
-
-        return authToken;
+        return res[0].return;
       })
       .catch(err => {
         throw new LoggingException(
@@ -94,12 +68,44 @@ export class TokenService {
       });
   }
 
-  async unencryptToken(token: string, clientIp: string): Promise<any> {
-    if (this.tokenBypassService.isBypassSet()) {
-      return decode(token);
+  async generateToken(
+    userId: string,
+    sessionId: string,
+    clientIp: string,
+  ): Promise<TokenDTO> {
+    let token: string;
+    const expiration = new Date(
+      Date.now() +
+        this.configService.get<number>('app.tokenExpirationDurationMinutes') * 60000,
+    ).toUTCString();
+
+    if (this.bypass) {
+      token = encode(
+        `userId=${userId}&sessionId=${sessionId}&expiration=${expiration}&clientIp=${clientIp}`,
+      );
+    } else {
+      token = await this.getTokenFromCDX(userId, sessionId, clientIp, expiration);
     }
 
+    await this.userSessionServie.updateUserSessionToken(
+      sessionId,
+      token,
+      expiration,
+    );
+
+    const authToken = new TokenDTO();
+    authToken.token = token;
+    authToken.expiration = expiration;
+
+    return authToken;
+  }
+
+  async unencryptToken(token: string, clientIp: string): Promise<string> {
     const url = this.configService.get<string>('app.naasSvcs');
+
+    if (this.bypass) {
+      return decode(token);
+    }
 
     return createClientAsync(url)
       .then(client => {
