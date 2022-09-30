@@ -9,8 +9,6 @@ import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 
 import { TokenDTO } from '../dtos/token.dto';
 import { ClientTokenRepository } from './client-token.repository';
-import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
-import { ValidateClientTokenParamsDTO } from '../dtos/validate-client-token.dto';
 
 @Injectable()
 export class ClientTokenService {
@@ -20,11 +18,9 @@ export class ClientTokenService {
     private readonly configService: ConfigService,
   ) {}
 
-  async validateToken(
-    params: ValidateClientTokenParamsDTO,
-  ): Promise<boolean> {
+  async validateToken(clientId: string, clientToken: string): Promise<boolean> {
     //Ensure fields have been set
-    if (!params.clientId || !params.clientToken) {
+    if (!clientId || !clientToken) {
       throw new LoggingException(
         'A client id and token must be provided to access this resource.',
         HttpStatus.BAD_REQUEST,
@@ -32,7 +28,7 @@ export class ClientTokenService {
     }
 
     try {
-      const dbRecord = await this.repository.findOne(params.clientId);
+      const dbRecord = await this.repository.findOne(clientId);
 
       //Determine if a match exists
       if (!dbRecord) {
@@ -44,7 +40,7 @@ export class ClientTokenService {
 
       //Attempt to verify the incoming token
       const decoded = verify(
-        params.clientToken,
+        clientToken,
         dbRecord.encryptionKey,
       );
 
@@ -61,11 +57,9 @@ export class ClientTokenService {
     }
   }
 
-  async generateToken(
-    params: ValidateClientIdParamsDTO,
-  ): Promise<TokenDTO> {
+  async generateToken(clientId: string, clientSecret: string): Promise<TokenDTO> {
     //Ensure fields have been set
-    if (!params.clientId || !params.clientSecret) {
+    if (!clientId || !clientSecret) {
       throw new LoggingException(
         'A client id and secret must be provided to access this resource.',
         HttpStatus.BAD_REQUEST,
@@ -75,8 +69,8 @@ export class ClientTokenService {
     try {
       // Lookup record by clientId, clientSecret
       const dbRecord = await this.repository.findOne({
-        id: params.clientId,
-        secret: params.clientSecret,
+        id: clientId,
+        secret: clientSecret,
       });
 
       // If the record exists, encrypt the passcode associated with that app

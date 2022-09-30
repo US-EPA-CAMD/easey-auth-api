@@ -1,0 +1,3 @@
+#!/bin/bash
+
+cf set-env $APP_NAME EASEY_AUTH_API_SECRET_TOKEN $AUTH_API_SECRET_TOKEN

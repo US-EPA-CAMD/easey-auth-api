@@ -1,10 +1,15 @@
-require('dotenv').config();
 import { registerAs } from '@nestjs/config';
-import { parseBool } from '@us-epa-camd/easey-common/utilities';
+import {
+  getConfigValue,
+  getConfigValueNumber,
+  getConfigValueBoolean,
+} from '@us-epa-camd/easey-common/utilities';
 
-const path = process.env.EASEY_AUTH_API_PATH || 'auth-mgmt';
-const host = process.env.EASEY_AUTH_API_HOST || 'localhost';
-const port = +process.env.EASEY_AUTH_API_PORT || 8000;
+require('dotenv').config();
+
+const path = getConfigValue('EASEY_AUTH_API_PATH', 'auth-mgmt');
+const host = getConfigValue('EASEY_AUTH_API_HOST', 'localhost');
+const port = getConfigValueNumber('EASEY_AUTH_API_PORT', 8000);
 
 let uri = `https://${host}/${path}`;
 
@@ -14,48 +19,42 @@ if (host == 'localhost') {
 
 export default registerAs('app', () => ({
   name: 'auth-api',
-  title: process.env.EASEY_AUTH_API_TITLE || 'Authentication & Authorization',
-  path,
-  host,
-  apiHost: process.env.EASEY_API_GATEWAY_HOST || 'api.epa.gov/easey/dev',
-  port,
-  uri,
-  env: process.env.EASEY_AUTH_API_ENV || 'local-dev',
-  enableCors: parseBool(
-    process.env.EASEY_FACILITIES_API_ENABLE_CORS,
-    true
+  host, port, path, uri,
+  title: getConfigValue(
+    'EASEY_AUTH_API_TITLE', 'Authentication & Authorization',
   ),
-  enableApiKey: parseBool(
-    process.env.EASEY_AUTH_API_ENABLE_API_KEY,
-    true
+  apiHost: getConfigValue(
+    'EASEY_API_GATEWAY_HOST', 'api.epa.gov/easey/dev',
   ),
-  enableAuthToken: parseBool(
-    process.env.EASEY_AUTH_API_ENABLE_AUTH_TOKEN,
-    false,
+  env: getConfigValue(
+    'EASEY_AUTH_API_ENV', 'local-dev',
   ),
-  enableGlobalValidationPipes: parseBool(
-    process.env.EASEY_AUTH_API_ENABLE_GLOBAL_VALIDATION_PIPE,
-    true,
+  enableCors: getConfigValueBoolean(
+    'EASEY_FACILITIES_API_ENABLE_CORS', true,
   ),
-  version: process.env.EASEY_AUTH_API_VERSION || 'v0.0.0',
-  published: process.env.EASEY_AUTH_API_PUBLISHED || 'local',
-  naasAppId: process.env.EASEY_AUTH_API_NAASID,
-  nassAppPwd: process.env.EASEY_AUTH_API_NAASPWD,
-  tokenExpirationDurationMinutes:
-    process.env.EASEY_AUTH_API_TOKEN_EXPIRATION_MINUTES || 20,
-  clientTokenDurationMinutes:
-    process.env.EASEY_AUTH_API_CLIENT_TOKEN_DURATION_MINUTES || 5,
-  cdxSvcs:
-    process.env.EASEY_CDX_SERVICES ||
-    'https://devngn.epacdxnode.net/cdx-register-II/services',
-  naasSvcs:
-    process.env.EASEY_NAAS_SERVICES ||
-    'https://naasdev.epacdxnode.net/xml/securitytoken_v30.wsdl',
-  contentUrl:
-    process.env.EASEY_CONTENT_API ||
-    'https://api.epa.gov/easey/dev/content-mgmt',
-  enableSecretToken: parseBool(
-    process.env.EASEY_AUTH_API_ENABLE_SECRET_TOKEN,
-    false,
+  enableApiKey: getConfigValueBoolean(
+    'EASEY_AUTH_API_ENABLE_API_KEY',
+  ),
+  enableClientToken: getConfigValueBoolean(
+    'EASEY_AUTH_API_ENABLE_CLIENT_TOKEN',
+  ),
+  enableGlobalValidationPipes: getConfigValueBoolean(
+    'EASEY_AUTH_API_ENABLE_GLOBAL_VALIDATION_PIPE', true,
+  ),
+  version: getConfigValue(
+    'EASEY_AUTH_API_VERSION', 'v0.0.0',
+  ),
+  published: getConfigValue(
+    'EASEY_AUTH_API_PUBLISHED', 'local',
+  ),
+  clientTokenDurationMinutes: getConfigValueNumber(
+    'EASEY_AUTH_API_CLIENT_TOKEN_DURATION_MINUTES', 5,
+  ),
+  enableSecretToken: getConfigValueBoolean(
+    'EASEY_AUTH_API_ENABLE_SECRET_TOKEN',
+  ),
+  // ENABLES DEBUG CONSOLE LOGS
+  enableDebug: getConfigValueBoolean(
+    'EASEY_AUTH_API_ENABLE_DEBUG',
   ),
 }));
