@@ -1,8 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import {
-  HttpStatus,
-  Injectable,
-} from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 
@@ -28,7 +25,10 @@ export class UserSessionService {
     return session;
   }
 
-  async isValidSessionForToken(sessionId: string, token: string): Promise<UserSession> {
+  async isValidSessionForToken(
+    sessionId: string,
+    token: string,
+  ): Promise<UserSession> {
     const sessionRecord = await this.repository.findOne({
       sessionId: sessionId,
       securityToken: token,
@@ -60,7 +60,10 @@ export class UserSessionService {
     }
   }
 
-  async findSessionByUserIdAndToken(userId: string, token: string): Promise<UserSession> {
+  async findSessionByUserIdAndToken(
+    userId: string,
+    token: string,
+  ): Promise<UserSession> {
     const session = await this.repository.findOne({
       userId: userId,
       securityToken: token,

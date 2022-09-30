@@ -78,7 +78,7 @@ export class TokenService {
           60000,
     ).toUTCString();
 
-    if (this.bypass) {
+    if (this.bypassEnabled()) {
       token = encode(
         `userId=${userId}&sessionId=${sessionId}&expiration=${expiration}&clientIp=${clientIp}`,
       );
@@ -107,7 +107,7 @@ export class TokenService {
   async unencryptToken(token: string, clientIp: string): Promise<string> {
     const url = this.configService.get<string>('app.naasSvcs');
 
-    if (this.bypass) {
+    if (this.bypassEnabled()) {
       return decode(token);
     }
 

@@ -152,11 +152,29 @@ describe('Authentication Service', () => {
     });
   });
 
-  describe('signIn Bypassed', () => {
+  describe('signIn bypassed', () => {
     it('should sign in a user with the bypass flag enabled with no error', async () => {
       jest.spyOn(tokenService, 'bypassEnabled').mockReturnValue(true);
       const user = await service.signIn('user', 'pass', '');
       expect(user.firstName).toEqual('user');
+    });
+  });
+
+  describe('signIn bypassed error', () => {
+    it('should sign in a user with the bypass flag enabled with an error from userId', async () => {
+      jest.spyOn(tokenService, 'bypassEnabled').mockReturnValue(true);
+
+      expect(async () => {
+        await service.signIn('errors', 'pass', '');
+      }).rejects.toThrowError();
+    });
+
+    it('should sign in a user with the bypass flag enabled with an error from password', async () => {
+      jest.spyOn(tokenService, 'bypassEnabled').mockReturnValue(true);
+
+      expect(async () => {
+        await service.signIn('user', 'bad_pass', '');
+      }).rejects.toThrowError();
     });
   });
 });

@@ -155,11 +155,8 @@ export class AuthService {
         userId,
         streamlinedRegistrationToken,
       );
-      console.log('BROOO');
       user.email = email;
     }
-
-    console.log('BROOO 2');
 
     const session = await this.userSessionService.createUserSession(userId);
     const token = await this.tokenService.generateToken(

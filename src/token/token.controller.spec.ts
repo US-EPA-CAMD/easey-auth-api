@@ -1,63 +1,64 @@
-// import { Test, TestingModule } from '@nestjs/testing';
-// import { LoggerModule } from '@us-epa-camd/easey-common/logger';
-// import { TokenController } from './token.controller';
-// import { TokenService } from './token.service';
-// import { TokenClientService } from './token-client.service';
-// import { ValidateClientTokenParamsDTO } from '../dtos/validate-client-token.dto';
-// import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
-// import { UserTokenDTO } from '../dtos/user-token.dto';
+import { ConfigService } from '@nestjs/config';
+import { Test, TestingModule } from '@nestjs/testing';
+import { LoggerModule } from '@us-epa-camd/easey-common/logger';
+import { TokenController } from './token.controller';
+import { TokenService } from './token.service';
 
-// const mockTokenService = () => ({
-//   refreshToken: jest.fn(),
-//   validateToken: jest.fn(),
-// });
+jest.mock('./token.service');
+jest.mock('../guards/auth.guard');
 
-// const mockClientTokenService = () => ({
-//   validateClientToken: jest.fn(),
-//   generateClientToken: jest.fn(),
-// });
+let responseVals = {
+  ['app.env']: 'development',
+};
 
-// describe('Authentication Controller', () => {
-//   let controller: TokenController;
-//   let service: TokenService;
-//   let clientService: TokenClientService;
+const mockService = () => ({
+  validateToken: jest.fn(),
+  refreshToken: jest.fn(),
+});
+describe('Token Controller', () => {
+  let controller: TokenController;
+  let service: TokenService;
+  beforeAll(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [],
+      controllers: [TokenController],
+      providers: [
+        { provide: TokenService, useFactory: mockService },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              return responseVals[key];
+            }),
+          },
+        },
+      ],
+    }).compile();
+    controller = module.get(TokenController);
+    service = module.get(TokenService);
+  });
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
 
-//   beforeAll(async () => {
-//     const module: TestingModule = await Test.createTestingModule({
-//       imports: [LoggerModule],
-//       controllers: [TokenController],
-//       providers: [
-//         { provide: TokenService, useFactory: mockTokenService },
-//         { provide: TokenClientService, useFactory: mockClientTokenService },
-//       ],
-//     }).compile();
+  it('validateClientToken', async () => {
+    await controller.validateToken('', '');
+    expect(service.validateToken).toHaveBeenCalled();
+  });
 
-//     controller = module.get(TokenController);
-//     service = module.get(TokenService);
-//     clientService = module.get(TokenClientService);
-//   });
-
-//   it('should be defined', () => {
-//     expect(controller).toBeDefined();
-//   });
-
-//   it('validateClientToken', async () => {
-//     await controller.validateClientToken(new ValidateClientTokenParamsDTO());
-//     expect(clientService.validateClientToken).toHaveBeenCalled();
-//   });
-
-//   it('genClientToken', async () => {
-//     await controller.genClientToken(new ValidateClientIdParamsDTO());
-//     expect(clientService.generateClientToken).toHaveBeenCalled();
-//   });
-
-//   it('createToken', async () => {
-//     await controller.createToken(new UserTokenDTO(), '');
-//     expect(service.refreshToken).toHaveBeenCalled();
-//   });
-
-//   it('validateToken', async () => {
-//     await controller.validateToken(new UserTokenDTO(), '');
-//     expect(service.validateToken).toHaveBeenCalled();
-//   });
-// });
+  it('refreshClientToken', async () => {
+    await controller.createToken(
+      {
+        userId: '',
+        sessionId: '',
+        expiration: '',
+        clientIp: '',
+        isAdmin: false,
+        roles: [],
+      },
+      '',
+      '',
+    );
+    expect(service.refreshToken).toHaveBeenCalled();
+  });
+});
