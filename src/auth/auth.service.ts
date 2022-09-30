@@ -1,10 +1,7 @@
 import { firstValueFrom } from 'rxjs';
 import { createClientAsync } from 'soap';
 
-import {
-  HttpStatus,
-  Injectable,
-} from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@us-epa-camd/easey-common/logger';
@@ -12,7 +9,7 @@ import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 
 import { UserDTO } from '../dtos/user.dto';
 import { FacilitiesDTO } from '../dtos/facilities.dto';
-import { TokenService } from 'src/token/token.service';
+import { TokenService } from '../token/token.service';
 import { UserSessionService } from '../user-session/user-session.service';
 
 @Injectable()
@@ -117,23 +114,27 @@ export class AuthService {
     return mockPermissions;
   }
 
-  async signIn(userId: string, password: string, clientIp: string): Promise<UserDTO> {
+  async signIn(
+    userId: string,
+    password: string,
+    clientIp: string,
+  ): Promise<UserDTO> {
     let user: UserDTO;
     let permissions: FacilitiesDTO[];
 
-    if (this.tokenService.bypassEnabled) {
+    if (this.tokenService.bypassEnabled()) {
       const acceptedUsers = JSON.parse(
         this.configService.get<string>('cdxBypass.users'),
       );
       const currentPass = this.configService.get<string>('cdxBypass.pass');
-      
+
       if (!acceptedUsers.find(x => x === userId)) {
         throw new LoggingException(
           'Incorrect Bypass userId',
           HttpStatus.BAD_REQUEST,
         );
       }
-  
+
       if (password === currentPass) {
         user = new UserDTO();
         user.userId = userId;
@@ -150,12 +151,19 @@ export class AuthService {
       const streamlinedRegistrationToken = await this.getStreamlinedRegistrationToken(
         userId,
       );
-      const email = await this.getUserEmail(userId, streamlinedRegistrationToken);
+      const email = await this.getUserEmail(
+        userId,
+        streamlinedRegistrationToken,
+      );
       user.email = email;
     }
 
     const session = await this.userSessionService.createUserSession(userId);
-    const token = await this.tokenService.generateToken(userId, session.sessionId, clientIp);
+    const token = await this.tokenService.generateToken(
+      userId,
+      session.sessionId,
+      clientIp,
+    );
 
     user.token = token.token;
     user.tokenExpiration = token.expiration;

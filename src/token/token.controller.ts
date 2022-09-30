@@ -15,9 +15,7 @@ import { TokenDTO } from '../dtos/token.dto';
 @ApiSecurity('APIKey')
 @ApiTags('Tokens')
 export class TokenController {
-  constructor(
-    private readonly service: TokenService,
-  ) {}
+  constructor(private readonly service: TokenService) {}
 
   @Post()
   @UseGuards(AuthGuard)
@@ -37,7 +35,8 @@ export class TokenController {
   @UseGuards(AuthGuard)
   @ApiOkResponse({
     type: String,
-    description: 'Validates a user security token (user must have valid session)',
+    description:
+      'Validates a user security token (user must have valid session)',
   })
   validateToken(
     @AuthToken() authToken: string,

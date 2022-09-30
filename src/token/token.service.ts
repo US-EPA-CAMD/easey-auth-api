@@ -1,9 +1,6 @@
 import { createClientAsync } from 'soap';
 import { encode, decode } from 'js-base64';
-import {
-  HttpStatus,
-  Injectable,
-} from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { parseToken } from '@us-epa-camd/easey-common/utilities';
 import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
@@ -15,16 +12,17 @@ import { TokenDTO } from '../dtos/token.dto';
 @Injectable()
 export class TokenService {
   private bypass = false;
-  get bypassEnabled() { return this.bypass }
+  bypassEnabled() {
+    return this.bypass;
+  }
 
   constructor(
     private configService: ConfigService,
     private readonly userSessionServie: UserSessionService,
   ) {
-    this.bypass = (
+    this.bypass =
       this.configService.get<string>('app.env') !== 'production' &&
-      this.configService.get<boolean>('cdxBypass.enabled')
-    );
+      this.configService.get<boolean>('cdxBypass.enabled');
   }
 
   async refreshToken(userId: string, token: string, clientIp: string) {
@@ -76,15 +74,21 @@ export class TokenService {
     let token: string;
     const expiration = new Date(
       Date.now() +
-        this.configService.get<number>('app.tokenExpirationDurationMinutes') * 60000,
+        this.configService.get<number>('app.tokenExpirationDurationMinutes') *
+          60000,
     ).toUTCString();
 
-    if (this.bypass) {
+    if (this.bypassEnabled()) {
       token = encode(
         `userId=${userId}&sessionId=${sessionId}&expiration=${expiration}&clientIp=${clientIp}`,
       );
     } else {
-      token = await this.getTokenFromCDX(userId, sessionId, clientIp, expiration);
+      token = await this.getTokenFromCDX(
+        userId,
+        sessionId,
+        clientIp,
+        expiration,
+      );
     }
 
     await this.userSessionServie.updateUserSessionToken(
@@ -103,7 +107,7 @@ export class TokenService {
   async unencryptToken(token: string, clientIp: string): Promise<string> {
     const url = this.configService.get<string>('app.naasSvcs');
 
-    if (this.bypass) {
+    if (this.bypassEnabled()) {
       return decode(token);
     }
 
