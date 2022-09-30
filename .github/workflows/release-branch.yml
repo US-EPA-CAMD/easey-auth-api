@@ -83,16 +83,12 @@ jobs:
       - name: Init Application
         run: devops/scripts/cf-app-init.sh
       - name: Configure Env Vars (secrets)
-        run: |
-          cf set-env $APP_NAME EASEY_AUTH_API_NAASID $EASEY_AUTH_API_NAASID
-          cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD
-          cf set-env $APP_NAME EASEY_AUTH_API_CDX_BYPASS_PASSWORD $EASEY_AUTH_API_CDX_BYPASS_PASSWORD
-          cf set-env $APP_NAME EASEY_AUTH_API_SECRET_TOKEN $API_SECRET_TOKEN
+        run: devops/scripts/$APP_NAME/configure-env-vars-secrets.sh
         env:
           EASEY_AUTH_API_NAASID: ${{ secrets.EASEY_AUTH_API_NAASID }}
           EASEY_AUTH_API_NAASPWD: ${{ secrets.EASEY_AUTH_API_NAASPWD }}
           EASEY_AUTH_API_CDX_BYPASS_PASSWORD: ${{ secrets.EASEY_AUTH_API_CDX_BYPASS_PASSWORD }}
-          API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
+          AUTH_API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
       - name: Deployment
         run: devops/scripts/deploy.sh
 
@@ -131,16 +127,12 @@ jobs:
       - name: Init Application
         run: devops/scripts/cf-app-init.sh
       - name: Configure Env Vars (secrets)
-        run: |
-          cf set-env $APP_NAME EASEY_AUTH_API_NAASID $EASEY_AUTH_API_NAASID
-          cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD
-          cf set-env $APP_NAME EASEY_AUTH_API_CDX_BYPASS_PASSWORD $EASEY_AUTH_API_CDX_BYPASS_PASSWORD
-          cf set-env $APP_NAME EASEY_AUTH_API_SECRET_TOKEN $API_SECRET_TOKEN
+        run: devops/scripts/$APP_NAME/configure-env-vars-secrets.sh
         env:
           EASEY_AUTH_API_NAASID: ${{ secrets.EASEY_AUTH_API_NAASID }}
           EASEY_AUTH_API_NAASPWD: ${{ secrets.EASEY_AUTH_API_NAASPWD }}
           EASEY_AUTH_API_CDX_BYPASS_PASSWORD: ${{ secrets.EASEY_AUTH_API_CDX_BYPASS_PASSWORD }}
-          API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
+          AUTH_API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
       - name: Deployment
         run: devops/scripts/deploy.sh
 
@@ -179,16 +171,12 @@ jobs:
       - name: Init Application
         run: devops/scripts/cf-app-init.sh
       - name: Configure Env Vars (secrets)
-        run: |
-          cf set-env $APP_NAME EASEY_AUTH_API_NAASID $EASEY_AUTH_API_NAASID
-          cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD
-          cf set-env $APP_NAME EASEY_AUTH_API_CDX_BYPASS_PASSWORD $EASEY_AUTH_API_CDX_BYPASS_PASSWORD
-          cf set-env $APP_NAME EASEY_AUTH_API_SECRET_TOKEN $API_SECRET_TOKEN
+        run: devops/scripts/$APP_NAME/configure-env-vars-secrets.sh
         env:
           EASEY_AUTH_API_NAASID: ${{ secrets.EASEY_AUTH_API_NAASID }}
           EASEY_AUTH_API_NAASPWD: ${{ secrets.EASEY_AUTH_API_NAASPWD }}
           EASEY_AUTH_API_CDX_BYPASS_PASSWORD: ${{ secrets.EASEY_AUTH_API_CDX_BYPASS_PASSWORD }}
-          API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
+          AUTH_API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
       - name: Deployment
         run: devops/scripts/deploy.sh
 
@@ -227,15 +215,11 @@ jobs:
       - name: Init Application
         run: devops/scripts/cf-app-init.sh
       - name: Configure Env Vars (secrets)
-        run: |
-          cf set-env $APP_NAME EASEY_AUTH_API_NAASID $EASEY_AUTH_API_NAASID
-          cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD
-          cf set-env $APP_NAME EASEY_AUTH_API_CDX_BYPASS_PASSWORD $EASEY_AUTH_API_CDX_BYPASS_PASSWORD
-          cf set-env $APP_NAME EASEY_AUTH_API_SECRET_TOKEN $API_SECRET_TOKEN
+        run: devops/scripts/$APP_NAME/configure-env-vars-secrets.sh
         env:
           EASEY_AUTH_API_NAASID: ${{ secrets.EASEY_AUTH_API_NAASID }}
           EASEY_AUTH_API_NAASPWD: ${{ secrets.EASEY_AUTH_API_NAASPWD }}
           EASEY_AUTH_API_CDX_BYPASS_PASSWORD: ${{ secrets.EASEY_AUTH_API_CDX_BYPASS_PASSWORD }}
-          API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
+          AUTH_API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
       - name: Deployment
         run: devops/scripts/deploy.sh
