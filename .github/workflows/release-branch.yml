@@ -189,14 +189,14 @@ jobs:
           CF_USERNAME: ${{ secrets.CF_PERF_DEPLOYMENT_SVC }}
           CF_PASSWORD: ${{ secrets.CF_PERF_DEPLOYMENT_SVC_PWD }}
       - name: Download Deployment Package
-        run: scripts/download-artifact.sh
+        run: devops/scripts/download-artifact.sh
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.ARTIFACTS_STORAGE_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.ARTIFACTS_STORAGE_SECRET_ACCESS_KEY }}
       - name: Init Application
         run: devops/scripts/cf-app-init.sh
       - name: Configure Env Vars (secrets)
-        run: devops/scripts/environment-variables-secrets.sh
+        run: scripts/environment-variables-secrets.sh
         env:
           AUTH_API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
       - name: Deployment
