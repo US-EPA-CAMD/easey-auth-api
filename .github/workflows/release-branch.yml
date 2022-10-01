@@ -19,7 +19,6 @@ jobs:
         with:
           repository: US-EPA-CAMD/devops
           path: devops
-          clean: false
       - name: Setup & Configure Node
         uses: actions/setup-node@v1
         with:
@@ -61,7 +60,6 @@ jobs:
         with:
           repository: US-EPA-CAMD/devops
           path: devops
-          clean: false
       - name: Configure Env Vars
         run: devops/scripts/environment-variables-noTag.sh TEST
         env:
@@ -81,7 +79,7 @@ jobs:
       - name: Init Application
         run: devops/scripts/cf-app-init.sh
       - name: Configure Env Vars (secrets)
-        run: devops/scripts/environment-variables-secrets.sh
+        run: scripts/environment-variables-secrets.sh
         env:
           AUTH_API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
       - name: Deployment
@@ -101,7 +99,6 @@ jobs:
         with:
           repository: US-EPA-CAMD/devops
           path: devops
-          clean: false
       - name: Configure Env Vars
         run: devops/scripts/environment-variables-noTag.sh BETA
         env:
@@ -121,7 +118,7 @@ jobs:
       - name: Init Application
         run: devops/scripts/cf-app-init.sh
       - name: Configure Env Vars (secrets)
-        run: devops/scripts/environment-variables-secrets.sh
+        run: scripts/environment-variables-secrets.sh
         env:
           AUTH_API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
       - name: Deployment
@@ -141,7 +138,6 @@ jobs:
         with:
           repository: US-EPA-CAMD/devops
           path: devops
-          clean: false
       - name: Configure Env Vars
         run: devops/scripts/environment-variables-noTag.sh STAGE
         env:
@@ -161,7 +157,7 @@ jobs:
       - name: Init Application
         run: devops/scripts/cf-app-init.sh
       - name: Configure Env Vars (secrets)
-        run: devops/scripts/environment-variables-secrets.sh
+        run: scripts/environment-variables-secrets.sh
         env:
           AUTH_API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
       - name: Deployment
@@ -181,7 +177,6 @@ jobs:
         with:
           repository: US-EPA-CAMD/devops
           path: devops
-          clean: false
       - name: Configure Env Vars
         run: devops/scripts/environment-variables-noTag.sh PERF
         env:
@@ -194,7 +189,7 @@ jobs:
           CF_USERNAME: ${{ secrets.CF_PERF_DEPLOYMENT_SVC }}
           CF_PASSWORD: ${{ secrets.CF_PERF_DEPLOYMENT_SVC_PWD }}
       - name: Download Deployment Package
-        run: devops/scripts/download-artifact.sh
+        run: scripts/download-artifact.sh
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.ARTIFACTS_STORAGE_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.ARTIFACTS_STORAGE_SECRET_ACCESS_KEY }}
