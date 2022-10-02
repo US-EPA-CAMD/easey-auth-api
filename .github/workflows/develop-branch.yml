@@ -17,8 +17,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       - name: Checkout devops repo
         uses: actions/checkout@v2
         with:
@@ -55,15 +53,11 @@ jobs:
       - name: Init Application
         run: devops/scripts/cf-app-init.sh
       - name: Configure Env Vars (secrets)
-        run: |
-          cf set-env $APP_NAME EASEY_AUTH_API_NAASID $EASEY_AUTH_API_NAASID
-          cf set-env $APP_NAME EASEY_AUTH_API_NAASPWD $EASEY_AUTH_API_NAASPWD
-          cf set-env $APP_NAME EASEY_AUTH_API_CDX_BYPASS_PASSWORD $EASEY_AUTH_API_CDX_BYPASS_PASSWORD
-          cf set-env $APP_NAME EASEY_AUTH_API_SECRET_TOKEN $API_SECRET_TOKEN
+        run: scripts/environment-variables-secrets.sh
         env:
-          EASEY_AUTH_API_NAASID: ${{ secrets.EASEY_AUTH_API_NAASID }}
-          EASEY_AUTH_API_NAASPWD: ${{ secrets.EASEY_AUTH_API_NAASPWD }}
-          EASEY_AUTH_API_CDX_BYPASS_PASSWORD: ${{ secrets.EASEY_AUTH_API_CDX_BYPASS_PASSWORD }}
-          API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
+          AUTH_API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
+          CDX_BYPASS_PASSWORD: ${{ secrets.CDX_BYPASS_PASSWORD }}
+          NAAS_SERVICES_APP_ID: ${{ secrets.NAAS_SERVICES_APP_ID }}
+          NAAS_SERVICES_APP_PASSWORD: ${{ secrets.NAAS_SERVICES_APP_PASSWORD }}
       - name: Deploy
         run: devops/scripts/deploy.sh

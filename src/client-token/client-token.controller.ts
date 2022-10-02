@@ -1,5 +1,18 @@
-import { Post, Controller, Body } from '@nestjs/common';
-import { ApiTags, ApiOkResponse, ApiSecurity } from '@nestjs/swagger';
+import {
+  Body,
+  Post,
+  UseGuards,
+  Controller,
+} from '@nestjs/common';
+
+import {
+  ApiTags,
+  ApiOkResponse,
+  ApiSecurity,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+
+import { ClientTokenGuard } from '../guards/client-token.guard';
 
 import { TokenDTO } from '../dtos/token.dto';
 import { ClientIdDTO } from './../dtos/client-id.dto';
@@ -8,8 +21,8 @@ import { AuthToken } from '../decorators/auth-token.decorator';
 import { ClientCredentialsDTO } from '../dtos/client-credentials.dto';
 
 @Controller()
-@ApiSecurity('APIKey')
 @ApiTags('Tokens')
+@ApiSecurity('APIKey')
 export class ClientTokenController {
   constructor(
     private readonly service: ClientTokenService,
@@ -21,20 +34,22 @@ export class ClientTokenController {
     description: 'Generates a client token, given a client id and secret',
   })
   generateToken(
-    @Body() dto: ClientCredentialsDTO,
+    @Body() payload: ClientCredentialsDTO,
   ): Promise<TokenDTO> {
-    return this.service.generateToken(dto.clientId, dto.clientSecret);
+    return this.service.generateToken(payload.clientId, payload.clientSecret);
   }
 
   @Post('validate')
+  @ApiBearerAuth('ClientToken')
+  @UseGuards(ClientTokenGuard)
   @ApiOkResponse({
     type: String,
     description: 'Validates a jwt client token',
   })
   validateToken(
-    @Body() dto: ClientIdDTO,
+    @Body() payload: ClientIdDTO,
     @AuthToken() clientToken: string,
   ): Promise<boolean> {
-    return this.service.validateToken(dto.clientId, clientToken);
+    return this.service.validateToken(payload.clientId, clientToken);
   }
 }

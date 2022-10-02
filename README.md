@@ -35,6 +35,60 @@ Follow these [instructions](https://github.com/US-EPA-CAMD/devops/blob/master/GE
     ```
     $ yarn install
     ```
+## Configuration
+The Auth API uses a number of environment variables to properly configure the api. The following is the list of configureble values and their default setting.
+
+### APP VARIABLES
+| Typescript Var Name | Environment Var Name | Default Value | Comment |
+| :------------------ | :------------------- | :------------ | :------ |
+| name | N/A | auth-api | Fixed value |
+| host | EASEY_AUTH_HOST | localhost | Configurable
+| port | EASEY_AUTH_PORT | 8000 | Configurable |
+| path | EASEY_AUTH_PATH | auth-mgmt | Configurable |
+| uri | N/A | N/A | Determined by host, port, & path |
+| title | EASEY_AUTH_API_TITLE | Authentication & Authorization | Configurable |
+| description | EASEY_AUTH_API_DESCRIPTION | Provides authentication, authorization, & security token services for CAMD applications | Configurable |
+| apiHost | EASEY_API_GATEWAY_HOST | api.epa.gov/easey/dev | Configurable |
+| env | EASEY_AUTH_API_ENV | local-dev | Configurable |
+| enableCors | EASEY_AUTH_API_ENABLE_CORS | true | Configurable |
+| enableApiKey | EASEY_AUTH_API_ENABLE_API_KEY | false | Configurable |
+| enableAuthToken | EASEY_AUTH_API_ENABLE_AUTH_TOKEN | false | Configurable |
+| enableClientToken | EASEY_AUTH_API_ENABLE_CLIENT_TOKEN | false | Configurable |
+| enableGlobalValidationPipes | EASEY_AUTH_API_ENABLE_GLOBAL_VALIDATION_PIPE | true | Configurable |
+| version | EASEY_AUTH_API_VERSION | v0.0.0 | Dynamically set by CI/CD workflow |
+| published | EASEY_AUTH_API_PUBLISHED | local | Dynamically set by CI/CD workflow |
+| nassAppId | EASEY_NAAS_SERVICES_APP_ID | N/A | Dynamically set by CI/CD workflow |
+| nassAppPwd | EASEY_NAAS_SERVICES_APP_PASSWORD | N/A | Dynamically set by CI/CD workflow |
+| tokenExpirationDurationMinutes | EASEY_AUTH_API_AUTH_TOKEN_DURATION_MINUTES | 20 | Configurable |
+| clientTokenDurationMinutes | EASEY_AUTH_API_CLIENT_TOKEN_DURATION_MINUTES | 5 | Configurable |
+| cdxSvcs | EASEY_CDX_SERVICES | https://devngn.epacdxnode.net/cdx-register-II/services | Configurable |
+| naasSvcs | EASEY_NAAS_SERVICES | https://naasdev.epacdxnode.net/xml/securitytoken_v30.wsdl | Configurable |
+| contentUrl | EASEY_CONTENT_API | https://api.epa.gov/easey/dev/content-mgmt | Configurable |
+| secretToken | EASEY_AUTH_SECRET_TOKEN | N/A | Dynamically set by CI/CD workflow |
+| enableSecretToken | EASEY_AUTH_API_ENABLE_SECRET_TOKEN | false | Configurable |
+| enableDebug | EASEY_AUTH_API_ENABLE_DEBUG | false | Configurable |
+
+### CDX BYPASS VARIABLES
+| Typescript Var Name | Environment Var Name | Default Value | Comment |
+| :------------------ | :------------------- | :------------ | :------ |
+| enabled | EASEY_CDX_BYPASS_ENABLED | false | Configurable |
+| users | EASEY_CDX_BYPASS_USERS | {} | Configurable |
+| password | EASEY_CDX_BYPASS_PASSWORD | *** | Configurable |
+| mockPermissionsEnabled | EASEY_CDX_MOCK_PERMISSIONS_ENABLED | false | Configurable |
+
+## Environment Variables File
+Database credentials are injected into the cloud.gov environments as part of the CI/CD deployment process therefore they do not need to be configured. However, when running locally for local development the following environment variables are required to be configured using a local .env file in the root of the project. **PLEASE DO NOT commit the .env file to source control.**
+
+- EASEY_AUTH_API_ENABLE_DEBUG=true
+- EASEY_AUTH_API_ENABLE_API_KEY=false
+- EASEY_AUTH_API_ENABLE_SECRET_TOKEN=false
+
+**Please refer to our [Getting Started](https://github.com/US-EPA-CAMD/devops/blob/master/GETTING-STARTED.md) instructions on how to configure the following environment variables & connect to the database.**
+- EASEY_DB_HOST
+- EASEY_DB_PORT
+- EASEY_DB_NAME
+- EASEY_DB_USER
+- EASEY_DB_PWD
 
 ## Building, Testing, & Running the application
 From within the projects root directory run the following commands using the yarn command line interface
