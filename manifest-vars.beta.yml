@@ -2,3 +2,5 @@ instances: 2
 environment: beta
 host: api-easey-beta.app.cloud.gov
 apiHost: api.epa.gov/easey/beta
+cdxSvcs: https://testngn.epacdxnode.net/cdx-register-II/services
+naasSvcs: https://naas.epacdxnode.net/xml/securitytoken_v30.wsdl

@@ -2,3 +2,5 @@ instances: 2
 environment: production
 host: api-easey.app.cloud.gov
 apiHost: api.epa.gov/easey
+cdxSvcs: 
+naasSvcs: 
