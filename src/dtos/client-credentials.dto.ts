@@ -1,4 +1,4 @@
-export class ValidateClientIdParamsDTO {
+export class ClientCredentialsDTO {
   clientId: string;
   clientSecret: string;
 }

@@ -1,18 +1,15 @@
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthenticationService } from './authentication.service';
-import { Logger } from '@us-epa-camd/easey-common/logger';
-import { AuthenticationBypassService } from './authentication-bypass.service';
-import { TokenBypassService } from '../token/token-bypass.service';
+import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { UserSessionService } from '../user-session/user-session.service';
 import { HttpService } from '@nestjs/axios';
 import { UserDTO } from '../dtos/user.dto';
 import { TokenDTO } from '../dtos/token.dto';
-
+import { AuthService } from './auth.service';
+import { TokenService } from '../token/token.service';
 jest.mock('soap', () => ({
   createClientAsync: jest.fn(() => Promise.resolve(client)),
 }));
-
 jest.mock('rxjs', () => ({
   firstValueFrom: jest.fn().mockResolvedValue({
     data: [
@@ -30,37 +27,30 @@ jest.mock('rxjs', () => ({
     ],
   }),
 }));
-
 let responseVals = {
   ['app.env']: 'development',
+  ['cdxBypass.pass']: 'pass',
+  ['cdxBypass.users']: '["user"]',
   ['app.cdxSvcs']: '',
   ['cdxBypass.mockPermissionsEnabled']: false,
 };
-
 const client = {
-  AuthenticateAsync: jest.fn(() =>
-    Promise.resolve([
-      { User: { userId: '1', firstName: 'Jeff', lastName: 'Bob' } },
-    ]),
-  ),
-  RetrievePrimaryOrganizationAsync: jest
-    .fn()
-    .mockResolvedValue([{ result: { email: 'email' } }]),
+  AuthenticateAsync: jest.fn(),
+  RetrievePrimaryOrganizationAsync: jest.fn(),
 };
-
 jest.mock('@us-epa-camd/easey-common/utilities', () => ({
   parseToken: jest.fn().mockReturnValue({ clientIp: '1' }),
 }));
 
 describe('Authentication Service', () => {
-  let service: AuthenticationService;
-  let tokenBypassService: TokenBypassService;
-
+  let service: AuthService;
+  let tokenService: TokenService;
+  let userSessionService: UserSessionService;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [],
+      imports: [LoggerModule],
       providers: [
-        AuthenticationService,
+        AuthService,
         {
           provide: ConfigService,
           useValue: {
@@ -69,13 +59,20 @@ describe('Authentication Service', () => {
             }),
           },
         },
-        AuthenticationBypassService,
-        TokenBypassService,
+        {
+          provide: TokenService,
+          useFactory: () => ({
+            bypassEnabled: jest.fn().mockReturnValue(false),
+            generateToken: jest.fn().mockResolvedValue(new TokenDTO()),
+          }),
+        },
         {
           provide: UserSessionService,
           useFactory: () => ({
+            bypass: false,
             findSessionByUserIdAndToken: jest.fn(),
             removeUserSessionByUserId: jest.fn(),
+            generateToken: jest.fn(),
             createUserSession: jest.fn().mockResolvedValue(new TokenDTO()),
           }),
         },
@@ -85,14 +82,12 @@ describe('Authentication Service', () => {
             get: jest.fn(),
           }),
         },
-        Logger,
       ],
     }).compile();
-
-    tokenBypassService = module.get(TokenBypassService);
-    service = module.get(AuthenticationService);
+    service = module.get(AuthService);
+    tokenService = module.get(TokenService);
+    userSessionService = module.get(UserSessionService);
   });
-
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
@@ -109,6 +104,9 @@ describe('Authentication Service', () => {
 
   describe('getUserEmail', () => {
     it('should return an email for the user', async () => {
+      client.RetrievePrimaryOrganizationAsync = jest
+        .fn()
+        .mockResolvedValue([{ result: { email: 'email' } }]);
       const email = await service.getUserEmail('', '');
       expect(email).toEqual('email');
     });
@@ -126,9 +124,9 @@ describe('Authentication Service', () => {
 
   describe('signOut', () => {
     it('should sign out a user with no error', async () => {
-      expect(() => {
-        service.signOut('', '');
-      }).not.toThrowError();
+      await service.signOut('', '');
+      expect(userSessionService.findSessionByUserIdAndToken).toHaveBeenCalled();
+      expect(userSessionService.removeUserSessionByUserId).toHaveBeenCalled();
     });
   });
 
@@ -143,16 +141,40 @@ describe('Authentication Service', () => {
     it('should sign in a user with no error', async () => {
       const mockedUser = new UserDTO();
       mockedUser.firstName = 'test';
-      jest.spyOn(tokenBypassService, 'isBypassSet').mockReturnValue(false);
+      jest.spyOn(tokenService, 'bypassEnabled').mockReturnValue(false);
       jest.spyOn(service, 'loginCdx').mockResolvedValue(mockedUser);
       jest
         .spyOn(service, 'getStreamlinedRegistrationToken')
         .mockResolvedValue('');
       jest.spyOn(service, 'getUserEmail').mockResolvedValue('');
-
       const user = await service.signIn('', '', '');
-
       expect(user.firstName).toEqual(mockedUser.firstName);
+    });
+  });
+
+  describe('signIn bypassed', () => {
+    it('should sign in a user with the bypass flag enabled with no error', async () => {
+      jest.spyOn(tokenService, 'bypassEnabled').mockReturnValue(true);
+      const user = await service.signIn('user', 'pass', '');
+      expect(user.firstName).toEqual('user');
+    });
+  });
+
+  describe('signIn bypassed error', () => {
+    it('should sign in a user with the bypass flag enabled with an error from userId', async () => {
+      jest.spyOn(tokenService, 'bypassEnabled').mockReturnValue(true);
+
+      expect(async () => {
+        await service.signIn('errors', 'pass', '');
+      }).rejects.toThrowError();
+    });
+
+    it('should sign in a user with the bypass flag enabled with an error from password', async () => {
+      jest.spyOn(tokenService, 'bypassEnabled').mockReturnValue(true);
+
+      expect(async () => {
+        await service.signIn('user', 'bad_pass', '');
+      }).rejects.toThrowError();
     });
   });
 });

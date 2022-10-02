@@ -1,15 +1,18 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { TokenModule } from '../token/token.module';
-import { UserSessionRepository } from './user-session.repository';
+
 import { UserSessionService } from './user-session.service';
+import { UserSessionRepository } from './user-session.repository';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserSessionRepository]),
-    forwardRef(() => TokenModule),
   ],
+  controllers: [],
   providers: [UserSessionService],
-  exports: [TypeOrmModule, UserSessionService],
+  exports: [
+    TypeOrmModule,
+    UserSessionService,
+  ],
 })
 export class UserSessionModule {}

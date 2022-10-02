@@ -9,7 +9,7 @@ export class ClientConfig extends BaseEntity {
   name: string;
 
   @Column({ name: 'client_secret' })
-  clientSecret: string;
+  secret: string;
 
   @Column({ name: 'client_passcode' })
   passCode: string;

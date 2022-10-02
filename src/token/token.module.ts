@@ -1,21 +1,20 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
 
-import { TokenController } from './token.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserSessionRepository } from '../user-session/user-session.repository';
+import { UserSessionModule } from './../user-session/user-session.module';
+import { ClientTokenModule } from './../client-token/client-token.module';
+
 import { TokenService } from './token.service';
-import { ClientConfigRepository } from './client-config.repository';
-import { TokenBypassService } from './token-bypass.service';
-import { TokenClientService } from './token-client.service';
-import { UserSessionModule } from '../user-session/user-session.module';
+import { TokenController } from './token.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserSessionRepository, ClientConfigRepository]),
-    forwardRef(() => UserSessionModule),
+    HttpModule,
+    UserSessionModule,
+    ClientTokenModule,
   ],
   controllers: [TokenController],
-  providers: [TokenService, TokenBypassService, TokenClientService],
-  exports: [TypeOrmModule, TokenService, TokenBypassService],
+  providers: [TokenService],
+  exports: [TokenService],
 })
 export class TokenModule {}

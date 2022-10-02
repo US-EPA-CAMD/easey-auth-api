@@ -1,32 +1,28 @@
-import {
-  HttpStatus,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createClientAsync } from 'soap';
-import { HttpService } from '@nestjs/axios';
-import { UserDTO } from './../dtos/user.dto';
-import { Logger } from '@us-epa-camd/easey-common/logger';
 import { firstValueFrom } from 'rxjs';
-import { FacilitiesDTO } from '../dtos/facilities.dto';
-import { AuthenticationBypassService } from './authentication-bypass.service';
-import { TokenBypassService } from '../token/token-bypass.service';
-import { UserSessionService } from '../user-session/user-session.service';
+import { createClientAsync } from 'soap';
+
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { Logger } from '@us-epa-camd/easey-common/logger';
 import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 
+import { UserDTO } from '../dtos/user.dto';
+import { FacilitiesDTO } from '../dtos/facilities.dto';
+import { TokenService } from '../token/token.service';
+import { UserSessionService } from '../user-session/user-session.service';
+
 @Injectable()
-export class AuthenticationService {
+export class AuthService {
   constructor(
-    private readonly configService: ConfigService,
-    private readonly bypassService: AuthenticationBypassService,
-    private readonly tokenBypassService: TokenBypassService,
-    private readonly userSessionService: UserSessionService,
     private readonly logger: Logger,
     private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+    private readonly tokenService: TokenService,
+    private readonly userSessionService: UserSessionService,
   ) {}
 
-  async getStreamlinedRegistrationToken(userId: string) {
+  async getStreamlinedRegistrationToken(userId: string): Promise<string> {
     const url = `${this.configService.get<string>(
       'app.cdxSvcs',
     )}/StreamlinedRegistrationService?wsdl`;
@@ -56,7 +52,7 @@ export class AuthenticationService {
       });
   }
 
-  async getUserEmail(userId: string, naasToken: string) {
+  async getUserEmail(userId: string, naasToken: string): Promise<string> {
     const url = `${this.configService.get<string>(
       'app.cdxSvcs',
     )}/StreamlinedRegistrationService?wsdl`;
@@ -118,30 +114,63 @@ export class AuthenticationService {
     return mockPermissions;
   }
 
-  async signIn(userId: string, password: string, clientIp: string) {
-    if (this.tokenBypassService.isBypassSet()) {
-      return this.bypassService.bypassSignIn(userId, password, clientIp);
+  async signIn(
+    userId: string,
+    password: string,
+    clientIp: string,
+  ): Promise<UserDTO> {
+    let user: UserDTO;
+    let permissions: FacilitiesDTO[];
+
+    if (this.tokenService.bypassEnabled()) {
+      const acceptedUsers = JSON.parse(
+        this.configService.get<string>('cdxBypass.users'),
+      );
+      const currentPass = this.configService.get<string>('cdxBypass.pass');
+
+      if (!acceptedUsers.find(x => x === userId)) {
+        throw new LoggingException(
+          'Incorrect Bypass userId',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (password === currentPass) {
+        user = new UserDTO();
+        user.userId = userId;
+        user.firstName = userId;
+        user.lastName = '';
+      } else {
+        throw new LoggingException(
+          'Incorrect Bypass password',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    } else {
+      user = await this.loginCdx(userId, password);
+      const streamlinedRegistrationToken = await this.getStreamlinedRegistrationToken(
+        userId,
+      );
+      const email = await this.getUserEmail(
+        userId,
+        streamlinedRegistrationToken,
+      );
+      user.email = email;
     }
 
-    const user = await this.loginCdx(userId, password);
-    const tokenDTO = await this.userSessionService.createUserSession(
+    const session = await this.userSessionService.createUserSession(userId);
+    const token = await this.tokenService.generateToken(
       userId,
+      session.sessionId,
       clientIp,
     );
 
-    user.token = tokenDTO.token;
-    user.tokenExpiration = tokenDTO.expiration;
+    user.token = token.token;
+    user.tokenExpiration = token.expiration;
 
-    const streamlinedRegistrationToken = await this.getStreamlinedRegistrationToken(
-      userId,
-    );
-    const email = await this.getUserEmail(userId, streamlinedRegistrationToken);
-    user.email = email;
-
-    let permissions;
-    if (this.configService.get<boolean>('cdxBypass.mockPermissionsEnabled'))
+    if (this.configService.get<boolean>('cdxBypass.mockPermissionsEnabled')) {
       permissions = await this.getMockPermissions(userId);
-    else permissions = [];
+    }
 
     user.facilities = permissions;
 
