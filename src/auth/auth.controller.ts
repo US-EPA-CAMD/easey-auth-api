@@ -1,5 +1,5 @@
 import { Post, Controller, Body, Delete, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOkResponse, ApiSecurity } from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse, ApiSecurity, ApiBearerAuth } from '@nestjs/swagger';
 
 import { User } from '@us-epa-camd/easey-common/decorators';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
@@ -35,6 +35,7 @@ export class AuthController {
 
   @Delete('/sign-out')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth('Token')
   @ApiOkResponse({
     description: 'Signs a user out of the system',
   })

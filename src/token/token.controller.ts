@@ -1,5 +1,5 @@
 import { Post, Controller, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOkResponse, ApiSecurity } from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse, ApiSecurity, ApiBearerAuth } from '@nestjs/swagger';
 
 import { User } from '@us-epa-camd/easey-common/decorators';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
@@ -19,6 +19,7 @@ export class TokenController {
 
   @Post()
   @UseGuards(AuthGuard)
+  @ApiBearerAuth('Token')
   @ApiOkResponse({
     type: TokenDTO,
     description: 'Creates a user security token (user must be authenticated)',
@@ -33,6 +34,7 @@ export class TokenController {
 
   @Post('/validate')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth('Token')
   @ApiOkResponse({
     type: String,
     description:
