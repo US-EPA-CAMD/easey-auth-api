@@ -23,6 +23,10 @@ export default registerAs('app', () => ({
   title: getConfigValue(
     'EASEY_AUTH_API_TITLE', 'Authentication & Authorization',
   ),
+  description: getConfigValue(
+    'EASEY_AUTH_API_DESCRIPTION',
+    'Provides authentication, authorization, & security token services for CAMD applications',
+  ),
   apiHost: getConfigValue(
     'EASEY_API_GATEWAY_HOST', 'api.epa.gov/easey/dev',
   ),
@@ -49,6 +53,9 @@ export default registerAs('app', () => ({
   ),
   clientTokenDurationMinutes: getConfigValueNumber(
     'EASEY_AUTH_API_CLIENT_TOKEN_DURATION_MINUTES', 5,
+  ),
+  secretToken: getConfigValue(
+    'EASEY_AUTH_API_SECRET_TOKEN',
   ),
   enableSecretToken: getConfigValueBoolean(
     'EASEY_AUTH_API_ENABLE_SECRET_TOKEN',
