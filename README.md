@@ -42,9 +42,9 @@ The Auth API uses a number of environment variables to properly configure the ap
 | Typescript Var Name | Environment Var Name | Default Value | Comment |
 | :------------------ | :------------------- | :------------ | :------ |
 | name | N/A | auth-api | Fixed value |
-| host | EASEY_AUTH_HOST | localhost | Configurable
-| port | EASEY_AUTH_PORT | 8000 | Configurable |
-| path | EASEY_AUTH_PATH | auth-mgmt | Configurable |
+| host | EASEY_AUTH_API_HOST | localhost | Configurable
+| port | EASEY_AUTH_API_PORT | 8000 | Configurable |
+| path | EASEY_AUTH_API_PATH | auth-mgmt | Configurable |
 | uri | N/A | N/A | Determined by host, port, & path |
 | title | EASEY_AUTH_API_TITLE | Authentication & Authorization | Configurable |
 | description | EASEY_AUTH_API_DESCRIPTION | Provides authentication, authorization, & security token services for CAMD applications | Configurable |
@@ -64,7 +64,7 @@ The Auth API uses a number of environment variables to properly configure the ap
 | cdxSvcs | EASEY_CDX_SERVICES | https://devngn.epacdxnode.net/cdx-register-II/services | Configurable |
 | naasSvcs | EASEY_NAAS_SERVICES | https://naasdev.epacdxnode.net/xml/securitytoken_v30.wsdl | Configurable |
 | contentUrl | EASEY_CONTENT_API | https://api.epa.gov/easey/dev/content-mgmt | Configurable |
-| secretToken | EASEY_AUTH_SECRET_TOKEN | N/A | Dynamically set by CI/CD workflow |
+| secretToken | EASEY_AUTH_API_SECRET_TOKEN | N/A | Dynamically set by CI/CD workflow |
 | enableSecretToken | EASEY_AUTH_API_ENABLE_SECRET_TOKEN | false | Configurable |
 | enableDebug | EASEY_AUTH_API_ENABLE_DEBUG | false | Configurable |
 

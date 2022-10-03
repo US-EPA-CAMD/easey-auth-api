@@ -34,7 +34,7 @@ export default registerAs('app', () => ({
     'EASEY_AUTH_API_ENV', 'local-dev',
   ),
   enableCors: getConfigValueBoolean(
-    'EASEY_FACILITIES_API_ENABLE_CORS', true,
+    'EASEY_AUTH_API_ENABLE_CORS', true,
   ),
   enableApiKey: getConfigValueBoolean(
     'EASEY_AUTH_API_ENABLE_API_KEY',
