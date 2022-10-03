@@ -41,9 +41,9 @@ The Auth API uses a number of environment variables to properly configure the ap
 | Typescript Var Name | Environment Var Name | Default Value | Comment |
 | :------------------ | :------------------- | :------------ | :------ |
 | name | N/A | auth-api | Fixed value |
-| host | EASEY_AUTH_HOST | localhost | Configurable
-| port | EASEY_AUTH_PORT | 8000 | Configurable |
-| path | EASEY_AUTH_PATH | auth-mgmt | Configurable |
+| host | EASEY_AUTH_API_HOST | localhost | Configurable
+| port | EASEY_AUTH_API_PORT | 8000 | Configurable |
+| path | EASEY_AUTH_API_PATH | auth-mgmt | Configurable |
 | uri | N/A | N/A | Determined by host, port, & path |
 | title | EASEY_AUTH_API_TITLE | Authentication & Authorization | Configurable |
 | description | EASEY_AUTH_API_DESCRIPTION | Provides authentication, authorization, & security token services for CAMD applications | Configurable |
@@ -54,7 +54,7 @@ The Auth API uses a number of environment variables to properly configure the ap
 | enableGlobalValidationPipes | EASEY_AUTH_API_ENABLE_GLOBAL_VALIDATION_PIPE | true | Configurable |
 | version | EASEY_AUTH_API_VERSION | v0.0.0 | Dynamically set by CI/CD workflow |
 | published | EASEY_AUTH_API_PUBLISHED | local | Dynamically set by CI/CD workflow |
-| secretToken | EASEY_AUTH_SECRET_TOKEN | N/A | Dynamically set by CI/CD workflow |
+| secretToken | EASEY_AUTH_API_SECRET_TOKEN | N/A | Dynamically set by CI/CD workflow |
 | enableSecretToken | EASEY_AUTH_API_ENABLE_SECRET_TOKEN | false | Configurable |
 | enableDebug | EASEY_AUTH_API_ENABLE_DEBUG | false | Configurable |
 
