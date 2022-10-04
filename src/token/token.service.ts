@@ -78,6 +78,8 @@ export class TokenService {
           60000,
     ).toUTCString();
 
+    console.log('Creating Client Token At IP: ' + clientIp);
+
     if (this.bypassEnabled()) {
       token = encode(
         `userId=${userId}&sessionId=${sessionId}&expiration=${expiration}&clientIp=${clientIp}`,

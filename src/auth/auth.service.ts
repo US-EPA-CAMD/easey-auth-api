@@ -83,6 +83,7 @@ export class AuthService {
   }
 
   async getMockPermissions(userId: string): Promise<FacilitiesDTO[]> {
+    // TODO: LETS USE ENV VAR OR SOME OTHER MECH OTHER THAN CONTENT API
     const mockPermissionObject = await firstValueFrom(
       this.httpService.get(
         `${this.configService.get<string>(
