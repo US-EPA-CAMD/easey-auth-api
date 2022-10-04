@@ -78,6 +78,8 @@ export class TokenService {
           60000,
     ).toUTCString();
 
+    console.log('Creating Client Token At IP: ' + clientIp);
+
     if (this.bypassEnabled()) {
       token = encode(
         `userId=${userId}&sessionId=${sessionId}&expiration=${expiration}&clientIp=${clientIp}`,
@@ -126,7 +128,6 @@ export class TokenService {
         return res[0].return;
       })
       .catch(err => {
-        console.log(err);
         throw new LoggingException(
           err.root.Envelope.Body.Fault.detail.faultdetails,
           HttpStatus.INTERNAL_SERVER_ERROR,
