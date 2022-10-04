@@ -29,7 +29,7 @@ Follow these [instructions](https://github.com/US-EPA-CAMD/devops/blob/master/GE
     ```
 3. Navigate to the projects root directory
     ```
-    $ cd easey-emissions-api
+    $ cd easey-auth-api
     ```
 4. Install package dependencies
     ```
@@ -44,26 +44,31 @@ The Auth API uses a number of environment variables to properly configure the ap
 | host | EASEY_AUTH_API_HOST | localhost | Configurable
 | port | EASEY_AUTH_API_PORT | 8000 | Configurable |
 | path | EASEY_AUTH_API_PATH | auth-mgmt | Configurable |
-| uri | N/A | N/A | Determined by host, port, & path |
 | title | EASEY_AUTH_API_TITLE | Authentication & Authorization | Configurable |
 | description | EASEY_AUTH_API_DESCRIPTION | Provides authentication, authorization, & security token services for CAMD applications | Configurable |
-| apiHost | EASEY_API_GATEWAY_HOST | api.epa.gov/easey/dev | Configurable |
 | env | EASEY_AUTH_API_ENV | local-dev | Configurable |
-| enableCors | EASEY_AUTH_API_ENABLE_CORS | true | Configurable |
 | enableApiKey | EASEY_AUTH_API_ENABLE_API_KEY | false | Configurable |
+| enableClientToken | EASEY_AUTH_API_ENABLE_CLIENT_TOKEN | false | Configurable |
+| clientTokenDurationMinutes | EASEY_AUTH_API_CLIENT_TOKEN_DURATION_MINUTES | 5 | Configurable |
+| secretToken | EASEY_AUTH_API_SECRET_TOKEN | *** | Dynamically set by CI/CD workflow |
+| enableSecretToken | EASEY_AUTH_API_ENABLE_SECRET_TOKEN | false | Configurable |
+| enableCors | EASEY_AUTH_API_ENABLE_CORS | true | Configurable |
 | enableGlobalValidationPipes | EASEY_AUTH_API_ENABLE_GLOBAL_VALIDATION_PIPE | true | Configurable |
 | version | EASEY_AUTH_API_VERSION | v0.0.0 | Dynamically set by CI/CD workflow |
 | published | EASEY_AUTH_API_PUBLISHED | local | Dynamically set by CI/CD workflow |
-| secretToken | EASEY_AUTH_API_SECRET_TOKEN | N/A | Dynamically set by CI/CD workflow |
-| enableSecretToken | EASEY_AUTH_API_ENABLE_SECRET_TOKEN | false | Configurable |
 | enableDebug | EASEY_AUTH_API_ENABLE_DEBUG | false | Configurable |
+| apiHost | EASEY_API_GATEWAY_HOST | api.epa.gov/easey/dev | Configurable |
 
 ## Environment Variables File
 Database credentials are injected into the cloud.gov environments as part of the CI/CD deployment process therefore they do not need to be configured. However, when running locally for local development the following environment variables are required to be configured using a local .env file in the root of the project. **PLEASE DO NOT commit the .env file to source control.**
 
-- EASEY_AUTH_API_ENABLE_DEBUG=true
-- EASEY_AUTH_API_ENABLE_API_KEY=false
-- EASEY_AUTH_API_ENABLE_SECRET_TOKEN=false
+- EASEY_AUTH_API_ENABLE_DEBUG=true|false
+- EASEY_AUTH_API_ENABLE_API_KEY=true|false
+  - IF ABOVE IS TRUE THEN SET
+    - EASEY_AUTH_API_KEY={ask project dev/tech lead}
+- EASEY_AUTH_API_ENABLE_SECRET_TOKEN=true|false
+  - IF ABOVE IS TRUE THEN SET
+    - EASEY_AUTH_API_SECRET_TOKEN={ask project dev/tech lead}
 
 **Please refer to our [Getting Started](https://github.com/US-EPA-CAMD/devops/blob/master/GETTING-STARTED.md) instructions on how to configure the following environment variables & connect to the database.**
 - EASEY_DB_HOST
@@ -102,7 +107,7 @@ $ yarn start
 
 ## API Endpoints
 Please refer to the auth Management API Swagger Documentation for descriptions of the endpoints.<br>
-[Dev Environment](https://api.epa.gov/easey/dev/auth-mgmt/swagger/) | [Test Environment](https://api.epa.gov/easey/test/auth-mgmt/swagger/) | [Beta Environment](https://api.epa.gov/easey/beta/auth-mgmt/swagger/) | [Staging Environment](https://api.epa.gov/easey/staging/auth-mgmt/swagger/)
+[Dev Environment](https://api.epa.gov/easey/dev/auth-mgmt/swagger/) | [Test Environment](https://api.epa.gov/easey/test/auth-mgmt/swagger/) | [Performance Environment](https://api.epa.gov/easey/perf/auth-mgmt/swagger/) | [Beta Environment](https://api.epa.gov/easey/beta/auth-mgmt/swagger/) | [Staging Environment](https://api.epa.gov/easey/staging/auth-mgmt/swagger/)
 
 ## CDX Services
 ​The Auth Api makes use of the government provided [cdx soap](https://testngn.epacdxnode.net/cdx-register-II/documentation) services. By importing`createClientAsync from "soap"` a user created service can make a connection to any soap api, provided they have the correct security token. A call to `createClientAsync` will return a client object, and that client object can reference any of the api endpoints within that service category, while passing in the required authentication token. Here is an example of the Authenticate endpoint being called asynchronously. 

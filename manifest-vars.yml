@@ -1,11 +1,12 @@
 #THIS FILE SHOULD CONTAIN DEV SETTINGS AND CI/CD WORKFLOW WILL CHANGE SETTINGS BASED ON ENV
-name: auth-api
-title: Authenication & Authorization
-path: auth-mgmt
-port: 8080
-memory: 1024
 disk: 1024
+memory: 1024
 instances: 1
-environment: development
+name: auth-api
 host: api-easey-dev.app.cloud.gov
+port: 8080
+path: auth-mgmt
+title: Authenication & Authorization
+description: Provides authentication, authorization, & security token services for CAMD applications
+environment: development
 apiHost: api.epa.gov/easey/dev

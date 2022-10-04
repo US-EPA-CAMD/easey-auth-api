@@ -7,18 +7,19 @@ applications:
       - nodejs_buildpack
     env:
       OPTIMIZE_MEMORY: true
-      EASEY_API_GATEWAY_HOST: ((apiHost))
-      EASEY_AUTH_API_TITLE: ((title))
       EASEY_AUTH_API_HOST: ((host))
       EASEY_AUTH_API_PORT: ((port))
       EASEY_AUTH_API_PATH: ((path))
+      EASEY_AUTH_API_TITLE: ((title))
+      EASEY_AUTH_API_DESCRIPTION: ((description))
       EASEY_AUTH_API_ENV: ((environment))
-      EASEY_AUTH_API_ENABLE_CORS: true
       EASEY_AUTH_API_ENABLE_API_KEY: true
       EASEY_AUTH_API_ENABLE_CLIENT_TOKEN: true
-      EASEY_AUTH_API_ENABLE_SECRET_TOKEN: true
-      EASEY_AUTH_API_ENABLE_GLOBAL_VALIDATION_PIPE: true
       EASEY_AUTH_API_CLIENT_TOKEN_DURATION_MINUTES: 5
+      EASEY_AUTH_API_ENABLE_SECRET_TOKEN: true
+      EASEY_AUTH_API_ENABLE_CORS: true
+      EASEY_AUTH_API_ENABLE_GLOBAL_VALIDATION_PIPE: true
+      EASEY_API_GATEWAY_HOST: ((apiHost))
     routes:
       - route: ((host))/((path))
     services:
