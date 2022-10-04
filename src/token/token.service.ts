@@ -126,6 +126,7 @@ export class TokenService {
         return res[0].return;
       })
       .catch(err => {
+        console.log(err);
         throw new LoggingException(
           err.root.Envelope.Body.Fault.detail.faultdetails,
           HttpStatus.INTERNAL_SERVER_ERROR,
@@ -145,6 +146,8 @@ export class TokenService {
   }
 
   async validateToken(token: string, clientIp: string): Promise<any> {
+    console.log(clientIp);
+
     const unencryptedToken = await this.unencryptToken(token, clientIp);
     const parsed = parseToken(unencryptedToken);
 
