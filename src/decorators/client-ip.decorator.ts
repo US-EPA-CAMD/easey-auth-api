@@ -4,9 +4,6 @@ export const ClientIP = createParamDecorator(
   (data: never, context: ExecutionContext) => {
     const request = context.switchToHttp().getRequest();
 
-    console.log('REQUEST: ');
-    console.log(request);
-
     if (request.body.clientIp) {
       return request.body.clientIp;
     }

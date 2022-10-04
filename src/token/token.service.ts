@@ -147,14 +147,8 @@ export class TokenService {
   }
 
   async validateToken(token: string, clientIp: string): Promise<any> {
-    console.log(clientIp);
-
     const unencryptedToken = await this.unencryptToken(token, clientIp);
     const parsed = parseToken(unencryptedToken);
-
-    console.log('IPs');
-    console.log(parsed.clientIp);
-    console.log(clientIp);
 
     await this.validateClientIp(parsed, clientIp);
 
