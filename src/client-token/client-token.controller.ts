@@ -41,7 +41,6 @@ export class ClientTokenController {
     @Body() payload: ClientIdDTO,
     @AuthToken() clientToken: string,
   ): Promise<boolean> {
-    console.log(payload.clientId, clientToken);
     return this.service.validateToken(payload.clientId, clientToken);
   }
 }

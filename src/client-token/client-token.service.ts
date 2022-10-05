@@ -18,9 +18,6 @@ export class ClientTokenService {
   async validateToken(clientId: string, clientToken: string): Promise<boolean> {
     //Ensure fields have been set
     if (!clientId || !clientToken) {
-      console.log(
-        'A client id and token must be provided to access this resource.',
-      );
       throw new LoggingException(
         'A client id and token must be provided to access this resource.',
         HttpStatus.BAD_REQUEST,
@@ -32,9 +29,6 @@ export class ClientTokenService {
 
       //Determine if a match exists
       if (!dbRecord) {
-        console.log(
-          'The client id provided in the request is not a valid registered client application.',
-        );
         throw new LoggingException(
           'The client id provided in the request is not a valid registered client application.',
           HttpStatus.BAD_REQUEST,
@@ -45,7 +39,6 @@ export class ClientTokenService {
       const decoded = verify(clientToken, dbRecord.encryptionKey);
 
       if (decoded.passCode !== dbRecord.passCode) {
-        console.log(decoded.passCode);
         throw new LoggingException(
           'The client token provided in the request is invalid and cannot be verified.',
           HttpStatus.BAD_REQUEST,
@@ -54,7 +47,6 @@ export class ClientTokenService {
 
       return true;
     } catch (err) {
-      console.log(err);
       throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
     }
   }
