@@ -32,7 +32,7 @@ export class ClientTokenController {
 
   @Post('validate')
   @ApiBearerAuth('ClientToken')
-  @UseGuards(ClientTokenGuard)
+  //@UseGuards(ClientTokenGuard)
   @ApiOkResponse({
     type: String,
     description: 'Validates a jwt client token',
