@@ -1,177 +1,116 @@
-// import { ConfigService } from '@nestjs/config';
-// import { Test, TestingModule } from '@nestjs/testing';
-// import { ValidateClientTokenParamsDTO } from '../dtos/validate-client-token.dto';
-// import { ClientTokenRepository } from './client-token.repository';
-// import { ClientTokenService } from './client-token.service';
-// import { ClientConfig } from '../entities/client-config.entity';
-// import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
+import { ConfigService } from '@nestjs/config';
+import { Test, TestingModule } from '@nestjs/testing';
+import { LoggerModule } from '@us-epa-camd/easey-common/logger';
+import { ClientTokenService } from './client-token.service';
+import { ClientTokenRepository } from './client-token.repository';
+import { ClientConfig } from '../entities/client-config.entity';
 
-// let responseVals = {
-//   ['app.env']: '["dev"]',
-//   ['cdxBypass.enabled']: true,
-//   ['app.clientTokenDurationMinutes']: 10,
-// };
+jest.mock('jsonwebtoken', () => ({
+  verify: jest.fn().mockReturnValue({
+    passCode: 'passcode',
+  }),
+  sign: jest.fn().mockReturnValue('token'),
+}));
 
-// const mockRepository = () => ({
-//   findOne: jest.fn(),
-// });
+let responseVals = {
+  ['app.clientTokenDurationMinutes']: 1,
+};
 
-// describe('ClientTokenService', () => {
-//   let service: ClientTokenService;
-//   let repository: ClientTokenRepository;
+const mockRepo = () => ({
+  validateToken: jest.fn().mockResolvedValue(true),
+  generateToken: jest.fn(),
+});
 
-//   beforeEach(async () => {
-//     const module: TestingModule = await Test.createTestingModule({
-//       providers: [
-//         ClientTokenService,
-//         {
-//           provide: ClientTokenRepository,
-//           useFactory: mockRepository,
-//         },
-//         {
-//           provide: ConfigService,
-//           useValue: {
-//             get: jest.fn((key: string) => {
-//               return responseVals[key];
-//             }),
-//           },
-//         },
-//       ],
-//     }).compile();
+describe('Token Service', () => {
+  let service: ClientTokenService;
+  let repo: ClientTokenRepository;
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [LoggerModule],
+      providers: [
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              return responseVals[key];
+            }),
+          },
+        },
+        {
+          provide: ClientTokenRepository,
+          useFactory: mockRepo,
+        },
+        ClientTokenService,
+      ],
+    }).compile();
+    service = module.get(ClientTokenService);
+    repo = module.get(ClientTokenRepository);
+  });
 
-//     service = module.get(ClientTokenService);
-//     repository = module.get(ClientTokenRepository);
-//   });
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
 
-//   it('should be defined', () => {
-//     expect(service).toBeDefined();
-//     expect(repository).toBeDefined();
-//   });
+  describe('validateToken', () => {
+    it('should fail when client Id and client Token is null', async () => {
+      expect(async () => {
+        await service.validateToken(null, null);
+      }).rejects.toThrowError();
+    });
 
-//   describe('generateToken', () => {
-//     it('should generate new token successfully', async () => {
-//       const validateClientTokenParams = new ValidateClientIdParamsDTO();
-//       validateClientTokenParams.clientId = 'test';
-//       validateClientTokenParams.clientSecret = 'test';
-//       const dbResult = new ClientConfig();
-//       dbResult.passCode = 'pass';
-//       dbResult.encryptionKey = 'phrase';
-//       repository.findOne = jest.fn().mockResolvedValue(dbResult);
+    it('should fail when client id is invalid', async () => {
+      repo.findOne = jest.fn().mockResolvedValue(null);
 
-//       let errored = false;
-//       try {
-//         await service.generateToken(validateClientTokenParams);
-//       } catch (e) {
-//         errored = true;
-//       }
+      expect(async () => {
+        await service.validateToken('id', 'token');
+      }).rejects.toThrowError();
+    });
 
-//       expect(errored).toBe(false);
-//     });
+    it('should fail when encrypted passcode is different for client', async () => {
+      const clientConfig = new ClientConfig();
+      clientConfig.passCode = 'passcode_error';
 
-//     it('should error not given proper paramaters', async () => {
-//       const validateClientTokenParams = new ValidateClientIdParamsDTO();
-//       validateClientTokenParams.clientId = 'test';
+      repo.findOne = jest.fn().mockResolvedValue(clientConfig);
 
-//       let errored = false;
-//       try {
-//         await service.generateToken(validateClientTokenParams);
-//       } catch (e) {
-//         errored = true;
-//       }
+      expect(async () => {
+        await service.validateToken('id', 'token');
+      }).rejects.toThrowError();
+    });
 
-//       expect(errored).toBe(true);
-//     });
+    it('should pass when encrypted passcode is correct for client', async () => {
+      const clientConfig = new ClientConfig();
+      clientConfig.passCode = 'passcode';
 
-//     it('should error not finding a corresponding database record', async () => {
-//       const validateClientTokenParams = new ValidateClientIdParamsDTO();
-//       validateClientTokenParams.clientId = 'test';
-//       validateClientTokenParams.clientSecret = 'test';
+      repo.findOne = jest.fn().mockResolvedValue(clientConfig);
 
-//       repository.findOne = jest.fn().mockResolvedValue(undefined);
+      expect(await service.validateToken('id', 'token')).toBe(true);
+    });
+  });
 
-//       let errored = false;
-//       try {
-//         await service.generateToken(validateClientTokenParams);
-//       } catch (e) {
-//         errored = true;
-//       }
+  describe('generateToken', () => {
+    it('should fail when client Id and client Secret is null', async () => {
+      expect(async () => {
+        await service.generateToken(null, null);
+      }).rejects.toThrowError();
+    });
 
-//       expect(errored).toBe(true);
-//     });
-//   });
+    it('should fail when client id is invalid', async () => {
+      repo.findOne = jest.fn().mockResolvedValue(null);
 
-//   describe('validateToken', () => {
-//     it('should return true given valid token', async () => {
-//       const validateClientTokenParams = new ValidateClientTokenParamsDTO();
-//       validateClientTokenParams.clientId = 'TEST';
-//       validateClientTokenParams.clientToken =
-//         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXNzQ29kZSI6InBhc3MiLCJpYXQiOjE2NTUzMTc4NzV9.B4pzbI8SBm5mExF3-zIzyXVzLONwIYPFwm3QhtdNiZ4';
+      expect(async () => {
+        await service.generateToken('id', 'secret');
+      }).rejects.toThrowError();
+    });
 
-//       const dbResult = new ClientConfig();
-//       dbResult.passCode = 'pass';
-//       dbResult.encryptionKey = 'phrase';
+    it('should pass and return a new token dto', async () => {
+      const clientConfig = new ClientConfig();
+      clientConfig.passCode = 'passcode_error';
 
-//       repository.findOne = jest.fn().mockResolvedValue(dbResult);
+      repo.findOne = jest.fn().mockResolvedValue(clientConfig);
 
-//       expect(await service.validateToken(validateClientTokenParams)).toBe(
-//         true,
-//       );
-//     });
+      const tokenDto = await service.generateToken('id', 'secret');
 
-//     it('should error given missing params', async () => {
-//       const validateClientTokenParams = new ValidateClientTokenParamsDTO();
-//       validateClientTokenParams.clientId = 'TEST';
-
-//       let errored = false;
-
-//       try {
-//         await service.validateToken(validateClientTokenParams);
-//       } catch (e) {
-//         errored = true;
-//       }
-
-//       expect(errored).toBe(true);
-//     });
-
-//     it('should fail given no matching database records', async () => {
-//       const validateClientTokenParams = new ValidateClientTokenParamsDTO();
-//       validateClientTokenParams.clientId = 'TEST';
-//       validateClientTokenParams.clientToken = 'TEST';
-
-//       repository.findOne = jest.fn().mockResolvedValue(undefined);
-
-//       let errored = false;
-
-//       try {
-//         await service.validateToken(validateClientTokenParams);
-//       } catch (e) {
-//         errored = true;
-//       }
-
-//       expect(errored).toBe(true);
-//     });
-
-//     it('should fail given invalid passcode', async () => {
-//       const validateClientTokenParams = new ValidateClientTokenParamsDTO();
-//       validateClientTokenParams.clientId = 'TEST';
-//       validateClientTokenParams.clientToken =
-//         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXNzQ29kZSI6InBhc3NlZCIsImlhdCI6MTY1NTM5MzM4OH0.J0qeCekHjBELCrDtpYJyd-VAAH9hreGp378CxUoRIo8';
-
-//       const dbResult = new ClientConfig();
-//       dbResult.passCode = 'pass';
-//       dbResult.encryptionKey = 'phrase';
-
-//       repository.findOne = jest.fn().mockResolvedValue(dbResult);
-
-//       let errored = false;
-
-//       try {
-//         await service.validateToken(validateClientTokenParams);
-//       } catch (e) {
-//         errored = true;
-//       }
-
-//       expect(errored).toBe(true);
-//     });
-//   });
-// });
+      expect(tokenDto.token).toEqual('token');
+    });
+  });
+});

@@ -1,8 +1,5 @@
 import { sign, verify } from 'jsonwebtoken';
-import {
-  HttpStatus,
-  Injectable,
-} from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
@@ -34,15 +31,12 @@ export class ClientTokenService {
       if (!dbRecord) {
         throw new LoggingException(
           'The client id provided in the request is not a valid registered client application.',
-          HttpStatus.BAD_REQUEST
+          HttpStatus.BAD_REQUEST,
         );
       }
 
       //Attempt to verify the incoming token
-      const decoded = verify(
-        clientToken,
-        dbRecord.encryptionKey,
-      );
+      const decoded = verify(clientToken, dbRecord.encryptionKey);
 
       if (decoded.passCode !== dbRecord.passCode) {
         throw new LoggingException(
@@ -57,7 +51,10 @@ export class ClientTokenService {
     }
   }
 
-  async generateToken(clientId: string, clientSecret: string): Promise<TokenDTO> {
+  async generateToken(
+    clientId: string,
+    clientSecret: string,
+  ): Promise<TokenDTO> {
     //Ensure fields have been set
     if (!clientId || !clientSecret) {
       throw new LoggingException(

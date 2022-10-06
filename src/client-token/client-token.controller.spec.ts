@@ -1,90 +1,43 @@
-// import { ConfigService } from '@nestjs/config';
-// import { Test, TestingModule } from '@nestjs/testing';
-// import { ClientTokenController } from './client-token.controller';
-// import { ClientTokenRepository } from './client-token.repository';
-// import { ClientTokenService } from './client-token.service';
-// import { ValidateClientTokenParamsDTO } from '../dtos/validate-client-token.dto';
-// import { ValidateClientIdParamsDTO } from '../dtos/validate-client-id.dto';
-// import { TokenDTO } from '../dtos/token.dto';
+import { Test, TestingModule } from '@nestjs/testing';
+import { ClientCredentialsDTO } from '../dtos/client-credentials.dto';
+import { TokenDTO } from '../dtos/token.dto';
+import { ClientIdDTO } from '../dtos/client-id.dto';
+import { ClientTokenController } from './client-token.controller';
+import { ClientTokenService } from './client-token.service';
 
-// describe('ClientTokenController', () => {
-//   let service: ClientTokenService;
-//   let controller: ClientTokenController;
+jest.mock('./client-token.service');
+jest.mock('../guards/client-token.guard');
 
-//   beforeAll(async () => {
-//     const module: TestingModule = await Test.createTestingModule({
-//       controllers: [ClientTokenController],
-//       providers: [
-//         ConfigService,
-//         ClientTokenService,
-//         ClientTokenRepository,
-//       ],
-//     }).compile();
+const mockService = () => ({
+  validateToken: jest.fn().mockResolvedValue(true),
+  generateToken: jest.fn(),
+});
 
-//     service = module.get(ClientTokenService);
-//     controller = module.get(ClientTokenController);
-//   });
+describe('Client Token Controller', () => {
+  let controller: ClientTokenController;
+  let service: ClientTokenService;
+  beforeAll(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [],
+      controllers: [ClientTokenController],
+      providers: [{ provide: ClientTokenService, useFactory: mockService }],
+    }).compile();
+    controller = module.get(ClientTokenController);
+    service = module.get(ClientTokenService);
+  });
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
 
-//   it('should be defined', () => {
-//     expect(controller).toBeDefined();
-//   });
+  it('validateClientToken', async () => {
+    expect(await controller.validateToken(new ClientIdDTO(), '')).toEqual(true);
+  });
 
-//   afterEach(() => {
-//     jest.resetAllMocks();
-//   });
-
-//   it('should be defined', () => {
-//     expect(service).toBeDefined();
-//     expect(controller).toBeDefined();
-//   });
-
-//   describe('validateToken', () => {
-    
-//     it('should call validateToken and return true', async () => {
-//       const expectedResult = true;
-//       const params: ValidateClientTokenParamsDTO = {
-//         clientId: '',
-//         clientToken: '',
-//       };
-
-//       jest.spyOn(
-//         service,
-//         'validateToken'
-//       ).mockResolvedValue(
-//         expectedResult
-//       );
-      
-//       expect(
-//         await controller.validateToken(params)
-//       ).toBe(
-//         expectedResult
-//       );
-//     });
-
-//   });
-
-//   describe('generateToken', () => {
-    
-//     it('should call generateToken and return a token', async () => {
-//       const expectedResult: TokenDTO = new TokenDTO;
-//       const params: ValidateClientIdParamsDTO = {
-//         clientId: '',
-//         clientSecret: '',
-//       };
-
-//       jest.spyOn(
-//         service,
-//         'generateToken'
-//       ).mockResolvedValue(
-//         expectedResult
-//       );
-      
-//       expect(
-//         await controller.generateToken(params)
-//       ).toBe(
-//         expectedResult
-//       );
-//     });
-
-//   });
-// });
+  it('generateClientToken', async () => {
+    const tokenDto = new TokenDTO();
+    service.generateToken = jest.fn().mockResolvedValue(tokenDto);
+    expect(await controller.generateToken(new ClientCredentialsDTO())).toBe(
+      tokenDto,
+    );
+  });
+});
