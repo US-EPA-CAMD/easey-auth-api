@@ -22,7 +22,7 @@ export async function bootstrap() {
 
   if (enableDebug) {
     console.log('app config: ', configService.get('app'));
-    console.log('cdxBypass config: ', configService.get('cdxBypass'));    
+    console.log('cdxBypass config: ', configService.get('cdxBypass'));
     console.log(
       `Application is running on: ${await app.getUrl()}/${appPath}/swagger`,
     );
