@@ -83,17 +83,12 @@ export class AuthService {
   }
 
   async getMockPermissions(userId: string): Promise<FacilitiesDTO[]> {
-    // TODO: LETS USE ENV VAR OR SOME OTHER MECH OTHER THAN CONTENT API
-    const mockPermissionObject = await firstValueFrom(
-      this.httpService.get(
-        `${this.configService.get<string>(
-          'app.contentUrl',
-        )}/auth/mockPermissions.json`,
-      ),
+    const mockPermissionObject = JSON.parse(
+      this.configService.get<string>('cdxBypass.mockPermissions'),
     );
 
-    const userPermissions = mockPermissionObject['data'].filter(
-      entry => entry.userid === userId,
+    const userPermissions = mockPermissionObject.filter(
+      entry => entry.userId === userId,
     );
 
     const mockPermissions: FacilitiesDTO[] = [];
@@ -104,10 +99,8 @@ export class AuthService {
     ) {
       for (let facility of userPermissions[0].facilities) {
         const dto = new FacilitiesDTO();
-        dto.facilityId = facility.id;
-        dto.name = facility.name;
-        dto.orisCode = facility.oris;
-        dto.roles = facility.roles;
+        dto.id = facility.id;
+        dto.permissions = facility.permissions;
         mockPermissions.push(dto);
       }
     }
