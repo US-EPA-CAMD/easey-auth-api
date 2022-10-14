@@ -38,7 +38,6 @@ export class TokenController {
   }
 
   @Post('/validate')
-  @UseGuards(AuthGuard)
   @ApiBearerAuth('Token')
   @ApiOkResponse({
     type: String,

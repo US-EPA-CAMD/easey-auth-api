@@ -39,11 +39,12 @@ export class AuthGuard implements CanActivate {
       ip = forwardedForHeader.split(',')[0];
     }
 
-    const validatedToken = await this.tokenService.validateToken(
+    const decryptedToken = await this.tokenService.unencryptToken(
       splitString[1],
       ip,
     );
-    request.user = parseToken(validatedToken);
+
+    request.user = parseToken(decryptedToken);
 
     return true;
   }
