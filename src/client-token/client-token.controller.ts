@@ -7,8 +7,6 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 
-import { ClientTokenGuard } from '../guards/client-token.guard';
-
 import { TokenDTO } from '../dtos/token.dto';
 import { ClientIdDTO } from './../dtos/client-id.dto';
 import { ClientTokenService } from './client-token.service';
@@ -32,7 +30,6 @@ export class ClientTokenController {
 
   @Post('validate')
   @ApiBearerAuth('ClientToken')
-  //@UseGuards(ClientTokenGuard)
   @ApiOkResponse({
     type: String,
     description: 'Validates a jwt client token',

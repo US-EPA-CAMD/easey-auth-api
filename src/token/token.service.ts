@@ -18,7 +18,7 @@ export class TokenService {
 
   constructor(
     private configService: ConfigService,
-    private readonly userSessionServie: UserSessionService,
+    private readonly userSessionService: UserSessionService,
   ) {
     this.bypass =
       this.configService.get<string>('app.env') !== 'production' &&
@@ -26,7 +26,7 @@ export class TokenService {
   }
 
   async refreshToken(userId: string, token: string, clientIp: string) {
-    const session: UserSession = await this.userSessionServie.findSessionByUserIdAndToken(
+    const session: UserSession = await this.userSessionService.findSessionByUserIdAndToken(
       userId,
       token,
     );
@@ -93,7 +93,7 @@ export class TokenService {
       );
     }
 
-    await this.userSessionServie.updateUserSessionToken(
+    await this.userSessionService.updateUserSessionToken(
       sessionId,
       token,
       expiration,
@@ -153,7 +153,7 @@ export class TokenService {
     await this.validateClientIp(parsed, clientIp);
 
     if (
-      await this.userSessionServie.isValidSessionForToken(
+      await this.userSessionService.isValidSessionForToken(
         parsed.sessionId,
         token,
       )

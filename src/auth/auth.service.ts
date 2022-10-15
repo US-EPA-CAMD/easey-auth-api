@@ -1,4 +1,3 @@
-import { firstValueFrom } from 'rxjs';
 import { createClientAsync } from 'soap';
 
 import { HttpStatus, Injectable } from '@nestjs/common';
@@ -142,6 +141,7 @@ export class AuthService {
       }
     } else {
       user = await this.loginCdx(userId, password);
+
       const streamlinedRegistrationToken = await this.getStreamlinedRegistrationToken(
         userId,
       );
