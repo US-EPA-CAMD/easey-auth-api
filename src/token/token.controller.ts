@@ -1,4 +1,4 @@
-import { Post, Controller, UseGuards } from '@nestjs/common';
+import { Post, Controller, UseGuards, Body } from '@nestjs/common';
 import {
   ApiTags,
   ApiOkResponse,
@@ -6,15 +6,13 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 
-import { User } from '@us-epa-camd/easey-common/decorators';
-import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
-
 import { ClientIP } from './../decorators/client-ip.decorator';
 import { AuthToken } from '../decorators/auth-token.decorator';
 import { AuthGuard } from '../guards/auth.guard';
 
 import { TokenService } from './token.service';
 import { TokenDTO } from '../dtos/token.dto';
+import { UserIdDTO } from '../dtos/user-id.dto';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -30,7 +28,7 @@ export class TokenController {
     description: 'Creates a user security token (user must be authenticated)',
   })
   async createToken(
-    @User() user: CurrentUser,
+    @Body() user: UserIdDTO,
     @AuthToken() authToken: string,
     @ClientIP() clientIp: string,
   ): Promise<TokenDTO> {
