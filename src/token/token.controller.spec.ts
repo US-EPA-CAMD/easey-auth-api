@@ -1,6 +1,5 @@
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
-import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { TokenController } from './token.controller';
 import { TokenService } from './token.service';
 
@@ -50,11 +49,6 @@ describe('Token Controller', () => {
     await controller.createToken(
       {
         userId: '',
-        sessionId: '',
-        expiration: '',
-        clientIp: '',
-        isAdmin: false,
-        roles: [],
       },
       '',
       '',

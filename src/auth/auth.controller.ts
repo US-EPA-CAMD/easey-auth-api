@@ -12,7 +12,7 @@ import { ClientIP } from '../decorators/client-ip.decorator';
 import { AuthToken } from '../decorators/auth-token.decorator';
 import { AuthGuard } from '../guards/auth.guard';
 import { AuthService } from './auth.service';
-import { UserIdDTO } from 'src/dtos/user-id.dto';
+import { UserIdDTO } from '../dtos/user-id.dto';
 
 @Controller()
 @ApiSecurity('APIKey')

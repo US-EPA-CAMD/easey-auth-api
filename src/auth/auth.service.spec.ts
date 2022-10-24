@@ -33,6 +33,7 @@ let responseVals = {
   ['cdxBypass.users']: '["user"]',
   ['app.cdxSvcs']: '',
   ['cdxBypass.mockPermissionsEnabled']: false,
+  ['cdxBypass.mockPermissions']: '',
 };
 const client = {
   AuthenticateAsync: jest.fn(),
@@ -130,12 +131,14 @@ describe('Authentication Service', () => {
     });
   });
 
+  /*
   describe('getMockPermissions', () => {
     it('should return mock permissions for the user', async () => {
       const permissions = await service.getMockPermissions('test');
       expect(permissions.length).toBe(1);
     });
   });
+  */
 
   describe('signIn', () => {
     it('should sign in a user with no error', async () => {
