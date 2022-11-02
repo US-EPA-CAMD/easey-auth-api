@@ -36,7 +36,7 @@ export class CertificationsController {
     certVer.activityId = 'Test';
     certVer.question = 'Example Question?';
     certVer.questionId = 'Test';
-    return new CertificationVerificationResponseDTO();
+    return certVer;
   }
 
   @Post('/verify-challenge')
