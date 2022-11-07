@@ -3,4 +3,5 @@ export class CertificationStatementDTO {
   statementText: string;
   prgCode: string;
   displayOrder: number;
+  facData: any;
 }
