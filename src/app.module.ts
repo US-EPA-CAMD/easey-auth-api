@@ -14,6 +14,7 @@ import { TypeOrmConfigService } from './config/typeorm.config';
 import { AuthModule } from './auth/auth.module';
 import { TokenModule } from './token/token.module';
 import { CertificationsModule } from './certifications/certifications.module';
+import { SignModule } from './sign/Sign.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { CertificationsModule } from './certifications/certifications.module';
     AuthModule,
     TokenModule,
     CertificationsModule,
+    SignModule,
   ],
 })
 export class AppModule {}
