@@ -5,6 +5,7 @@ import { UserSessionService } from '../user-session/user-session.service';
 import { TokenDTO } from '../dtos/token.dto';
 import { TokenService } from './token.service';
 import { UserSession } from '../entities/user-session.entity';
+import { PermissionsDTO } from '../dtos/permissions.dto';
 jest.mock('soap', () => ({
   createClientAsync: jest.fn(() => Promise.resolve(client)),
 }));
@@ -43,6 +44,9 @@ describe('Token Service', () => {
             createUserSession: jest.fn().mockResolvedValue(new TokenDTO()),
             updateUserSessionToken: jest.fn(),
             isValidSessionForToken: jest.fn().mockResolvedValue(true),
+            getUserPermissions: jest
+              .fn()
+              .mockResolvedValue(new PermissionsDTO()),
           }),
         },
         TokenService,
@@ -70,14 +74,14 @@ describe('Token Service', () => {
     it('should issue a new bypass token for the user', async () => {
       jest.spyOn(service, 'bypassEnabled').mockReturnValue(true);
       const cdxTokenSpy = jest.spyOn(service, 'getTokenFromCDX');
-      await service.generateToken('', '', '');
+      await service.generateToken('', '', '', new PermissionsDTO());
       expect(cdxTokenSpy).not.toHaveBeenCalled();
     });
 
     it('should issue a new bypass token for the user', async () => {
       jest.spyOn(service, 'bypassEnabled').mockReturnValue(false);
       const cdxTokenSpy = jest.spyOn(service, 'getTokenFromCDX');
-      await service.generateToken('', '', '');
+      await service.generateToken('', '', '', new PermissionsDTO());
       expect(cdxTokenSpy).toHaveBeenCalled();
     });
   });
