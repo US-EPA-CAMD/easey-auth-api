@@ -15,6 +15,7 @@ import { AuthModule } from './auth/auth.module';
 import { TokenModule } from './token/token.module';
 import { CertificationsModule } from './certifications/certifications.module';
 import { SignModule } from './sign/Sign.module';
+import { PermissionsModule } from './permissions/Permissions.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { SignModule } from './sign/Sign.module';
     TokenModule,
     CertificationsModule,
     SignModule,
+    PermissionsModule,
   ],
 })
 export class AppModule {}

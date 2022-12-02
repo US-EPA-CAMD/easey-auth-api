@@ -7,6 +7,7 @@ import { UserDTO } from '../dtos/user.dto';
 import { TokenDTO } from '../dtos/token.dto';
 import { AuthService } from './auth.service';
 import { TokenService } from '../token/token.service';
+import { PermissionsDTO } from '../dtos/permissions.dto';
 jest.mock('soap', () => ({
   createClientAsync: jest.fn(() => Promise.resolve(client)),
 }));
@@ -75,6 +76,9 @@ describe('Authentication Service', () => {
             removeUserSessionByUserId: jest.fn(),
             generateToken: jest.fn(),
             createUserSession: jest.fn().mockResolvedValue(new TokenDTO()),
+            getUserPermissions: jest
+              .fn()
+              .mockResolvedValue(new PermissionsDTO()),
           }),
         },
         {
@@ -130,15 +134,6 @@ describe('Authentication Service', () => {
       expect(userSessionService.removeUserSessionByUserId).toHaveBeenCalled();
     });
   });
-
-  /*
-  describe('getMockPermissions', () => {
-    it('should return mock permissions for the user', async () => {
-      const permissions = await service.getMockPermissions('test');
-      expect(permissions.length).toBe(1);
-    });
-  });
-  */
 
   describe('signIn', () => {
     it('should sign in a user with no error', async () => {

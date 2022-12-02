@@ -1138,10 +1138,10 @@
     "@typescript-eslint/types" "5.1.0"
     eslint-visitor-keys "^3.0.0"
 
-"@us-epa-camd/easey-common@10.3.0":
-  version "10.3.0"
-  resolved "https://npm.pkg.github.com/download/@US-EPA-CAMD/easey-common/10.3.0/56fa3b13560918332bd3112c12737e600f2fbcaf#56fa3b13560918332bd3112c12737e600f2fbcaf"
-  integrity sha512-h4RLzkrFSAFrrKYG7fxynkqkb9etZo1rDLwIFVlqJZwQkCpXUnBtRoZvIdee24GmAsU/gByTfnm5PByDyjM9Dw==
+"@us-epa-camd/easey-common@11.1.0":
+  version "11.1.0"
+  resolved "https://npm.pkg.github.com/download/@US-EPA-CAMD/easey-common/11.1.0/62fb0eb94f65550f0501669613e97cf7d36eae3b#62fb0eb94f65550f0501669613e97cf7d36eae3b"
+  integrity sha512-UoPBWlUiOtbu/YisFItp0KTtavNGn/WJ2M7meKrp2cz7jfKu1Qt11vqNoWI1iO6PWECWwPaQ3/CgstJHQqkFrA==
   dependencies:
     "@nestjs/axios" "0.0.3"
     "@nestjs/common" "^8.1.1"
@@ -1153,6 +1153,7 @@
     express "^4.17.1"
     helmet "^4.6.0"
     json2csv "^5.0.6"
+    prettier "^2.7.1"
     reflect-metadata "^0.1.13"
     rxjs "^7.4.0"
     typeorm "^0.2.38"
@@ -4909,6 +4910,11 @@ prettier@^1.19.1:
   version "1.19.1"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-1.19.1.tgz#f7d7f5ff8a9cd872a7be4ca142095956a60797cb"
   integrity sha512-s7PoyDv/II1ObgQunCbB9PdLmUcBZcnWOcxDh7O0N/UwDEsHyqkW+Qh28jW+mVuCdx7gLB0BotYI1Y6uI9iyew==
+
+prettier@^2.7.1:
+  version "2.8.0"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.8.0.tgz#c7df58393c9ba77d6fba3921ae01faf994fb9dc9"
+  integrity sha512-9Lmg8hTFZKG0Asr/kW9Bp8tJjRVluO8EJQVfY2T7FMw9T5jy4I/Uvx0Rca/XWf50QQ1/SS48+6IJWnrb+2yemA==
 
 pretty-format@^27.0.0, pretty-format@^27.5.1:
   version "27.5.1"

@@ -3,6 +3,12 @@ import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { UserSession } from '../entities/user-session.entity';
 import { UserSessionRepository } from './user-session.repository';
 import { UserSessionService } from './user-session.service';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+
+jest.mock('rxjs', () => ({
+  firstValueFrom: jest.fn().mockResolvedValue({ data: 'MOCKED' }),
+}));
 
 describe('User Session Service', () => {
   let service: UserSessionService;
@@ -13,6 +19,12 @@ describe('User Session Service', () => {
       providers: [
         UserSessionService,
         {
+          provide: HttpService,
+          useFactory: () => ({
+            get: jest.fn(),
+          }),
+        },
+        {
           provide: UserSessionRepository,
           useFactory: () => ({
             insert: jest.fn(),
@@ -21,6 +33,7 @@ describe('User Session Service', () => {
             update: jest.fn(),
           }),
         },
+        ConfigService,
       ],
     }).compile();
     mockRepo = module.get(UserSessionRepository);
@@ -104,6 +117,13 @@ describe('User Session Service', () => {
     it('should insert new user session', async () => {
       await service.insertNewUserSession(new UserSession());
       expect(mockRepo.insert).toHaveBeenCalled();
+    });
+  });
+
+  describe('getUserPermissions', () => {
+    it('should return mocked user permissions', async () => {
+      const permissions = await service.getUserPermissions('');
+      expect(permissions).toEqual('MOCKED');
     });
   });
 });
