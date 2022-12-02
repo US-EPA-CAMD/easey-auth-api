@@ -28,6 +28,7 @@ export default registerAs('app', () => ({
   port,
   path,
   uri,
+  apiKey: getConfigValue('EASEY_AUTH_API_KEY'),
   title: getConfigValue(
     'EASEY_AUTH_API_TITLE',
     'Authentication & Authorization',

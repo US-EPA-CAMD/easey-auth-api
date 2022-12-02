@@ -26,7 +26,11 @@ export class UserSessionService {
       )}?userId=${userId}`;
 
       const permissionResult = await firstValueFrom(
-        this.httpService.get(permissionsUrl),
+        this.httpService.get(permissionsUrl, {
+          headers: {
+            'x-api-key': this.configService.get<string>('app.apiKey'),
+          },
+        }),
       );
       return permissionResult.data;
     } catch (e) {
