@@ -28,6 +28,7 @@ export default registerAs('app', () => ({
   port,
   path,
   uri,
+  apiKey: getConfigValue('EASEY_AUTH_API_KEY'),
   title: getConfigValue(
     'EASEY_AUTH_API_TITLE',
     'Authentication & Authorization',
@@ -74,4 +75,9 @@ export default registerAs('app', () => ({
   // ENABLES DEBUG CONSOLE LOGS
   enableDebug: getConfigValueBoolean('EASEY_AUTH_API_ENABLE_DEBUG'),
   apiHost: apiHost,
+  mockPermissions: getConfigValue('EASEY_CDX_MOCK_PERMISSIONS', '[]'),
+  permissionsUrl: getConfigValue(
+    'EASEY_AUTH_PERMISSIONS_URL',
+    'http://localhost:8000/auth-mgmt/permissions',
+  ),
 }));

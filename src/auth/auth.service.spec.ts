@@ -7,6 +7,7 @@ import { UserDTO } from '../dtos/user.dto';
 import { TokenDTO } from '../dtos/token.dto';
 import { AuthService } from './auth.service';
 import { TokenService } from '../token/token.service';
+import { PermissionsDTO } from '../dtos/permissions.dto';
 jest.mock('soap', () => ({
   createClientAsync: jest.fn(() => Promise.resolve(client)),
 }));
@@ -33,6 +34,7 @@ let responseVals = {
   ['cdxBypass.users']: '["user"]',
   ['app.cdxSvcs']: '',
   ['cdxBypass.mockPermissionsEnabled']: false,
+  ['cdxBypass.mockPermissions']: '',
 };
 const client = {
   AuthenticateAsync: jest.fn(),
@@ -74,6 +76,9 @@ describe('Authentication Service', () => {
             removeUserSessionByUserId: jest.fn(),
             generateToken: jest.fn(),
             createUserSession: jest.fn().mockResolvedValue(new TokenDTO()),
+            getUserPermissions: jest
+              .fn()
+              .mockResolvedValue(new PermissionsDTO()),
           }),
         },
         {
@@ -127,13 +132,6 @@ describe('Authentication Service', () => {
       await service.signOut('', '');
       expect(userSessionService.findSessionByUserIdAndToken).toHaveBeenCalled();
       expect(userSessionService.removeUserSessionByUserId).toHaveBeenCalled();
-    });
-  });
-
-  describe('getMockPermissions', () => {
-    it('should return mock permissions for the user', async () => {
-      const permissions = await service.getMockPermissions('test');
-      expect(permissions.length).toBe(1);
     });
   });
 

@@ -13,6 +13,9 @@ import cdxBypass from './config/bypass.config';
 import { TypeOrmConfigService } from './config/typeorm.config';
 import { AuthModule } from './auth/auth.module';
 import { TokenModule } from './token/token.module';
+import { CertificationsModule } from './certifications/certifications.module';
+import { SignModule } from './sign/Sign.module';
+import { PermissionsModule } from './permissions/Permissions.module';
 
 @Module({
   imports: [
@@ -28,6 +31,9 @@ import { TokenModule } from './token/token.module';
     CorsOptionsModule,
     AuthModule,
     TokenModule,
+    CertificationsModule,
+    SignModule,
+    PermissionsModule,
   ],
 })
 export class AppModule {}

@@ -1,0 +1,80 @@
+import { Injectable, HttpStatus } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Logger } from '@us-epa-camd/easey-common/logger';
+import { CertificationFacilitiesDTO } from '../dtos/cert-facilities.dto';
+import { getManager } from 'typeorm';
+import { CertificationStatementRepository } from './certifications.repository';
+import { CertificationStatementDTO } from '../dtos/certification-statement.dto';
+import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
+
+@Injectable()
+export class CertificationsService {
+  constructor(
+    private readonly logger: Logger,
+    private readonly configService: ConfigService,
+    private readonly repository: CertificationStatementRepository,
+  ) {}
+
+  public returnManager(): any {
+    return getManager();
+  }
+
+  public verifyCredentials() {}
+
+  public verifyChallenge() {}
+
+  public async getStatements(
+    monitorPlanIds: string[],
+  ): Promise<CertificationStatementDTO[]> {
+    let certList: CertificationStatementDTO[] = [];
+
+    try {
+      const manager = this.returnManager();
+
+      const results = await manager.query(
+        'SELECT * from camdecmpswks.get_certification_statements($1)',
+        [monitorPlanIds],
+      );
+
+      const compiledKeys = {};
+
+      results.forEach(element => {
+        const keyName = element.prg_cd === null ? 'null' : element.prg_cd;
+
+        if (!compiledKeys[keyName]) {
+          compiledKeys[element.prg_cd] = [];
+        }
+
+        const newFacInfo = new CertificationFacilitiesDTO();
+        newFacInfo.facName = element.facility_name;
+        newFacInfo.oris = element.oris_code;
+        newFacInfo.unitInfo = element.unit_info;
+        compiledKeys[keyName].push(newFacInfo);
+      });
+
+      for (const [key, value] of Object.entries(compiledKeys)) {
+        let statementData;
+
+        if (key === 'null') {
+          statementData = await this.repository.findOne({ prgCode: null });
+        } else {
+          statementData = await this.repository.findOne({ prgCode: key });
+        }
+
+        const certDto = new CertificationStatementDTO();
+        certDto.displayOrder = statementData.displayOrder;
+        certDto.prgCode = key;
+        certDto.statementId = statementData.statementId;
+        certDto.statementText = statementData.statementText;
+        certDto.facData = value;
+
+        certList.push(certDto);
+      }
+    } catch (e) {
+      console.log(e);
+      throw new LoggingException(e, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    return certList;
+  }
+}

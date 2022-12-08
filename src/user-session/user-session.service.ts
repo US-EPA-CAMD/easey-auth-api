@@ -1,17 +1,42 @@
 import { v4 as uuid } from 'uuid';
 import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 
 import { UserSession } from '../entities/user-session.entity';
 import { UserSessionRepository } from '../user-session/user-session.repository';
+import { ConfigService } from '@nestjs/config';
+import { PermissionsDTO } from '../dtos/permissions.dto';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class UserSessionService {
   constructor(
     @InjectRepository(UserSessionRepository)
     private readonly repository: UserSessionRepository,
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
   ) {}
+
+  async getUserPermissions(userId: string): Promise<PermissionsDTO> {
+    try {
+      const permissionsUrl = `${this.configService.get<string>(
+        'app.permissionsUrl',
+      )}?userId=${userId}`;
+
+      const permissionResult = await firstValueFrom(
+        this.httpService.get(permissionsUrl, {
+          headers: {
+            'x-api-key': this.configService.get<string>('app.apiKey'),
+          },
+        }),
+      );
+      return permissionResult.data;
+    } catch (e) {
+      throw new LoggingException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 
   async createUserSession(userId: string): Promise<UserSession> {
     const sessionId = uuid();

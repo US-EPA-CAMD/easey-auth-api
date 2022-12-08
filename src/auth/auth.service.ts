@@ -1,5 +1,4 @@
 import { createClientAsync } from 'soap';
-
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
@@ -7,7 +6,6 @@ import { Logger } from '@us-epa-camd/easey-common/logger';
 import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 
 import { UserDTO } from '../dtos/user.dto';
-import { FacilitiesDTO } from '../dtos/facilities.dto';
 import { TokenService } from '../token/token.service';
 import { UserSessionService } from '../user-session/user-session.service';
 
@@ -81,39 +79,12 @@ export class AuthService {
       });
   }
 
-  async getMockPermissions(userId: string): Promise<FacilitiesDTO[]> {
-    const mockPermissionObject = JSON.parse(
-      this.configService.get<string>('cdxBypass.mockPermissions'),
-    );
-
-    const userPermissions = mockPermissionObject.filter(
-      entry => entry.userId === userId,
-    );
-
-    const mockPermissions: FacilitiesDTO[] = [];
-
-    if (
-      userPermissions.length > 0 &&
-      userPermissions[0].facilities.length > 0
-    ) {
-      for (let facility of userPermissions[0].facilities) {
-        const dto = new FacilitiesDTO();
-        dto.id = facility.id;
-        dto.permissions = facility.permissions;
-        mockPermissions.push(dto);
-      }
-    }
-
-    return mockPermissions;
-  }
-
   async signIn(
     userId: string,
     password: string,
     clientIp: string,
   ): Promise<UserDTO> {
     let user: UserDTO;
-    let permissions: FacilitiesDTO[];
 
     if (this.tokenService.bypassEnabled()) {
       const acceptedUsers = JSON.parse(
@@ -152,21 +123,18 @@ export class AuthService {
       user.email = email;
     }
 
+    user.permissions = await this.userSessionService.getUserPermissions(userId);
+
     const session = await this.userSessionService.createUserSession(userId);
     const token = await this.tokenService.generateToken(
       userId,
       session.sessionId,
       clientIp,
+      user.permissions,
     );
 
     user.token = token.token;
     user.tokenExpiration = token.expiration;
-
-    if (this.configService.get<boolean>('cdxBypass.mockPermissionsEnabled')) {
-      permissions = await this.getMockPermissions(userId);
-    }
-
-    user.facilities = permissions;
 
     return user;
   }
