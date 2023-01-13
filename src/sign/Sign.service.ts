@@ -307,10 +307,14 @@ export class SignService {
       credentials.password,
     );
 
+    /*
     const numbers = await this.getUserMobileNumbers(
       registerToken,
       credentials.userId,
     );
+    */
+
+    const numbers = ['8043933828', '8043723231'];
 
     const question = await this.getQuestion(
       token,
@@ -336,8 +340,7 @@ export class SignService {
       token,
       payload.activityId,
       payload.userId,
-      //payload.number,
-      '8043933828',
+      payload.number,
     );
   }
 
