@@ -5,6 +5,7 @@ import { CredentialsSignDTO } from '../dtos/certification-sign-param.dto';
 
 import { SignController } from './Sign.controller';
 import { SignService } from './Sign.service';
+import { SendPhonePinParamDTO } from '../dtos/send-phone-pin-param.dto';
 
 const mockService = () => ({
   authenticate: jest.fn(),
@@ -48,6 +49,15 @@ describe('SignController', () => {
     service.validate = mockFunction;
 
     await controller.validate(new CertificationVerifyParamDTO());
+
+    expect(mockFunction).toHaveBeenCalled();
+  });
+
+  it('should call the validate service method', async () => {
+    const mockFunction = jest.fn();
+    service.sendPhoneVerificationCode = mockFunction;
+
+    await controller.sendMobileCode(new SendPhonePinParamDTO());
 
     expect(mockFunction).toHaveBeenCalled();
   });
