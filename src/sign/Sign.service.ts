@@ -307,14 +307,17 @@ export class SignService {
       credentials.password,
     );
 
-    /*
-    const numbers = await this.getUserMobileNumbers(
-      registerToken,
-      credentials.userId,
-    );
-    */
+    let numbers;
+    const mockNumber = this.configService.get<string>('app.mockPhoneNumber');
 
-    const numbers = ['8043933828', '8043723231'];
+    if (mockNumber && mockNumber !== '') {
+      numbers = [mockNumber];
+    } else {
+      numbers = await this.getUserMobileNumbers(
+        registerToken,
+        credentials.userId,
+      );
+    }
 
     const question = await this.getQuestion(
       token,

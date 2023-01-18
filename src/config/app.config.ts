@@ -75,6 +75,7 @@ export default registerAs('app', () => ({
   // ENABLES DEBUG CONSOLE LOGS
   enableDebug: getConfigValueBoolean('EASEY_AUTH_API_ENABLE_DEBUG'),
   apiHost: apiHost,
+  mockPhoneNumber: getConfigValue('EASEY_AUTH_API_MOCK_PHONE_NUMBER', ''),
   mockPermissions: getConfigValue(
     'EASEY_CDX_MOCK_PERMISSIONS',
     `[
