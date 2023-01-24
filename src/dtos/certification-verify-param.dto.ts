@@ -3,4 +3,5 @@ export class CertificationVerifyParamDTO {
   answer: string;
   questionId: string;
   userId: string;
+  pin: string;
 }

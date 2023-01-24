@@ -4,6 +4,7 @@ import { SignAuthResponseDTO } from '../dtos/sign-auth-response.dto';
 import { SignService } from './Sign.service';
 import { CredentialsSignDTO } from '../dtos/certification-sign-param.dto';
 import { CertificationVerifyParamDTO } from '../dtos/certification-verify-param.dto';
+import { SendPhonePinParamDTO } from '../dtos/send-phone-pin-param.dto';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -20,6 +21,15 @@ export class SignController {
     @Body() credentials: CredentialsSignDTO,
   ): Promise<SignAuthResponseDTO> {
     return this.service.authenticate(credentials);
+  }
+
+  @Post('send-mobile-code')
+  @ApiOkResponse({
+    description:
+      'Send the user a mobile phone code given a number and activity Id',
+  })
+  async sendMobileCode(@Body() payload: SendPhonePinParamDTO): Promise<void> {
+    await this.service.sendPhoneVerificationCode(payload);
   }
 
   @Post('validate')
