@@ -19,10 +19,6 @@ export class CertificationsService {
     return getManager();
   }
 
-  public verifyCredentials() {}
-
-  public verifyChallenge() {}
-
   public async getStatements(
     monitorPlanIds: string[],
   ): Promise<CertificationStatementDTO[]> {

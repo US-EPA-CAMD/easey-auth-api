@@ -4,6 +4,7 @@ import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { CertificationVerifyParamDTO } from '../dtos/certification-verify-param.dto';
 import { CredentialsSignDTO } from '../dtos/certification-sign-param.dto';
 import { SignService } from './Sign.service';
+import { SendPhonePinParamDTO } from '../dtos/send-phone-pin-param.dto';
 
 const client = {
   AuthenticateAsync: jest.fn().mockResolvedValue([{ securityToken: '' }]),
@@ -15,6 +16,9 @@ const client = {
       { question: { questionId: 'mockId', text: 'mockQuestion' } },
     ]),
   ValidateAnswerAsync: jest.fn().mockResolvedValue(true),
+  RetrieveUserMobileAsync: jest.fn().mockResolvedValue([{ return: [] }]),
+  GenerateAndSendSecretCodeAsync: jest.fn(),
+  ValidateSecretCodeAsync: jest.fn(),
 };
 
 jest.mock('soap', () => ({
@@ -43,5 +47,21 @@ describe('SignService', () => {
   it('validate should be called properly and return true', async () => {
     const result = await service.validate(new CertificationVerifyParamDTO());
     expect(result).toBe(true);
+  });
+
+  it('should call the send phone verification method', async () => {
+    expect(async () => {
+      await service.sendPhoneVerificationCode(new SendPhonePinParamDTO());
+    }).not.toThrowError();
+  });
+
+  it('should verify with a pin present', async () => {
+    const mockFunc = jest.fn();
+    client.ValidateSecretCodeAsync = mockFunc;
+
+    const payload = new CertificationVerifyParamDTO();
+    payload.pin = 'mock';
+    await service.validate(payload);
+    expect(mockFunc).toHaveBeenCalled();
   });
 });
