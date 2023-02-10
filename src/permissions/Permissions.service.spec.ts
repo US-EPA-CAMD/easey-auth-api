@@ -84,7 +84,7 @@ describe('PermissionsService', () => {
       const permissions = service.getMockPermissions('userNotFound');
 
       expect(permissions.isAdmin).toEqual(true);
-      expect(permissions.facilities.length).toEqual(0);
+      expect(permissions.facilities).toBe(null);
     });
   });
 });

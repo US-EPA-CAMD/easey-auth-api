@@ -46,6 +46,7 @@ export class PermissionsService {
         permissionsDto.facilities.push(dto);
       }
     } else {
+      permissionsDto.facilities = null;
       permissionsDto.isAdmin = true;
     }
 
