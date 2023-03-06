@@ -36,6 +36,16 @@ export class AuthController {
     );
   }
 
+  @Post('/update-last-activity')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('Token')
+  @ApiOkResponse({
+    description: 'Refreshes a users last activity date',
+  })
+  async lastActivity(@AuthToken() authToken: string): Promise<void> {
+    await this.service.updateLastActivity(authToken);
+  }
+
   @Delete('/sign-out')
   @UseGuards(AuthGuard)
   @ApiBearerAuth('Token')

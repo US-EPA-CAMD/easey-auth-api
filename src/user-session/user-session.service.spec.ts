@@ -126,4 +126,15 @@ describe('User Session Service', () => {
       expect(permissions).toEqual('MOCKED');
     });
   });
+
+  describe('refreshLastActivity', () => {
+    it('should update user session last activity date', async () => {
+      const mock = jest.fn();
+      mockRepo.findOne = jest.fn().mockResolvedValue(new UserSession());
+      mockRepo.save = mock;
+
+      await service.refreshLastActivity('');
+      expect(mock).toHaveBeenCalled();
+    });
+  });
 });

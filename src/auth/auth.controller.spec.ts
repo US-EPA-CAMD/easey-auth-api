@@ -10,6 +10,7 @@ jest.mock('../guards/auth.guard');
 const mockService = () => ({
   signIn: jest.fn(),
   signOut: jest.fn(),
+  updateLastActivity: jest.fn(),
 });
 describe('Authentication Controller', () => {
   let controller: AuthController;
@@ -36,6 +37,15 @@ describe('Authentication Controller', () => {
       jest.spyOn(service, 'signIn').mockResolvedValue(data);
       const cred = new CredentialsDTO();
       expect(await controller.signIn(cred, '')).toBe(data);
+    });
+  });
+
+  describe('lastActivity', () => {
+    it('should call the lastActivity endpoint', async () => {
+      jest.spyOn(service, 'updateLastActivity').mockResolvedValue();
+      expect(async () => {
+        await controller.lastActivity('');
+      }).not.toThrowError();
     });
   });
 

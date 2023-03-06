@@ -19,6 +19,23 @@ export class UserSessionService {
     private readonly configService: ConfigService,
   ) {}
 
+  async refreshLastActivity(token: string): Promise<void> {
+    const sessionRecord = await this.repository.findOne({
+      where: { securityToken: token },
+    });
+
+    if (!sessionRecord) {
+      throw new LoggingException(
+        'No session record exists for given token',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    sessionRecord.lastActivity = new Date().toUTCString();
+
+    await this.repository.save(sessionRecord);
+  }
+
   async getUserPermissions(userId: string): Promise<PermissionsDTO> {
     try {
       const permissionsUrl = `${this.configService.get<string>(
@@ -46,6 +63,7 @@ export class UserSessionService {
     session.sessionId = sessionId;
     session.userId = userId.toLowerCase();
     session.lastLoginDate = new Date().toUTCString();
+    session.lastActivity = new Date().toUTCString();
     await this.repository.insert(session);
     return session;
   }
