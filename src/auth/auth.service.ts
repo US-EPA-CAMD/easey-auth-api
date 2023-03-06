@@ -178,6 +178,10 @@ export class AuthService {
       });
   }
 
+  async updateLastActivity(token: string): Promise<void> {
+    await this.userSessionService.refreshLastActivity(token);
+  }
+
   async signOut(userId: string, token: string): Promise<void> {
     await this.userSessionService.findSessionByUserIdAndToken(userId, token);
     await this.userSessionService.removeUserSessionByUserId(userId);

@@ -16,4 +16,7 @@ export class UserSession extends BaseEntity {
 
   @Column({ name: 'last_login_date', type: 'timestamptz' })
   lastLoginDate: string;
+
+  @Column({ name: 'last_activity', type: 'timestamptz' })
+  lastActivity: string;
 }
