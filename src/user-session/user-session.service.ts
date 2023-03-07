@@ -9,6 +9,8 @@ import { UserSessionRepository } from '../user-session/user-session.repository';
 import { ConfigService } from '@nestjs/config';
 import { PermissionsDTO } from '../dtos/permissions.dto';
 import { firstValueFrom } from 'rxjs';
+import { getManager } from 'typeorm';
+import { UserCheckOut } from '../entities/user-check-out.entity';
 
 @Injectable()
 export class UserSessionService {
@@ -18,6 +20,10 @@ export class UserSessionService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {}
+
+  returnManager(): any {
+    return getManager();
+  }
 
   async refreshLastActivity(token: string): Promise<void> {
     const sessionRecord = await this.repository.findOne({
@@ -31,9 +37,21 @@ export class UserSessionService {
       );
     }
 
-    sessionRecord.lastActivity = new Date().toUTCString();
+    const activeDate = new Date().toLocaleString('en-US', {
+      timeZone: 'America/New_York',
+    });
 
+    sessionRecord.lastActivity = activeDate;
     await this.repository.save(sessionRecord);
+
+    const checkOutRecord = await this.returnManager().findOne(UserCheckOut, {
+      where: { checkedOutBy: sessionRecord.userId },
+    });
+
+    if (checkOutRecord) {
+      checkOutRecord.lastActivity = activeDate;
+      await this.returnManager().save(checkOutRecord);
+    }
   }
 
   async getUserPermissions(userId: string): Promise<PermissionsDTO> {
