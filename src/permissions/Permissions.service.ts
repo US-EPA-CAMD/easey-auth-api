@@ -1,4 +1,4 @@
-import { MockPermissionObject, MockPermissions } from './../interfaces/mock-permissions.interface';
+import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
 import { HttpService } from '@nestjs/axios';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
