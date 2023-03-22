@@ -11,6 +11,7 @@ import { PermissionsDTO } from '../dtos/permissions.dto';
 import { firstValueFrom } from 'rxjs';
 import { getManager } from 'typeorm';
 import { UserCheckOut } from '../entities/user-check-out.entity';
+import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
 
 @Injectable()
 export class UserSessionService {
@@ -37,9 +38,7 @@ export class UserSessionService {
       );
     }
 
-    const activeDate = new Date().toLocaleString('en-US', {
-      timeZone: 'America/New_York',
-    });
+    const activeDate = dateToEstString();
 
     sessionRecord.lastActivity = activeDate;
     await this.repository.save(sessionRecord);
@@ -80,8 +79,8 @@ export class UserSessionService {
     const session = new UserSession();
     session.sessionId = sessionId;
     session.userId = userId.toLowerCase();
-    session.lastLoginDate = new Date().toUTCString();
-    session.lastActivity = new Date().toUTCString();
+    session.lastLoginDate = dateToEstString();
+    session.lastActivity = dateToEstString();
     await this.repository.insert(session);
     return session;
   }

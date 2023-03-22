@@ -9,6 +9,7 @@ import { UserSessionService } from '../user-session/user-session.service';
 import { UserSession } from '../entities/user-session.entity';
 import { TokenDTO } from '../dtos/token.dto';
 import { PermissionsDTO } from 'src/dtos/permissions.dto';
+import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
 
 @Injectable()
 export class TokenService {
@@ -81,11 +82,11 @@ export class TokenService {
     permissions: PermissionsDTO,
   ): Promise<TokenDTO> {
     let token: string;
-    const expiration = new Date(
+    const expiration = dateToEstString(
       Date.now() +
         this.configService.get<number>('app.tokenExpirationDurationMinutes') *
           60000,
-    ).toUTCString();
+    );
 
     console.log('Creating Client Token At IP: ' + clientIp);
 
