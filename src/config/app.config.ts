@@ -93,4 +93,8 @@ export default registerAs('app', () => ({
     'EASEY_AUTH_PERMISSIONS_URL',
     'http://localhost:8000/auth-mgmt/permissions',
   ),
+  contentUri: getConfigValue(
+    'EASEY_AUTH_CONTENT_API',
+    'https://api.epa.gov/easey/dev/content-mgmt',
+  ),
 }));

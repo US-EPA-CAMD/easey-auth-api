@@ -15,7 +15,7 @@ export class PermissionsController {
     type: PermissionsDTO,
     description: 'Gets mocked permissions for provided user',
   })
-  getPermissions(@Query('userId') userId: string): PermissionsDTO {
+  getPermissions(@Query('userId') userId: string): Promise<PermissionsDTO> {
     return this.service.getMockPermissions(userId);
   }
 }
