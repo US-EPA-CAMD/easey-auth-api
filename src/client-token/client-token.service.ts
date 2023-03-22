@@ -6,6 +6,7 @@ import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 
 import { TokenDTO } from '../dtos/token.dto';
 import { ClientTokenRepository } from './client-token.repository';
+import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
 
 @Injectable()
 export class ClientTokenService {
@@ -85,9 +86,8 @@ export class ClientTokenService {
             expiresIn: expiration,
           },
         );
-        tokenDTO.expiration = new Date(
-          Date.now() + 1000 * expiration,
-        ).toUTCString();
+
+        tokenDTO.expiration = dateToEstString(Date.now() + 1000 * expiration);
 
         return tokenDTO;
       } else {
