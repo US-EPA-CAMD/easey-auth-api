@@ -89,8 +89,6 @@ export class UserSessionService {
     sessionId: string,
     token: string,
   ): Promise<UserSession> {
-    console.log('WHAT');
-
     const sessionRecord = await this.repository.findOne({
       sessionId: sessionId,
       securityToken: token,
