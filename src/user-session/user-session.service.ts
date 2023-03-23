@@ -89,13 +89,17 @@ export class UserSessionService {
     sessionId: string,
     token: string,
   ): Promise<UserSession> {
+    console.log('WHAT');
+
     const sessionRecord = await this.repository.findOne({
       sessionId: sessionId,
       securityToken: token,
     });
 
     if (sessionRecord) {
-      if (new Date() < new Date(sessionRecord.tokenExpiration)) {
+      if (
+        new Date(dateToEstString()) < new Date(sessionRecord.tokenExpiration)
+      ) {
         return sessionRecord;
       }
 
