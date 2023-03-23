@@ -95,7 +95,9 @@ export class UserSessionService {
     });
 
     if (sessionRecord) {
-      if (new Date() < new Date(sessionRecord.tokenExpiration)) {
+      if (
+        new Date(dateToEstString()) < new Date(sessionRecord.tokenExpiration)
+      ) {
         return sessionRecord;
       }
 
