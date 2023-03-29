@@ -126,4 +126,19 @@ describe('User Session Service', () => {
       expect(permissions).toEqual('MOCKED');
     });
   });
+
+  describe('refreshLastActivity', () => {
+    it('should update user session last activity date', async () => {
+      jest
+        .spyOn(service, 'returnManager')
+        .mockReturnValue({ findOne: jest.fn().mockResolvedValue(undefined) });
+
+      const mock = jest.fn();
+      mockRepo.findOne = jest.fn().mockResolvedValue(new UserSession());
+      mockRepo.save = mock;
+
+      await service.refreshLastActivity('');
+      expect(mock).toHaveBeenCalled();
+    });
+  });
 });

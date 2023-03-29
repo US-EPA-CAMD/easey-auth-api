@@ -79,6 +79,7 @@ describe('Authentication Service', () => {
             getUserPermissions: jest
               .fn()
               .mockResolvedValue(new PermissionsDTO()),
+            refreshLastActivity: jest.fn(),
           }),
         },
         {
@@ -155,6 +156,17 @@ describe('Authentication Service', () => {
       jest.spyOn(tokenService, 'bypassEnabled').mockReturnValue(true);
       const user = await service.signIn('user', 'pass', '');
       expect(user.firstName).toEqual('user');
+    });
+  });
+
+  describe('updateLastActivity', () => {
+    it('should update the users last activity successfully', async () => {
+      const mock = jest.fn();
+      jest
+        .spyOn(userSessionService, 'refreshLastActivity')
+        .mockImplementation(mock);
+      await service.updateLastActivity('');
+      expect(mock).toHaveBeenCalled();
     });
   });
 

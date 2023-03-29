@@ -9,6 +9,9 @@ import { UserSessionRepository } from '../user-session/user-session.repository';
 import { ConfigService } from '@nestjs/config';
 import { PermissionsDTO } from '../dtos/permissions.dto';
 import { firstValueFrom } from 'rxjs';
+import { getManager } from 'typeorm';
+import { UserCheckOut } from '../entities/user-check-out.entity';
+import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
 
 @Injectable()
 export class UserSessionService {
@@ -18,6 +21,37 @@ export class UserSessionService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {}
+
+  returnManager(): any {
+    return getManager();
+  }
+
+  async refreshLastActivity(token: string): Promise<void> {
+    const sessionRecord = await this.repository.findOne({
+      where: { securityToken: token },
+    });
+
+    if (!sessionRecord) {
+      throw new LoggingException(
+        'No session record exists for given token',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const activeDate = dateToEstString();
+
+    sessionRecord.lastActivity = activeDate;
+    await this.repository.save(sessionRecord);
+
+    const checkOutRecord = await this.returnManager().findOne(UserCheckOut, {
+      where: { checkedOutBy: sessionRecord.userId },
+    });
+
+    if (checkOutRecord) {
+      checkOutRecord.lastActivity = activeDate;
+      await this.returnManager().save(checkOutRecord);
+    }
+  }
 
   async getUserPermissions(userId: string): Promise<PermissionsDTO> {
     try {
@@ -45,7 +79,8 @@ export class UserSessionService {
     const session = new UserSession();
     session.sessionId = sessionId;
     session.userId = userId.toLowerCase();
-    session.lastLoginDate = new Date().toUTCString();
+    session.lastLoginDate = dateToEstString();
+    session.lastActivity = dateToEstString();
     await this.repository.insert(session);
     return session;
   }
@@ -60,7 +95,9 @@ export class UserSessionService {
     });
 
     if (sessionRecord) {
-      if (new Date() < new Date(sessionRecord.tokenExpiration)) {
+      if (
+        new Date(dateToEstString()) < new Date(sessionRecord.tokenExpiration)
+      ) {
         return sessionRecord;
       }
 
