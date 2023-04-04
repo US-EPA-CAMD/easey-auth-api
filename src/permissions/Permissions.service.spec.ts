@@ -4,6 +4,7 @@ import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { PermissionsService } from './Permissions.service';
 import { HttpService } from '@nestjs/axios';
 import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
+import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
 
 let responseVals = {
   ['app.env']: 'production',
@@ -66,51 +67,36 @@ describe('PermissionsService', () => {
       );
     });
     it('should parse user env var and build the permissions properly given a found user', async () => {
+      const p: MockPermissionObject = {
+        userId: 'user',
+        facilities: [{ orisCode: 1, roles: [], facId: 1 }],
+      };
+      jest.spyOn(service, 'getMockPermissionObject').mockResolvedValue([p]);
       responseVals = {
         ...responseVals,
         ['app.env']: 'local-dev',
-        ['app.mockPermissions']: `[
-          {
-            "userId":"user",
-            "isAdmin":true,
-            "facilities":[
-              {
-                "id":1,
-                "permissions":["DSMP","DSEM","DSQA"]
-              }
-            ]
-          }
-        ]`,
       };
 
       const permissions = await service.getMockPermissions('user');
 
-      expect(permissions.isAdmin).toEqual(true);
-      expect(permissions.facilities[0].id).toEqual(1);
+      expect(permissions[0].facId).toEqual(1);
     });
 
     it('should parse user env var and build the permissions properly given a not found user', async () => {
+      const p: MockPermissionObject = {
+        userId: 'user',
+        facilities: [{ orisCode: 1, roles: [], facId: 1 }],
+      };
       responseVals = {
         ...responseVals,
         ['app.env']: 'local-dev',
-        ['app.mockPermissions']: `[
-          {
-            "userId":"user",
-            "isAdmin":true,
-            "facilities":[
-              {
-                "id":1,
-                "permissions":["DSMP","DSEM","DSQA"]
-              }
-            ]
-          }
-        ]`,
       };
+
+      jest.spyOn(service, 'getMockPermissionObject').mockResolvedValue([p]);
 
       const permissions = await service.getMockPermissions('userNotFound');
 
-      expect(permissions.isAdmin).toEqual(true);
-      expect(permissions.facilities).toBe(null);
+      expect(permissions).toBe(null);
     });
   });
 });

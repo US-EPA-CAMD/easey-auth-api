@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 
 import { ApiTags, ApiOkResponse, ApiSecurity } from '@nestjs/swagger';
-import { PermissionsDTO } from '../dtos/permissions.dto';
+import { FacilityAccessDTO } from '../dtos/permissions.dto';
 import { PermissionsService } from './Permissions.service';
 
 @Controller()
@@ -12,10 +12,12 @@ export class PermissionsController {
 
   @Get('permissions')
   @ApiOkResponse({
-    type: PermissionsDTO,
+    type: FacilityAccessDTO,
     description: 'Gets mocked permissions for provided user',
   })
-  getPermissions(@Query('userId') userId: string): Promise<PermissionsDTO> {
+  getPermissions(
+    @Query('userId') userId: string,
+  ): Promise<FacilityAccessDTO[]> {
     return this.service.getMockPermissions(userId);
   }
 }

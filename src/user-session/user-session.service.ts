@@ -7,7 +7,7 @@ import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 import { UserSession } from '../entities/user-session.entity';
 import { UserSessionRepository } from '../user-session/user-session.repository';
 import { ConfigService } from '@nestjs/config';
-import { PermissionsDTO } from '../dtos/permissions.dto';
+import { FacilityAccessDTO } from '../dtos/permissions.dto';
 import { firstValueFrom } from 'rxjs';
 import { getManager } from 'typeorm';
 import { UserCheckOut } from '../entities/user-check-out.entity';
@@ -53,7 +53,11 @@ export class UserSessionService {
     }
   }
 
-  async getUserPermissions(userId: string): Promise<PermissionsDTO> {
+  async getUserPermissions(
+    userId: string,
+    clientIp: string,
+    token: string,
+  ): Promise<FacilityAccessDTO[]> {
     try {
       const permissionsUrl = `${this.configService.get<string>(
         'app.permissionsUrl',
@@ -63,10 +67,17 @@ export class UserSessionService {
         this.httpService.get(permissionsUrl, {
           headers: {
             'x-api-key': this.configService.get<string>('app.apiKey'),
+            'x-forwarded-for': clientIp,
+            Authorization: `Bearer ${token}`,
           },
         }),
       );
-      return permissionResult.data;
+
+      if (permissionResult.data) {
+        return permissionResult.data;
+      }
+
+      return null;
     } catch (e) {
       throw new LoggingException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
