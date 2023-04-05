@@ -176,8 +176,9 @@ export class AuthService {
     // Only fetch user permissions if we have a role, or are bypassing the sign in
     if (
       user.roles === null ||
-      user.roles.includes('Data Submit Agent') ||
-      user.roles.includes('Data Prepare Agent')
+      user.roles.includes(this.configService.get<string>('app.sponsorRole')) ||
+      user.roles.includes(this.configService.get<string>('app.preparerRole')) ||
+      user.roles.includes(this.configService.get<string>('app.submitterRole'))
     ) {
       user.facilities = await this.userSessionService.getUserPermissions(
         userId,

@@ -27,6 +27,9 @@ applications:
       EASEY_CDX_MOCK_PERMISSIONS: '[{"userId":"example","facilities":[{"id":"3","permissions":["DSMP","DSQA"]}]}]'
       EASEY_CDX_MOCK_PERMISSIONS_ENABLED: false
       EASEY_AUTH_PERMISSIONS_URL: https://((apiHost))/auth-mgmt/permissions
+      EASEY_AUTH_API_SPONSOR_ROLE: Sponsor
+      EASEY_AUTH_API_SUBMITTER_ROLE: Submitter
+      EASEY_AUTH_API_PREPARER_ROLE: Preparer
     routes:
       - route: ((host))/((path))
     services:

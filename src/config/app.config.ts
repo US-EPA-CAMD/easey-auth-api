@@ -97,4 +97,7 @@ export default registerAs('app', () => ({
     'EASEY_AUTH_CONTENT_API',
     'https://api.epa.gov/easey/dev/content-mgmt',
   ),
+  sponsorRole: getConfigValue('EASEY_AUTH_API_SPONSOR_ROLE', 'Sponsor'),
+  submitterRole: getConfigValue('EASEY_AUTH_API_SUBMITTER_ROLE', 'Submitter'),
+  preparerRole: getConfigValue('EASEY_AUTH_API_PREPARER_ROLE', 'Preparer'),
 }));
