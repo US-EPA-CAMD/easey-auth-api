@@ -122,7 +122,7 @@ describe('User Session Service', () => {
 
   describe('getUserPermissions', () => {
     it('should return mocked user permissions', async () => {
-      const permissions = await service.getUserPermissions('');
+      const permissions = await service.getUserPermissions('', '', '');
       expect(permissions).toEqual('MOCKED');
     });
   });

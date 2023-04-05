@@ -8,6 +8,12 @@ import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 import { UserDTO } from '../dtos/user.dto';
 import { TokenService } from '../token/token.service';
 import { UserSessionService } from '../user-session/user-session.service';
+import { SignService } from '../sign/Sign.service';
+
+interface orgEmailAndId {
+  email: string;
+  userOrgId: number;
+}
 
 @Injectable()
 export class AuthService {
@@ -17,6 +23,7 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly tokenService: TokenService,
     private readonly userSessionService: UserSessionService,
+    private readonly signService: SignService,
   ) {}
 
   async getStreamlinedRegistrationToken(userId: string): Promise<string> {
@@ -49,20 +56,27 @@ export class AuthService {
       });
   }
 
-  async getUserEmail(userId: string, naasToken: string): Promise<string> {
+  async getUserEmail(userId: string): Promise<orgEmailAndId> {
     const url = `${this.configService.get<string>(
       'app.cdxSvcs',
     )}/StreamlinedRegistrationService?wsdl`;
 
+    const streamlinedRegistrationToken = await this.getStreamlinedRegistrationToken(
+      userId,
+    );
+
     return createClientAsync(url)
       .then(client => {
         return client.RetrievePrimaryOrganizationAsync({
-          securityToken: naasToken,
+          securityToken: streamlinedRegistrationToken,
           user: { userId: userId },
         });
       })
       .then(res => {
-        return res[0].result.email;
+        return {
+          email: res[0].result.email,
+          userOrgId: res[0].result.userOrganizationId,
+        };
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
@@ -79,14 +93,44 @@ export class AuthService {
       });
   }
 
+  async getUserRoles(userId, orgId): Promise<string[]> {
+    const url = `${this.configService.get<string>(
+      'app.cdxSvcs',
+    )}/RegisterService?wsdl`;
+    const registerToken = await this.signService.getRegisterServiceToken();
+
+    return createClientAsync(url)
+      .then(client => {
+        return client.RetrieveRolesAsync({
+          securityToken: registerToken,
+          user: { userId: userId },
+          org: { userOrganizationId: orgId },
+        });
+      })
+      .then(res => {
+        if (res[0].Role.length > 0) {
+          return res[0].Role.map(r => r.type.description);
+        }
+        return [];
+      })
+      .catch(err => {
+        if (err.root && err.root.Envelope) {
+          throw new LoggingException(err.root.Envelope, HttpStatus.BAD_REQUEST);
+        }
+
+        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
+      });
+  }
+
   async signIn(
     userId: string,
     password: string,
     clientIp: string,
   ): Promise<UserDTO> {
     let user: UserDTO;
-
+    let org: orgEmailAndId;
     if (this.tokenService.bypassEnabled()) {
+      //Handle bypass sign in if enabled
       const acceptedUsers = JSON.parse(
         this.configService.get<string>('cdxBypass.users'),
       );
@@ -111,26 +155,45 @@ export class AuthService {
         );
       }
     } else {
+      // If no bypass is set, log in per usual
       user = await this.loginCdx(userId, password);
-
-      const streamlinedRegistrationToken = await this.getStreamlinedRegistrationToken(
-        userId,
-      );
-      const email = await this.getUserEmail(
-        userId,
-        streamlinedRegistrationToken,
-      );
-      user.email = email;
+      org = await this.getUserEmail(userId);
+      user.email = org.email;
     }
 
-    user.permissions = await this.userSessionService.getUserPermissions(userId);
+    const session = await this.userSessionService.createUserSession(userId); // Create the user session record
+    const initialToken = await this.tokenService.generateToken(
+      //The first token we generate needed for the cbs permissions api call
+      userId,
+      session.sessionId,
+      clientIp,
+      [],
+      [],
+    );
 
-    const session = await this.userSessionService.createUserSession(userId);
+    user.roles = org ? await this.getUserRoles(userId, org.userOrgId) : null; // Are we bypassed or not? If so set the array of roles to be null
+
+    // Only fetch user permissions if we have a role, or are bypassing the sign in
+    if (
+      user.roles === null ||
+      user.roles.includes('Data Submit Agent') ||
+      user.roles.includes('Data Prepare Agent')
+    ) {
+      user.facilities = await this.userSessionService.getUserPermissions(
+        userId,
+        clientIp,
+        initialToken.token,
+      );
+    } else {
+      user.facilities = [];
+    }
+
     const token = await this.tokenService.generateToken(
       userId,
       session.sessionId,
       clientIp,
-      user.permissions,
+      user.facilities,
+      user.roles,
     );
 
     user.token = token.token;

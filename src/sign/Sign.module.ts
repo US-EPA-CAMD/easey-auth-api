@@ -8,5 +8,6 @@ import { SignService } from './Sign.service';
   imports: [],
   controllers: [SignController],
   providers: [SignService, ConfigService],
+  exports: [SignService],
 })
 export class SignModule {}

@@ -1,5 +1,5 @@
-import { IsString } from 'class-validator';
-import { PermissionsDTO } from './permissions.dto';
+import { IsArray, IsString } from 'class-validator';
+import { FacilityAccessDTO } from './permissions.dto';
 
 export class UserDTO {
   @IsString()
@@ -14,5 +14,7 @@ export class UserDTO {
   tokenExpiration: string;
   @IsString()
   email: string;
-  permissions: PermissionsDTO;
+  facilities: FacilityAccessDTO[];
+  @IsArray()
+  roles: string[];
 }
