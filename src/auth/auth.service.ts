@@ -93,11 +93,34 @@ export class AuthService {
       });
   }
 
-  async getUserRoles(userId, orgId): Promise<string[]> {
+  async getAllUserOrganizations(userId, registerToken): Promise<any> {
     const url = `${this.configService.get<string>(
       'app.cdxSvcs',
     )}/RegisterService?wsdl`;
-    const registerToken = await this.signService.getRegisterServiceToken();
+
+    return createClientAsync(url)
+      .then(client => {
+        return client.RetrieveOrganizationsAsync({
+          securityToken: registerToken,
+          user: { userId: userId },
+        });
+      })
+      .then(res => {
+        return res[0].Organization;
+      })
+      .catch(err => {
+        if (err.root && err.root.Envelope) {
+          throw new LoggingException(err.root.Envelope, HttpStatus.BAD_REQUEST);
+        }
+
+        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
+      });
+  }
+
+  async getUserRoles(userId, orgId, registerToken): Promise<string[]> {
+    const url = `${this.configService.get<string>(
+      'app.cdxSvcs',
+    )}/RegisterService?wsdl`;
 
     return createClientAsync(url)
       .then(client => {
@@ -148,6 +171,13 @@ export class AuthService {
         user.userId = userId;
         user.firstName = userId;
         user.lastName = '';
+        user.roles = [
+          this.configService.get<string>('app.sponsorRole'),
+          this.configService.get<string>('app.preparerRole'),
+          this.configService.get<string>('app.submitterRole'),
+          this.configService.get<string>('app.analystRole'),
+          this.configService.get<string>('app.adminRole'),
+        ];
       } else {
         throw new LoggingException(
           'Incorrect Bypass password',
@@ -159,31 +189,60 @@ export class AuthService {
       user = await this.loginCdx(userId, password);
       org = await this.getUserEmail(userId);
       user.email = org.email;
+      const registerToken = await this.signService.getRegisterServiceToken();
+      const orgs = await this.getAllUserOrganizations(userId, registerToken);
+      const roleSet = new Set<string>();
+      for (const o of orgs) {
+        const rolesForOrg = await this.getUserRoles(
+          userId,
+          o.userOrganizationId,
+          registerToken,
+        );
+
+        rolesForOrg.forEach(r => {
+          roleSet.add(r);
+        });
+      }
+
+      user.roles = Array.from(roleSet.values());
     }
 
     const session = await this.userSessionService.createUserSession(userId); // Create the user session record
-    const initialToken = await this.tokenService.generateToken(
-      //The first token we generate needed for the cbs permissions api call
-      userId,
-      session.sessionId,
-      clientIp,
-      [],
-      [],
-    );
-
-    user.roles = org ? await this.getUserRoles(userId, org.userOrgId) : null; // Are we bypassed or not? If so set the array of roles to be null
 
     // Only fetch user permissions if we have a role, or are bypassing the sign in
     if (
-      user.roles === null ||
+      this.tokenService.bypassEnabled() ||
+      this.configService.get<boolean>('app.mockPermissionsEnabled') ||
       user.roles.includes(this.configService.get<string>('app.sponsorRole')) ||
       user.roles.includes(this.configService.get<string>('app.preparerRole')) ||
       user.roles.includes(this.configService.get<string>('app.submitterRole'))
     ) {
-      user.facilities = await this.userSessionService.getUserPermissions(
+      const initialToken = await this.tokenService.generateToken(
+        //The first token we generate needed for the cbs permissions api call
         userId,
+        session.sessionId,
+        clientIp,
+        [],
+        [],
+      );
+
+      let url;
+      if (
+        this.tokenService.bypassEnabled() ||
+        this.configService.get<boolean>('app.mockPermissionsEnabled')
+      ) {
+        url = `${this.configService.get<string>(
+          'app.mockPermissionsUrl',
+        )}?userId=${userId}`;
+      } else {
+        url = `${this.configService.get<string>(
+          'app.permissionsUrl',
+        )}?userId=${userId}`;
+      }
+      user.facilities = await this.userSessionService.getUserPermissions(
         clientIp,
         initialToken.token,
+        url,
       );
     } else {
       user.facilities = [];
