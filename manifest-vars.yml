@@ -12,3 +12,4 @@ environment: development
 apiHost: api.epa.gov/easey/dev
 cdxSvcs: https://devngn.epacdxnode.net/cdx-register-II/services
 naasSvcs: https://naasdev.epacdxnode.net/xml/securitytoken_v30.wsdl
+mockPermissionsEnabled: true

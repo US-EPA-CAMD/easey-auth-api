@@ -41,6 +41,7 @@ const client = {
   AuthenticateAsync: jest.fn(),
   RetrievePrimaryOrganizationAsync: jest.fn(),
   RetrieveRolesAsync: jest.fn(),
+  RetrieveOrganizationsAsync: jest.fn(),
 };
 jest.mock('@us-epa-camd/easey-common/utilities', () => ({
   parseToken: jest.fn().mockReturnValue({ clientIp: '1' }),
@@ -133,8 +134,18 @@ describe('Authentication Service', () => {
       client.RetrieveRolesAsync = jest
         .fn()
         .mockResolvedValue([{ Role: [{ type: { description: 'Mock' } }] }]);
-      const roles = await service.getUserRoles('', 0);
+      const roles = await service.getUserRoles('', 0, '');
       expect(roles).toEqual(['Mock']);
+    });
+  });
+
+  describe('getAllUserOrganizations', () => {
+    it('should return organizations for the user', async () => {
+      client.RetrieveOrganizationsAsync = jest
+        .fn()
+        .mockResolvedValue([{ Organization: [{ userOrganizationId: 1 }] }]);
+      const orgs = await service.getAllUserOrganizations('', '');
+      expect(orgs).toEqual([{ userOrganizationId: 1 }]);
     });
   });
 

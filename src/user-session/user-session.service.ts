@@ -54,17 +54,13 @@ export class UserSessionService {
   }
 
   async getUserPermissions(
-    userId: string,
     clientIp: string,
     token: string,
+    url: string,
   ): Promise<FacilityAccessDTO[]> {
     try {
-      const permissionsUrl = `${this.configService.get<string>(
-        'app.permissionsUrl',
-      )}?userId=${userId}`;
-
       const permissionResult = await firstValueFrom(
-        this.httpService.get(permissionsUrl, {
+        this.httpService.get(url, {
           headers: {
             'x-api-key': this.configService.get<string>('app.apiKey'),
             'x-forwarded-for': clientIp,
