@@ -76,19 +76,6 @@ export default registerAs('app', () => ({
   enableDebug: getConfigValueBoolean('EASEY_AUTH_API_ENABLE_DEBUG'),
   apiHost: apiHost,
   mockPhoneNumber: getConfigValue('EASEY_AUTH_API_MOCK_PHONE_NUMBER', ''),
-  mockPermissions: getConfigValue(
-    'EASEY_CDX_MOCK_PERMISSIONS',
-    `[
-    {
-      "userId": "kherceg-ds",
-      "isAdmin": false,
-      "facilities": [{
-        "id": 3,
-        "permissions": ["DSMP", "DSQA"]
-      }]
-    }
-  ]`,
-  ),
   mockPermissionsUrl: getConfigValue(
     'EASEY_AUTH_API_MOCK_PERMISSIONS_URL',
     'http://localhost:8000/auth-mgmt/permissions',
