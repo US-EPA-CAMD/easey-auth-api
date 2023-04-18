@@ -4,3 +4,5 @@ host: api-easey-perf.app.cloud.gov
 apiHost: api.epa.gov/easey/perf
 cdxSvcs: https://testngn.epacdxnode.net/cdx-register-II/services
 naasSvcs: https://naas.epacdxnode.net/xml/securitytoken_v30.wsdl
+permissionsUrl: https://cbsstagei.epa.gov/CBS/api/auth-mgmt/responsibilities
+mockPermissionsEnabled: true
