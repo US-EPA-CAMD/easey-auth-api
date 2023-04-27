@@ -9,6 +9,7 @@ import { UserDTO } from '../dtos/user.dto';
 import { TokenService } from '../token/token.service';
 import { UserSessionService } from '../user-session/user-session.service';
 import { SignService } from '../sign/Sign.service';
+import { dateToEstString } from '@us-epa-camd/easey-common/utilities';
 
 interface orgEmailAndId {
   email: string;
@@ -207,7 +208,12 @@ export class AuthService {
       user.roles = Array.from(roleSet.values());
     }
 
-    const session = await this.userSessionService.createUserSession(userId); // Create the user session record
+    let session = await this.userSessionService.findSessionByUserId(userId);
+    let hasExistingSession = true;
+    if (!session) {
+      hasExistingSession = false;
+      session = await this.userSessionService.createUserSession(userId); // Create the user session record
+    }
 
     // Only fetch user permissions if we have a role, or are bypassing the sign in
     if (
@@ -217,14 +223,19 @@ export class AuthService {
       user.roles.includes(this.configService.get<string>('app.preparerRole')) ||
       user.roles.includes(this.configService.get<string>('app.submitterRole'))
     ) {
-      const initialToken = await this.tokenService.generateToken(
-        //The first token we generate needed for the cbs permissions api call
-        userId,
-        session.sessionId,
-        clientIp,
-        [],
-        [],
-      );
+      let initialToken;
+      if (!hasExistingSession) {
+        initialToken = await this.tokenService.generateToken(
+          //The first token we generate needed for the cbs permissions api call
+          userId,
+          session.sessionId,
+          clientIp,
+          [],
+          [],
+        );
+      } else {
+        initialToken = session.securityToken;
+      }
 
       let url;
       if (
@@ -248,16 +259,21 @@ export class AuthService {
       user.facilities = [];
     }
 
-    const token = await this.tokenService.generateToken(
-      userId,
-      session.sessionId,
-      clientIp,
-      user.facilities,
-      user.roles,
-    );
+    if (!hasExistingSession) {
+      const token = await this.tokenService.generateToken(
+        userId,
+        session.sessionId,
+        clientIp,
+        user.facilities,
+        user.roles,
+      );
 
-    user.token = token.token;
-    user.tokenExpiration = token.expiration;
+      user.token = token.token;
+      user.tokenExpiration = token.expiration;
+    } else {
+      user.token = session.securityToken;
+      user.tokenExpiration = dateToEstString(session.tokenExpiration);
+    }
 
     return user;
   }
