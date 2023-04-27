@@ -149,6 +149,18 @@ export class UserSessionService {
     );
   }
 
+  async findSessionByUserId(userId: string): Promise<UserSession> {
+    const session = await this.repository.findOne({
+      userId: userId,
+    });
+
+    if (session) {
+      return session;
+    }
+
+    return null;
+  }
+
   async updateUserSessionToken(
     sessionId: string,
     token: string,

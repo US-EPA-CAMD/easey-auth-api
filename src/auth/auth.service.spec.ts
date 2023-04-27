@@ -89,6 +89,7 @@ describe('Authentication Service', () => {
               .fn()
               .mockResolvedValue([new FacilityAccessDTO()]),
             refreshLastActivity: jest.fn(),
+            findSessionByUserId: jest.fn(),
           }),
         },
         {
