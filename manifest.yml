@@ -32,6 +32,7 @@ applications:
       EASEY_AUTH_API_ANALYST_ROLE: ECMPS Analyst
       EASEY_AUTH_API_ADMIN_ROLE: ECMPS Admin
       EASEY_AUTH_API_MOCK_PERMISSIONS_ENABLED: ((mockPermissionsEnabled))
+      EASEY_AUTH_API_DATA_FLOW: ((dataFlow))
     routes:
       - route: ((host))/((path))
     services:

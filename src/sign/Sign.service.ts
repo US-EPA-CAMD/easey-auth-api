@@ -144,7 +144,7 @@ export class SignService {
             FirstName: firstName,
             LastName: lastName,
           },
-          dataflowName: 'EASEY',
+          dataflowName: this.configService.get<string>('app.dataFlow'),
         });
       })
       .then(res => {
