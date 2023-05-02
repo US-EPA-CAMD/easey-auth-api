@@ -1,15 +1,11 @@
 export interface MockPermissions {
-  facilities: number[];
+  facId: number;
+  orisCode: number;
   roles: string[];
 }
 
 export interface MockPermissionObject {
   userId: string;
   isAdmin?: boolean;
-  facilities: Facility[];
-}
-
-interface Facility {
-  id: number;
-  permissions: string[];
+  facilities: MockPermissions[];
 }

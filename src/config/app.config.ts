@@ -76,25 +76,26 @@ export default registerAs('app', () => ({
   enableDebug: getConfigValueBoolean('EASEY_AUTH_API_ENABLE_DEBUG'),
   apiHost: apiHost,
   mockPhoneNumber: getConfigValue('EASEY_AUTH_API_MOCK_PHONE_NUMBER', ''),
-  mockPermissions: getConfigValue(
-    'EASEY_CDX_MOCK_PERMISSIONS',
-    `[
-    {
-      "userId": "kherceg-ds",
-      "isAdmin": false,
-      "facilities": [{
-        "id": 3,
-        "permissions": ["DSMP", "DSQA"]
-      }]
-    }
-  ]`,
+  mockPermissionsUrl: getConfigValue(
+    'EASEY_AUTH_API_MOCK_PERMISSIONS_URL',
+    'http://localhost:8000/auth-mgmt/permissions',
   ),
   permissionsUrl: getConfigValue(
-    'EASEY_AUTH_PERMISSIONS_URL',
-    'http://localhost:8000/auth-mgmt/permissions',
+    'EASEY_AUTH_API_PERMISSIONS_URL',
+    'https://cbsstagei.rtpnc.epa.gov/CBSD/api/auth-mgmt/responsibilities',
   ),
   contentUri: getConfigValue(
     'EASEY_AUTH_CONTENT_API',
     'https://api.epa.gov/easey/dev/content-mgmt',
+  ),
+  sponsorRole: getConfigValue('EASEY_AUTH_API_SPONSOR_ROLE', 'Sponsor'),
+  submitterRole: getConfigValue('EASEY_AUTH_API_SUBMITTER_ROLE', 'Submitter'),
+  preparerRole: getConfigValue('EASEY_AUTH_API_PREPARER_ROLE', 'Preparer'),
+  analystRole: getConfigValue('EASEY_AUTH_API_ANALYST_ROLE', 'ECMPS Analyst'),
+  adminRole: getConfigValue('EASEY_AUTH_API_ADMIN_ROLE', 'ECMPS Admin'),
+  dataFlow: getConfigValue('EASEY_AUTH_API_DATA_FLOW', 'EASEY'),
+  mockPermissionsEnabled: getConfigValueBoolean(
+    'EASEY_AUTH_API_MOCK_PERMISSIONS_ENABLED',
+    true,
   ),
 }));

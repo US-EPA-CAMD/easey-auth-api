@@ -6,9 +6,12 @@ name: auth-api
 host: api-easey-dev.app.cloud.gov
 port: 8080
 path: auth-mgmt
-title: Authenication & Authorization
+title: Authentication & Authorization
 description: Provides authentication, authorization, & security token services for CAMD applications
 environment: development
 apiHost: api.epa.gov/easey/dev
 cdxSvcs: https://devngn.epacdxnode.net/cdx-register-II/services
 naasSvcs: https://naasdev.epacdxnode.net/xml/securitytoken_v30.wsdl
+mockPermissionsEnabled: true
+permissionsUrl: https://cbsstagei.epa.gov/CBSD/api/auth-mgmt/responsibilities
+dataFlow: EASEY

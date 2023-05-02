@@ -7,7 +7,8 @@ import { UserDTO } from '../dtos/user.dto';
 import { TokenDTO } from '../dtos/token.dto';
 import { AuthService } from './auth.service';
 import { TokenService } from '../token/token.service';
-import { PermissionsDTO } from '../dtos/permissions.dto';
+import { FacilityAccessDTO } from '../dtos/permissions.dto';
+import { SignService } from '../sign/Sign.service';
 jest.mock('soap', () => ({
   createClientAsync: jest.fn(() => Promise.resolve(client)),
 }));
@@ -39,6 +40,8 @@ let responseVals = {
 const client = {
   AuthenticateAsync: jest.fn(),
   RetrievePrimaryOrganizationAsync: jest.fn(),
+  RetrieveRolesAsync: jest.fn(),
+  RetrieveOrganizationsAsync: jest.fn(),
 };
 jest.mock('@us-epa-camd/easey-common/utilities', () => ({
   parseToken: jest.fn().mockReturnValue({ clientIp: '1' }),
@@ -53,6 +56,12 @@ describe('Authentication Service', () => {
       imports: [LoggerModule],
       providers: [
         AuthService,
+        {
+          provide: SignService,
+          useFactory: () => ({
+            getRegisterServiceToken: jest.fn().mockResolvedValue(''),
+          }),
+        },
         {
           provide: ConfigService,
           useValue: {
@@ -78,8 +87,9 @@ describe('Authentication Service', () => {
             createUserSession: jest.fn().mockResolvedValue(new TokenDTO()),
             getUserPermissions: jest
               .fn()
-              .mockResolvedValue(new PermissionsDTO()),
+              .mockResolvedValue([new FacilityAccessDTO()]),
             refreshLastActivity: jest.fn(),
+            findSessionByUserId: jest.fn(),
           }),
         },
         {
@@ -112,9 +122,31 @@ describe('Authentication Service', () => {
     it('should return an email for the user', async () => {
       client.RetrievePrimaryOrganizationAsync = jest
         .fn()
-        .mockResolvedValue([{ result: { email: 'email' } }]);
-      const email = await service.getUserEmail('', '');
-      expect(email).toEqual('email');
+        .mockResolvedValue([
+          { result: { email: 'email', userOrganizationId: 0 } },
+        ]);
+      const email = await service.getUserEmail('');
+      expect(email).toEqual({ email: 'email', userOrgId: 0 });
+    });
+  });
+
+  describe('getUserRoles', () => {
+    it('should return roles for the user', async () => {
+      client.RetrieveRolesAsync = jest
+        .fn()
+        .mockResolvedValue([{ Role: [{ type: { description: 'Mock' } }] }]);
+      const roles = await service.getUserRoles('', 0, '');
+      expect(roles).toEqual(['Mock']);
+    });
+  });
+
+  describe('getAllUserOrganizations', () => {
+    it('should return organizations for the user', async () => {
+      client.RetrieveOrganizationsAsync = jest
+        .fn()
+        .mockResolvedValue([{ Organization: [{ userOrganizationId: 1 }] }]);
+      const orgs = await service.getAllUserOrganizations('', '');
+      expect(orgs).toEqual([{ userOrganizationId: 1 }]);
     });
   });
 
@@ -145,7 +177,10 @@ describe('Authentication Service', () => {
       jest
         .spyOn(service, 'getStreamlinedRegistrationToken')
         .mockResolvedValue('');
-      jest.spyOn(service, 'getUserEmail').mockResolvedValue('');
+      jest
+        .spyOn(service, 'getUserEmail')
+        .mockResolvedValue({ userOrgId: 1, email: '' });
+      jest.spyOn(service, 'getUserRoles').mockResolvedValue(['MOCK ROLE']);
       const user = await service.signIn('', '', '');
       expect(user.firstName).toEqual(mockedUser.firstName);
     });

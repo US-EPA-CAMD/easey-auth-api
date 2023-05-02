@@ -8,7 +8,7 @@ import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 import { UserSessionService } from '../user-session/user-session.service';
 import { UserSession } from '../entities/user-session.entity';
 import { TokenDTO } from '../dtos/token.dto';
-import { PermissionsDTO } from 'src/dtos/permissions.dto';
+import { FacilityAccessDTO } from 'src/dtos/permissions.dto';
 import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
 
 @Injectable()
@@ -33,11 +33,16 @@ export class TokenService {
       token,
     );
 
-    const permissions = await this.userSessionService.getUserPermissions(
-      userId,
-    );
+    const unencrypted = await this.unencryptToken(token, clientIp);
+    const parsed = parseToken(unencrypted);
 
-    return this.generateToken(userId, session.sessionId, clientIp, permissions);
+    return this.generateToken(
+      userId,
+      session.sessionId,
+      clientIp,
+      parsed.facilities,
+      parsed.roles,
+    );
   }
 
   async getTokenFromCDX(
@@ -45,7 +50,8 @@ export class TokenService {
     sessionId: string,
     clientIp: string,
     expiration: string,
-    permissions: PermissionsDTO,
+    permissions: FacilityAccessDTO[],
+    roles: string[],
   ): Promise<string> {
     return createClientAsync(this.configService.get<string>('app.naasSvcs'))
       .then(client => {
@@ -57,9 +63,9 @@ export class TokenService {
           issuer: this.configService.get<string>('app.naasAppId'),
           authMethod: 'password',
           subject: userId,
-          subjectData: `userId=${userId}&sessionId=${sessionId}&expiration=${expiration}&clientIp=${clientIp}&permissions=${JSON.stringify(
+          subjectData: `userId=${userId}&sessionId=${sessionId}&expiration=${expiration}&clientIp=${clientIp}&facilities=${JSON.stringify(
             permissions,
-          )}`,
+          )}&roles=${JSON.stringify(roles)}`,
           ip: clientIp,
         });
       })
@@ -79,7 +85,8 @@ export class TokenService {
     userId: string,
     sessionId: string,
     clientIp: string,
-    permissions: PermissionsDTO,
+    permissions: FacilityAccessDTO[],
+    roles: string[],
   ): Promise<TokenDTO> {
     let token: string;
     const expiration = dateToEstString(
@@ -90,9 +97,9 @@ export class TokenService {
 
     if (this.bypassEnabled()) {
       token = encode(
-        `userId=${userId}&sessionId=${sessionId}&expiration=${expiration}&clientIp=${clientIp}&permissions=${JSON.stringify(
+        `userId=${userId}&sessionId=${sessionId}&expiration=${expiration}&clientIp=${clientIp}&facilities=${JSON.stringify(
           permissions,
-        )}`,
+        )}&roles=${JSON.stringify(roles)}`,
       );
     } else {
       token = await this.getTokenFromCDX(
@@ -101,6 +108,7 @@ export class TokenService {
         clientIp,
         expiration,
         permissions,
+        roles,
       );
     }
 
@@ -169,7 +177,7 @@ export class TokenService {
         token,
       )
     ) {
-      return unencryptedToken;
+      return parsed;
     }
 
     return false;

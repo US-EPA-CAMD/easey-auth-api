@@ -5,7 +5,7 @@ import { UserSessionService } from '../user-session/user-session.service';
 import { TokenDTO } from '../dtos/token.dto';
 import { TokenService } from './token.service';
 import { UserSession } from '../entities/user-session.entity';
-import { PermissionsDTO } from '../dtos/permissions.dto';
+import { FacilityAccessDTO } from '../dtos/permissions.dto';
 jest.mock('soap', () => ({
   createClientAsync: jest.fn(() => Promise.resolve(client)),
 }));
@@ -46,7 +46,7 @@ describe('Token Service', () => {
             isValidSessionForToken: jest.fn().mockResolvedValue(true),
             getUserPermissions: jest
               .fn()
-              .mockResolvedValue(new PermissionsDTO()),
+              .mockResolvedValue([new FacilityAccessDTO()]),
           }),
         },
         TokenService,
@@ -74,14 +74,14 @@ describe('Token Service', () => {
     it('should issue a new bypass token for the user', async () => {
       jest.spyOn(service, 'bypassEnabled').mockReturnValue(true);
       const cdxTokenSpy = jest.spyOn(service, 'getTokenFromCDX');
-      await service.generateToken('', '', '', new PermissionsDTO());
+      await service.generateToken('', '', '', [new FacilityAccessDTO()], []);
       expect(cdxTokenSpy).not.toHaveBeenCalled();
     });
 
     it('should issue a new bypass token for the user', async () => {
       jest.spyOn(service, 'bypassEnabled').mockReturnValue(false);
       const cdxTokenSpy = jest.spyOn(service, 'getTokenFromCDX');
-      await service.generateToken('', '', '', new PermissionsDTO());
+      await service.generateToken('', '', '', [new FacilityAccessDTO()], []);
       expect(cdxTokenSpy).toHaveBeenCalled();
     });
   });
@@ -117,7 +117,7 @@ describe('Token Service', () => {
     it('should validate and return unecnrypted token', async () => {
       jest.spyOn(service, 'unencryptToken').mockResolvedValue('token');
       jest.spyOn(service, 'validateClientIp').mockImplementation(jest.fn());
-      expect(await service.validateToken('', '')).toEqual('token');
+      expect(await service.validateToken('', '')).toEqual({ clientIp: '1' });
     });
     it('should validate and return false given invalid token', async () => {
       jest.spyOn(service, 'unencryptToken').mockResolvedValue('token');
