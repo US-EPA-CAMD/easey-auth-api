@@ -1,6 +1,5 @@
 import { createClientAsync } from 'soap';
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
@@ -8,10 +7,13 @@ import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 import { UserDTO } from '../dtos/user.dto';
 import { TokenService } from '../token/token.service';
 import { UserSessionService } from '../user-session/user-session.service';
-import { SignService } from '../sign/Sign.service';
-import { dateToEstString } from '@us-epa-camd/easey-common/utilities';
+import {
+  dateToEstString,
+  parseToken,
+} from '@us-epa-camd/easey-common/utilities';
+import { PermissionsService } from '../permissions/Permissions.service';
 
-interface orgEmailAndId {
+interface OrgEmailAndId {
   email: string;
   userOrgId: number;
 }
@@ -20,11 +22,10 @@ interface orgEmailAndId {
 export class AuthService {
   constructor(
     private readonly logger: Logger,
-    private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     private readonly tokenService: TokenService,
+    private readonly permissionService: PermissionsService,
     private readonly userSessionService: UserSessionService,
-    private readonly signService: SignService,
   ) {}
 
   async getStreamlinedRegistrationToken(userId: string): Promise<string> {
@@ -57,7 +58,7 @@ export class AuthService {
       });
   }
 
-  async getUserEmail(userId: string): Promise<orgEmailAndId> {
+  async getUserEmail(userId: string): Promise<OrgEmailAndId> {
     const url = `${this.configService.get<string>(
       'app.cdxSvcs',
     )}/StreamlinedRegistrationService?wsdl`;
@@ -94,65 +95,13 @@ export class AuthService {
       });
   }
 
-  async getAllUserOrganizations(userId, registerToken): Promise<any> {
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/RegisterService?wsdl`;
-
-    return createClientAsync(url)
-      .then(client => {
-        return client.RetrieveOrganizationsAsync({
-          securityToken: registerToken,
-          user: { userId: userId },
-        });
-      })
-      .then(res => {
-        return res[0].Organization;
-      })
-      .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new LoggingException(err.root.Envelope, HttpStatus.BAD_REQUEST);
-        }
-
-        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
-      });
-  }
-
-  async getUserRoles(userId, orgId, registerToken): Promise<string[]> {
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/RegisterService?wsdl`;
-
-    return createClientAsync(url)
-      .then(client => {
-        return client.RetrieveRolesAsync({
-          securityToken: registerToken,
-          user: { userId: userId },
-          org: { userOrganizationId: orgId },
-        });
-      })
-      .then(res => {
-        if (res[0].Role.length > 0) {
-          return res[0].Role.map(r => r.type.description);
-        }
-        return [];
-      })
-      .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new LoggingException(err.root.Envelope, HttpStatus.BAD_REQUEST);
-        }
-
-        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
-      });
-  }
-
   async signIn(
     userId: string,
     password: string,
     clientIp: string,
   ): Promise<UserDTO> {
     let user: UserDTO;
-    let org: orgEmailAndId;
+    let org: OrgEmailAndId;
     if (this.tokenService.bypassEnabled()) {
       //Handle bypass sign in if enabled
       const acceptedUsers = JSON.parse(
@@ -190,91 +139,54 @@ export class AuthService {
       user = await this.loginCdx(userId, password);
       org = await this.getUserEmail(userId);
       user.email = org.email;
-      const registerToken = await this.signService.getRegisterServiceToken();
-      const orgs = await this.getAllUserOrganizations(userId, registerToken);
-      const roleSet = new Set<string>();
-      for (const o of orgs) {
-        const rolesForOrg = await this.getUserRoles(
-          userId,
-          o.userOrganizationId,
-          registerToken,
-        );
-
-        rolesForOrg.forEach(r => {
-          roleSet.add(r);
-        });
-      }
-
-      user.roles = Array.from(roleSet.values());
     }
 
+    // Determine if we have a valid session, if so return the current valid session and parse the user from it
     let session = await this.userSessionService.findSessionByUserId(userId);
-    let hasExistingSession = true;
-    if (!session) {
-      hasExistingSession = false;
-      session = await this.userSessionService.createUserSession(userId); // Create the user session record
-    }
-
-    // Only fetch user permissions if we have a role, or are bypassing the sign in
-    if (
-      this.tokenService.bypassEnabled() ||
-      this.configService.get<boolean>('app.mockPermissionsEnabled') ||
-      user.roles.includes(this.configService.get<string>('app.sponsorRole')) ||
-      user.roles.includes(this.configService.get<string>('app.preparerRole')) ||
-      user.roles.includes(this.configService.get<string>('app.submitterRole'))
-    ) {
-      let initialToken;
-      if (!hasExistingSession) {
-        initialToken = await this.tokenService.generateToken(
-          //The first token we generate needed for the cbs permissions api call
-          userId,
-          session.sessionId,
-          clientIp,
-          [],
-          [],
-        );
-      } else {
-        initialToken = session.securityToken;
-      }
-
-      let url;
-      if (
-        this.tokenService.bypassEnabled() ||
-        this.configService.get<boolean>('app.mockPermissionsEnabled')
-      ) {
-        url = `${this.configService.get<string>(
-          'app.mockPermissionsUrl',
-        )}?userId=${userId}`;
-      } else {
-        url = `${this.configService.get<string>(
-          'app.permissionsUrl',
-        )}?userId=${userId}`;
-      }
-      user.facilities = await this.userSessionService.getUserPermissions(
+    if (session && !this.userSessionService.isSessionTokenExpired(session)) {
+      session.lastActivity = dateToEstString();
+      session.lastLoginDate = dateToEstString();
+      await this.userSessionService.updateSession(session);
+      const unencrypted = await this.tokenService.unencryptToken(
+        session.securityToken,
         clientIp,
-        initialToken.token,
-        url,
       );
-    } else {
-      user.facilities = [];
-    }
+      const parsed = parseToken(unencrypted);
 
-    if (!hasExistingSession) {
-      const token = await this.tokenService.generateToken(
-        userId,
-        session.sessionId,
-        clientIp,
-        user.facilities,
-        user.roles,
-      );
-
-      user.token = token.token;
-      user.tokenExpiration = token.expiration;
-    } else {
+      user.facilities = parsed.facilities;
+      user.roles = parsed.roles;
       user.token = session.securityToken;
-      user.tokenExpiration = dateToEstString(session.tokenExpiration);
+      user.tokenExpiration = new Date(session.tokenExpiration).toLocaleString();
+      return user;
     }
 
+    //Otherwise we need to remove the old if one exists session for the user and generate a new one
+    await this.userSessionService.removeUserSessionByUserId(userId);
+    session = await this.userSessionService.createUserSession(userId);
+    user.roles = await this.permissionService.retrieveAllUserRoles(userId);
+    const tokenToGenerateFacilitiesList = await this.tokenService.generateToken(
+      //The first token we generate needed for the cbs permissions api call
+      userId,
+      session.sessionId,
+      clientIp,
+      [],
+      [],
+    );
+    user.facilities = await this.permissionService.retrieveAllUserFacilities(
+      userId,
+      user.roles,
+      tokenToGenerateFacilitiesList.token,
+      clientIp,
+    );
+    const token = await this.tokenService.generateToken(
+      userId,
+      session.sessionId,
+      clientIp,
+      user.facilities,
+      user.roles,
+    );
+    user.token = token.token;
+    user.tokenExpiration = token.expiration;
     return user;
   }
 

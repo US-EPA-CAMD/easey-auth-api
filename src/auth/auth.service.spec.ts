@@ -3,12 +3,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { UserSessionService } from '../user-session/user-session.service';
 import { HttpService } from '@nestjs/axios';
-import { UserDTO } from '../dtos/user.dto';
 import { TokenDTO } from '../dtos/token.dto';
 import { AuthService } from './auth.service';
 import { TokenService } from '../token/token.service';
-import { FacilityAccessDTO } from '../dtos/permissions.dto';
 import { SignService } from '../sign/Sign.service';
+import { PermissionsService } from '../permissions/Permissions.service';
+import { UserDTO } from '../dtos/user.dto';
+import { UserSession } from '../entities/user-session.entity';
 jest.mock('soap', () => ({
   createClientAsync: jest.fn(() => Promise.resolve(client)),
 }));
@@ -34,17 +35,18 @@ let responseVals = {
   ['cdxBypass.pass']: 'pass',
   ['cdxBypass.users']: '["user"]',
   ['app.cdxSvcs']: '',
-  ['cdxBypass.mockPermissionsEnabled']: false,
-  ['cdxBypass.mockPermissions']: '',
 };
 const client = {
   AuthenticateAsync: jest.fn(),
   RetrievePrimaryOrganizationAsync: jest.fn(),
-  RetrieveRolesAsync: jest.fn(),
   RetrieveOrganizationsAsync: jest.fn(),
 };
+
 jest.mock('@us-epa-camd/easey-common/utilities', () => ({
-  parseToken: jest.fn().mockReturnValue({ clientIp: '1' }),
+  parseToken: jest
+    .fn()
+    .mockReturnValue({ clientIp: '1', facilities: [], roles: ['Submitter'] }),
+  dateToEstString: jest.fn().mockReturnValue(new Date().toLocaleString()),
 }));
 
 describe('Authentication Service', () => {
@@ -75,6 +77,7 @@ describe('Authentication Service', () => {
           useFactory: () => ({
             bypassEnabled: jest.fn().mockReturnValue(false),
             generateToken: jest.fn().mockResolvedValue(new TokenDTO()),
+            unencryptToken: jest.fn().mockResolvedValue(''),
           }),
         },
         {
@@ -82,20 +85,26 @@ describe('Authentication Service', () => {
           useFactory: () => ({
             bypass: false,
             findSessionByUserIdAndToken: jest.fn(),
+            isSessionTokenExpired: jest.fn(),
             removeUserSessionByUserId: jest.fn(),
             generateToken: jest.fn(),
             createUserSession: jest.fn().mockResolvedValue(new TokenDTO()),
-            getUserPermissions: jest
-              .fn()
-              .mockResolvedValue([new FacilityAccessDTO()]),
             refreshLastActivity: jest.fn(),
             findSessionByUserId: jest.fn(),
+            updateSession: jest.fn(),
           }),
         },
         {
           provide: HttpService,
           useFactory: () => ({
             get: jest.fn(),
+          }),
+        },
+        {
+          provide: PermissionsService,
+          useFactory: () => ({
+            retrieveAllUserRoles: jest.fn().mockResolvedValue(['Preparer']),
+            retrieveAllUserFacilities: jest.fn().mockResolvedValue([]),
           }),
         },
       ],
@@ -130,26 +139,6 @@ describe('Authentication Service', () => {
     });
   });
 
-  describe('getUserRoles', () => {
-    it('should return roles for the user', async () => {
-      client.RetrieveRolesAsync = jest
-        .fn()
-        .mockResolvedValue([{ Role: [{ type: { description: 'Mock' } }] }]);
-      const roles = await service.getUserRoles('', 0, '');
-      expect(roles).toEqual(['Mock']);
-    });
-  });
-
-  describe('getAllUserOrganizations', () => {
-    it('should return organizations for the user', async () => {
-      client.RetrieveOrganizationsAsync = jest
-        .fn()
-        .mockResolvedValue([{ Organization: [{ userOrganizationId: 1 }] }]);
-      const orgs = await service.getAllUserOrganizations('', '');
-      expect(orgs).toEqual([{ userOrganizationId: 1 }]);
-    });
-  });
-
   describe('loginCdx', () => {
     it('should perform a login for a user', async () => {
       client.AuthenticateAsync = jest
@@ -169,7 +158,7 @@ describe('Authentication Service', () => {
   });
 
   describe('signIn', () => {
-    it('should sign in a user with no error', async () => {
+    it('should sign in a user with no errors on a non-expired session', async () => {
       const mockedUser = new UserDTO();
       mockedUser.firstName = 'test';
       jest.spyOn(tokenService, 'bypassEnabled').mockReturnValue(false);
@@ -180,9 +169,39 @@ describe('Authentication Service', () => {
       jest
         .spyOn(service, 'getUserEmail')
         .mockResolvedValue({ userOrgId: 1, email: '' });
-      jest.spyOn(service, 'getUserRoles').mockResolvedValue(['MOCK ROLE']);
+
+      userSessionService.findSessionByUserId = jest
+        .fn()
+        .mockResolvedValue(new UserSession());
+      userSessionService.isSessionTokenExpired = jest
+        .fn()
+        .mockReturnValue(false);
+
       const user = await service.signIn('', '', '');
-      expect(user.firstName).toEqual(mockedUser.firstName);
+      expect(user.roles).toEqual(['Submitter']);
+    });
+
+    it('should sign in a user with no errors on an expired session', async () => {
+      const mockedUser = new UserDTO();
+      mockedUser.firstName = 'test';
+      jest.spyOn(tokenService, 'bypassEnabled').mockReturnValue(false);
+      jest.spyOn(service, 'loginCdx').mockResolvedValue(mockedUser);
+      jest
+        .spyOn(service, 'getStreamlinedRegistrationToken')
+        .mockResolvedValue('');
+      jest
+        .spyOn(service, 'getUserEmail')
+        .mockResolvedValue({ userOrgId: 1, email: '' });
+
+      userSessionService.findSessionByUserId = jest
+        .fn()
+        .mockResolvedValue(undefined);
+      userSessionService.isSessionTokenExpired = jest
+        .fn()
+        .mockReturnValue(false);
+
+      const user = await service.signIn('', '', '');
+      expect(user.roles).toEqual(['Preparer']);
     });
   });
 

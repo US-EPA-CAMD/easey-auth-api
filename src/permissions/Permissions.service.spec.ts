@@ -5,11 +5,23 @@ import { PermissionsService } from './Permissions.service';
 import { HttpService } from '@nestjs/axios';
 import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
+import { SignService } from '../sign/Sign.service';
+import { UserSessionService } from '../user-session/user-session.service';
 
 let responseVals = {
   ['app.env']: 'production',
-  ['app.mockPermissions']: 'pass',
   ['app.contentUri']: 'contentUri',
+  ['app.cdxSvcs']: '',
+  ['app.mockPermissionsEnabled']: true,
+};
+
+jest.mock('soap', () => ({
+  createClientAsync: jest.fn(() => Promise.resolve(client)),
+}));
+
+const client = {
+  RetrieveRolesAsync: jest.fn(),
+  RetrieveOrganizationsAsync: jest.fn(),
 };
 
 jest.mock('rxjs', () => ({
@@ -50,6 +62,18 @@ describe('PermissionsService', () => {
             get: jest.fn(),
           }),
         },
+        {
+          provide: SignService,
+          useFactory: () => ({
+            getRegisterServiceToken: jest.fn().mockResolvedValue(''),
+          }),
+        },
+        {
+          provide: UserSessionService,
+          useFactory: () => ({
+            getUserPermissions: jest.fn().mockResolvedValue([]),
+          }),
+        },
       ],
     }).compile();
 
@@ -58,6 +82,80 @@ describe('PermissionsService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  describe('getUserPermissions', () => {
+    it('should return mocked user permissions', async () => {
+      const permissions = await service.getUserPermissions('', '', '');
+      expect(permissions).toEqual([
+        {
+          userId: 'user',
+          isAdmin: true,
+          facilities: [
+            {
+              id: 1,
+              permissions: ['DSMP', 'DSEM', 'DSQA'],
+            },
+          ],
+        },
+      ]);
+    });
+  });
+
+  describe('getAllUserOrganizations', () => {
+    it('should return organizations for the user', async () => {
+      client.RetrieveOrganizationsAsync = jest
+        .fn()
+        .mockResolvedValue([{ Organization: [{ userOrganizationId: 1 }] }]);
+      const orgs = await service.getAllUserOrganizations('', '');
+      expect(orgs).toEqual([{ userOrganizationId: 1 }]);
+    });
+  });
+
+  describe('getUserRoles', () => {
+    it('should return roles for the user', async () => {
+      client.RetrieveRolesAsync = jest
+        .fn()
+        .mockResolvedValue([{ Role: [{ type: { description: 'Mock' } }] }]);
+      const roles = await service.getUserRoles('', 0, '');
+      expect(roles).toEqual(['Mock']);
+    });
+  });
+
+  describe('getAllUserOrganizations', () => {
+    it('should return organizations for the user', async () => {
+      client.RetrieveOrganizationsAsync = jest
+        .fn()
+        .mockResolvedValue([{ Organization: [{ userOrganizationId: 1 }] }]);
+      const orgs = await service.getAllUserOrganizations('', '');
+      expect(orgs).toEqual([{ userOrganizationId: 1 }]);
+    });
+  });
+
+  describe('retrieveAllUserRoles', () => {
+    it('should return all roles for the user', async () => {
+      jest
+        .spyOn(service, 'getAllUserOrganizations')
+        .mockResolvedValue([{ userOrganizationId: 1 }]);
+      jest.spyOn(service, 'getUserRoles').mockResolvedValue(['DPQA']);
+
+      const roles = await service.retrieveAllUserRoles('');
+      expect(roles).toEqual(['DPQA']);
+    });
+  });
+
+  describe('retrieveAllUserFacilities', () => {
+    it('should return all facilities for the user given mocked data', async () => {
+      jest.spyOn(service, 'getUserPermissions').mockResolvedValue([]);
+
+      const facilities = await service.retrieveAllUserFacilities(
+        '',
+        [],
+        '',
+        '',
+      );
+      expect(facilities).toEqual([]);
+    });
   });
 
   describe('getMockPermissions', () => {
