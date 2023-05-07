@@ -10,6 +10,10 @@ jest.mock('rxjs', () => ({
   firstValueFrom: jest.fn().mockResolvedValue({ data: 'MOCKED' }),
 }));
 
+let responseVals = {
+  ['app.refreshTokenThresholdSeconds']: 60,
+};
+
 describe('User Session Service', () => {
   let service: UserSessionService;
   let mockRepo: UserSessionRepository;
@@ -33,7 +37,14 @@ describe('User Session Service', () => {
             update: jest.fn(),
           }),
         },
-        ConfigService,
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              return responseVals[key];
+            }),
+          },
+        },
       ],
     }).compile();
     mockRepo = module.get(UserSessionRepository);
@@ -117,13 +128,6 @@ describe('User Session Service', () => {
     it('should insert new user session', async () => {
       await service.insertNewUserSession(new UserSession());
       expect(mockRepo.insert).toHaveBeenCalled();
-    });
-  });
-
-  describe('getUserPermissions', () => {
-    it('should return mocked user permissions', async () => {
-      const permissions = await service.getUserPermissions('', '', '');
-      expect(permissions).toEqual('MOCKED');
     });
   });
 

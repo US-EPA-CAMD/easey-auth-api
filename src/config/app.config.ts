@@ -50,7 +50,10 @@ export default registerAs('app', () => ({
   enableSecretToken: getConfigValueBoolean(
     'EASEY_AUTH_API_ENABLE_SECRET_TOKEN',
   ),
-  enableAuthToken: getConfigValueBoolean('EASEY_AUTH_API_ENABLE_AUTH_TOKEN'),
+  enableAuthToken: getConfigValueBoolean(
+    'EASEY_AUTH_API_ENABLE_AUTH_TOKEN',
+    true,
+  ),
   tokenExpirationDurationMinutes: getConfigValueNumber(
     'EASEY_AUTH_API_AUTH_TOKEN_DURATION_MINUTES',
     20,
@@ -96,5 +99,9 @@ export default registerAs('app', () => ({
   mockPermissionsEnabled: getConfigValueBoolean(
     'EASEY_AUTH_API_MOCK_PERMISSIONS_ENABLED',
     true,
+  ),
+  refreshTokenThresholdSeconds: getConfigValueNumber(
+    'EASEY_AUTH_API_REFRESH_TOKEN_THRESHOLD_SECONDS',
+    60,
   ),
 }));
