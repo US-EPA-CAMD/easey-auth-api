@@ -7,9 +7,16 @@ import { UserSessionModule } from '../user-session/user-session.module';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { SignModule } from '../sign/Sign.module';
+import { PermissionsModule } from '../permissions/Permissions.module';
 
 @Module({
-  imports: [HttpModule, TokenModule, UserSessionModule, SignModule],
+  imports: [
+    TokenModule,
+    UserSessionModule,
+    SignModule,
+    PermissionsModule,
+    HttpModule,
+  ],
   controllers: [AuthController],
   providers: [AuthService],
   exports: [AuthService],

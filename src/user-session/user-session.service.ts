@@ -53,30 +53,17 @@ export class UserSessionService {
     }
   }
 
-  async getUserPermissions(
-    clientIp: string,
-    token: string,
-    url: string,
-  ): Promise<FacilityAccessDTO[]> {
-    try {
-      const permissionResult = await firstValueFrom(
-        this.httpService.get(url, {
-          headers: {
-            'x-api-key': this.configService.get<string>('app.apiKey'),
-            'x-forwarded-for': clientIp,
-            Authorization: `Bearer ${token}`,
-          },
-        }),
-      );
+  isSessionTokenExpired(sessionRecord: UserSession): boolean {
+    const currentExpiration = new Date(sessionRecord.tokenExpiration);
+    currentExpiration.setSeconds(
+      currentExpiration.getSeconds() -
+        this.configService.get<number>('app.refreshTokenThresholdSeconds'),
+    ); //TODO: change to config variable
 
-      if (permissionResult.data) {
-        return permissionResult.data;
-      }
-
-      return null;
-    } catch (e) {
-      throw new LoggingException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    if (new Date(dateToEstString()) < currentExpiration) {
+      return false;
     }
+    return true;
   }
 
   async createUserSession(userId: string): Promise<UserSession> {
@@ -102,9 +89,7 @@ export class UserSessionService {
     });
 
     if (sessionRecord) {
-      if (
-        new Date(dateToEstString()) < new Date(sessionRecord.tokenExpiration)
-      ) {
+      if (this.isSessionTokenExpired(sessionRecord) === false) {
         return sessionRecord;
       }
 
@@ -129,6 +114,10 @@ export class UserSessionService {
     }
   }
 
+  async updateSession(session: UserSession) {
+    await this.repository.save(session);
+  }
+
   async findSessionByUserIdAndToken(
     userId: string,
     token: string,
@@ -143,7 +132,7 @@ export class UserSessionService {
     }
 
     throw new LoggingException(
-      'No existing session with that token',
+      'No existing session with that token exists. Please logout, and log back in.',
       HttpStatus.BAD_REQUEST,
       { userId: userId },
     );
