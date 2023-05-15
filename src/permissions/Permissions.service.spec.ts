@@ -13,6 +13,7 @@ let responseVals = {
   ['app.contentUri']: 'contentUri',
   ['app.cdxSvcs']: '',
   ['app.mockPermissionsEnabled']: true,
+  ['app.enableAllFacilities']: true,
 };
 
 jest.mock('soap', () => ({
