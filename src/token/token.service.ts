@@ -35,24 +35,8 @@ export class TokenService {
       token,
     );
 
-    // If we have a valid session unencrypt it and generate a new token from the unencrypted data
-    if (!this.userSessionService.isSessionTokenExpired(session)) {
-      const unencrypted = await this.unencryptToken(token, clientIp);
-      const parsed = parseToken(unencrypted);
-
-      return this.generateToken(
-        userId,
-        session.sessionId,
-        clientIp,
-        parsed.facilities,
-        parsed.roles,
-      );
-    }
-
-    //Otherwise generate a fresh set of facilities and roles and return a new token
     const roles = await this.permissionService.retrieveAllUserRoles(userId);
     const tokenToGenerateFacilitiesList = await this.generateToken(
-      //The first token we generate needed for the cbs permissions api call
       userId,
       session.sessionId,
       clientIp,
@@ -204,6 +188,7 @@ export class TokenService {
       await this.userSessionService.isValidSessionForToken(
         parsed.sessionId,
         token,
+        false,
       )
     ) {
       return parsed;

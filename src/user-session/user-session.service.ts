@@ -53,16 +53,22 @@ export class UserSessionService {
     }
   }
 
-  isSessionTokenExpired(sessionRecord: UserSession): boolean {
+  isSessionTokenExpired(
+    sessionRecord: UserSession,
+    applyThreshold: boolean = true,
+  ): boolean {
     const currentExpiration = new Date(sessionRecord.tokenExpiration);
-    currentExpiration.setSeconds(
-      currentExpiration.getSeconds() -
-        this.configService.get<number>('app.refreshTokenThresholdSeconds'),
-    ); //TODO: change to config variable
+
+    if (applyThreshold) {
+      currentExpiration.setSeconds(
+        currentExpiration.getSeconds() - this.configService.get<number>('app.refreshTokenThresholdSeconds'),
+      );
+    }
 
     if (new Date(dateToEstString()) < currentExpiration) {
       return false;
     }
+
     return true;
   }
 
@@ -82,6 +88,7 @@ export class UserSessionService {
   async isValidSessionForToken(
     sessionId: string,
     token: string,
+    applyThreshold: boolean = true
   ): Promise<UserSession> {
     const sessionRecord = await this.repository.findOne({
       sessionId: sessionId,
@@ -89,7 +96,7 @@ export class UserSessionService {
     });
 
     if (sessionRecord) {
-      if (this.isSessionTokenExpired(sessionRecord) === false) {
+      if (this.isSessionTokenExpired(sessionRecord, applyThreshold) === false) {
         return sessionRecord;
       }
 
@@ -101,7 +108,7 @@ export class UserSessionService {
     }
 
     throw new LoggingException(
-      'No existing session with that token',
+      'No existing session for the provided security token',
       HttpStatus.BAD_REQUEST,
       { sessionId: sessionId },
     );
@@ -132,7 +139,7 @@ export class UserSessionService {
     }
 
     throw new LoggingException(
-      'No existing session with that token exists. Please logout, and log back in.',
+      'Existing session for the provided token does not exist.',
       HttpStatus.BAD_REQUEST,
       { userId: userId },
     );
