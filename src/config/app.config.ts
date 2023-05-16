@@ -28,7 +28,7 @@ export default registerAs('app', () => ({
   port,
   path,
   uri,
-  apiKey: getConfigValue('EASEY_AUTH_API_KEY', true),
+  apiKey: getConfigValue('EASEY_AUTH_API_KEY'),
   title: getConfigValue(
     'EASEY_AUTH_API_TITLE',
     'Authentication & Authorization',
@@ -81,7 +81,7 @@ export default registerAs('app', () => ({
   mockPhoneNumber: getConfigValue('EASEY_AUTH_API_MOCK_PHONE_NUMBER', ''),
   mockPermissionsUrl: getConfigValue(
     'EASEY_AUTH_API_MOCK_PERMISSIONS_URL',
-    'http://localhost:8000/auth-mgmt/permissions',
+    'https://api.epa.gov/easey/dev/auth-mgmt/permissions',
   ),
   permissionsUrl: getConfigValue(
     'EASEY_AUTH_API_PERMISSIONS_URL',
@@ -99,10 +99,14 @@ export default registerAs('app', () => ({
   dataFlow: getConfigValue('EASEY_AUTH_API_DATA_FLOW', 'EASEY'),
   mockPermissionsEnabled: getConfigValueBoolean(
     'EASEY_AUTH_API_MOCK_PERMISSIONS_ENABLED',
-    true,
+    false,
   ),
   refreshTokenThresholdSeconds: getConfigValueNumber(
     'EASEY_AUTH_API_REFRESH_TOKEN_THRESHOLD_SECONDS',
     60,
+  ),
+  enableAllFacilities: getConfigValueBoolean(
+    'EASEY_AUTH_API_ENABLE_ALL_FACILITIES',
+    false,
   ),
 }));

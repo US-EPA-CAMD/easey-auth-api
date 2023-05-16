@@ -133,13 +133,12 @@ export class PermissionsService {
       );
     }
 
+    let permissionsDto = [];
     const mockPermissionObject = await this.getMockPermissionObject();
-
     const userPermissions = mockPermissionObject.filter(
       entry => entry.userId === userId,
     );
 
-    let permissionsDto = [];
     if (
       userPermissions.length > 0 &&
       userPermissions[0].facilities.length > 0
@@ -151,8 +150,8 @@ export class PermissionsService {
         dto.permissions = facility.roles;
         permissionsDto.push(dto);
       }
-    } else {
-      permissionsDto = null;
+    } else if (this.configService.get<boolean>('app.enableAllFacilities')) {
+      return null;
     }
 
     return permissionsDto;
