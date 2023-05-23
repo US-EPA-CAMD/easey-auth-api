@@ -7,10 +7,6 @@ import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 import { UserDTO } from '../dtos/user.dto';
 import { TokenService } from '../token/token.service';
 import { UserSessionService } from '../user-session/user-session.service';
-import {
-  dateToEstString,
-  parseToken,
-} from '@us-epa-camd/easey-common/utilities';
 import { PermissionsService } from '../permissions/Permissions.service';
 
 interface OrgEmailAndId {
@@ -143,25 +139,11 @@ export class AuthService {
 
     // Determine if we have a valid session, if so return the current valid session and parse the user from it
     let session = await this.userSessionService.findSessionByUserId(userId);
-    if (session && !this.userSessionService.isSessionTokenExpired(session)) {
-      session.lastActivity = dateToEstString();
-      session.lastLoginDate = dateToEstString();
-      await this.userSessionService.updateSession(session);
-      const unencrypted = await this.tokenService.unencryptToken(
-        session.securityToken,
-        clientIp,
-      );
-      const parsed = parseToken(unencrypted);
-
-      user.facilities = parsed.facilities;
-      user.roles = parsed.roles;
-      user.token = session.securityToken;
-      user.tokenExpiration = new Date(session.tokenExpiration).toLocaleString();
-      return user;
+    if (session) {
+      await this.userSessionService.removeUserSessionByUserId(userId);
     }
 
     //Otherwise we need to remove the old if one exists session for the user and generate a new one
-    await this.userSessionService.removeUserSessionByUserId(userId);
     session = await this.userSessionService.createUserSession(userId);
     user.roles = await this.permissionService.retrieveAllUserRoles(userId);
     const tokenToGenerateFacilitiesList = await this.tokenService.generateToken(
@@ -170,19 +152,24 @@ export class AuthService {
       session.sessionId,
       clientIp,
       [],
-      [],
     );
-    user.facilities = await this.permissionService.retrieveAllUserFacilities(
+
+    const facilities = await this.permissionService.retrieveAllUserFacilities(
       userId,
       user.roles,
       tokenToGenerateFacilitiesList.token,
       clientIp,
     );
+
+    session.facilities = JSON.stringify(facilities);
+    user.facilities = facilities;
+
+    await this.userSessionService.updateSession(session);
+
     const token = await this.tokenService.generateToken(
       userId,
       session.sessionId,
       clientIp,
-      user.facilities,
       user.roles,
     );
     user.token = token.token;
@@ -195,6 +182,8 @@ export class AuthService {
     const url = `${this.configService.get<string>(
       'app.cdxSvcs',
     )}/RegisterAuthService?wsdl`;
+
+    userId = userId.toLowerCase();
 
     return createClientAsync(url)
       .then(client => {

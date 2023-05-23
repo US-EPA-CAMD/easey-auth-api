@@ -8,3 +8,4 @@ permissionsUrl: https://cbsbeta.epa.gov/CBS/api/auth-mgmt/responsibilities
 dataFlow: EASEY Beta
 mockPermissionsEnabled: true
 enableAllFacilities: false
+contentApi: https://api.epa.gov/easey/beta/content-mgmt
