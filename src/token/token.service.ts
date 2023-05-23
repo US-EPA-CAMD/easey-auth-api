@@ -185,9 +185,6 @@ export class TokenService {
       token,
     );
 
-    console.log('SESSION');
-    console.log(session.facilities);
-
     user.facilities = JSON.parse(session.facilities);
 
     await this.validateClientIp(user, clientIp);
