@@ -2,15 +2,14 @@ import { createClientAsync } from 'soap';
 import { encode, decode } from 'js-base64';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { parseToken } from '@us-epa-camd/easey-common/utilities';
 import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 
 import { UserSessionService } from '../user-session/user-session.service';
 import { UserSession } from '../entities/user-session.entity';
 import { TokenDTO } from '../dtos/token.dto';
-import { FacilityAccessDTO } from 'src/dtos/permissions.dto';
 import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
 import { PermissionsService } from '../permissions/Permissions.service';
+import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
 
 @Injectable()
 export class TokenService {
@@ -36,26 +35,8 @@ export class TokenService {
     );
 
     const roles = await this.permissionService.retrieveAllUserRoles(userId);
-    const tokenToGenerateFacilitiesList = await this.generateToken(
-      userId,
-      session.sessionId,
-      clientIp,
-      [],
-      [],
-    );
-    const facilities = await this.permissionService.retrieveAllUserFacilities(
-      userId,
-      roles,
-      tokenToGenerateFacilitiesList.token,
-      clientIp,
-    );
-    return this.generateToken(
-      userId,
-      session.sessionId,
-      clientIp,
-      facilities,
-      roles,
-    );
+
+    return this.generateToken(userId, session.sessionId, clientIp, roles);
   }
 
   async getTokenFromCDX(
@@ -63,7 +44,6 @@ export class TokenService {
     sessionId: string,
     clientIp: string,
     expiration: string,
-    permissions: FacilityAccessDTO[],
     roles: string[],
   ): Promise<string> {
     return createClientAsync(this.configService.get<string>('app.naasSvcs'))
@@ -76,9 +56,9 @@ export class TokenService {
           issuer: this.configService.get<string>('app.naasAppId'),
           authMethod: 'password',
           subject: userId,
-          subjectData: `userId=${userId}&sessionId=${sessionId}&expiration=${expiration}&clientIp=${clientIp}&facilities=${JSON.stringify(
-            permissions,
-          )}&roles=${JSON.stringify(roles)}`,
+          subjectData: `userId=${userId}&sessionId=${sessionId}&expiration=${expiration}&clientIp=${clientIp}&roles=${JSON.stringify(
+            roles,
+          )}`,
           ip: clientIp,
         });
       })
@@ -98,7 +78,6 @@ export class TokenService {
     userId: string,
     sessionId: string,
     clientIp: string,
-    permissions: FacilityAccessDTO[],
     roles: string[],
   ): Promise<TokenDTO> {
     let token: string;
@@ -110,9 +89,9 @@ export class TokenService {
 
     if (this.bypassEnabled()) {
       token = encode(
-        `userId=${userId}&sessionId=${sessionId}&expiration=${expiration}&clientIp=${clientIp}&facilities=${JSON.stringify(
-          permissions,
-        )}&roles=${JSON.stringify(roles)}`,
+        `userId=${userId}&sessionId=${sessionId}&expiration=${expiration}&clientIp=${clientIp}&roles=${JSON.stringify(
+          roles,
+        )}`,
       );
     } else {
       token = await this.getTokenFromCDX(
@@ -120,7 +99,6 @@ export class TokenService {
         sessionId,
         clientIp,
         expiration,
-        permissions,
         roles,
       );
     }
@@ -168,30 +146,60 @@ export class TokenService {
       });
   }
 
-  async validateClientIp(parsedToken: any, clientIp: string) {
-    if (parsedToken.clientIp !== clientIp) {
+  async validateClientIp(user: CurrentUser, clientIp: string) {
+    if (user.clientIp !== clientIp) {
       throw new LoggingException(
         'Request coming from invalid IP address',
         HttpStatus.BAD_REQUEST,
-        { userId: parsedToken.userId, clientIp: clientIp },
+        { userId: user.userId, clientIp: clientIp },
       );
     }
   }
 
   async validateToken(token: string, clientIp: string): Promise<any> {
-    const unencryptedToken = await this.unencryptToken(token, clientIp);
-    const parsed = parseToken(unencryptedToken);
+    const user: CurrentUser = {
+      userId: null,
+      sessionId: null,
+      expiration: null,
+      clientIp: null,
+      facilities: [],
+      roles: [],
+    };
 
-    await this.validateClientIp(parsed, clientIp);
+    const unencryptedToken = await this.unencryptToken(token, clientIp);
+    const arr = unencryptedToken.split('&');
+    arr.forEach(element => {
+      const keyValue = element.split('=');
+
+      if (keyValue[0] === 'roles') {
+        const roles = JSON.parse(keyValue[1]);
+        user.roles = roles;
+      } else {
+        user[keyValue[0]] = keyValue[1];
+      }
+    });
+
+    // Look up facilities based on userId and token
+    const session = await this.userSessionService.findSessionByUserIdAndToken(
+      user.userId,
+      token,
+    );
+
+    console.log('SESSION');
+    console.log(session.facilities);
+
+    user.facilities = JSON.parse(session.facilities);
+
+    await this.validateClientIp(user, clientIp);
 
     if (
       await this.userSessionService.isValidSessionForToken(
-        parsed.sessionId,
+        user.sessionId,
         token,
         false,
       )
     ) {
-      return parsed;
+      return user;
     }
 
     return false;

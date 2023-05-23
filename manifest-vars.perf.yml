@@ -8,3 +8,4 @@ permissionsUrl: https://cbsstagei.epa.gov/CBS/api/auth-mgmt/responsibilities
 dataFlow: EASEY Performance
 mockPermissionsEnabled: true
 enableAllFacilities: true
+contentApi: https://api.epa.gov/easey/perf/content-mgmt

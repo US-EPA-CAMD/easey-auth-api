@@ -43,9 +43,6 @@ const client = {
 };
 
 jest.mock('@us-epa-camd/easey-common/utilities', () => ({
-  parseToken: jest
-    .fn()
-    .mockReturnValue({ clientIp: '1', facilities: [], roles: ['Submitter'] }),
   dateToEstString: jest.fn().mockReturnValue(new Date().toLocaleString()),
 }));
 
@@ -178,7 +175,7 @@ describe('Authentication Service', () => {
         .mockReturnValue(false);
 
       const user = await service.signIn('', '', '');
-      expect(user.roles).toEqual(['Submitter']);
+      expect(user.roles).toEqual(['Preparer']);
     });
 
     it('should sign in a user with no errors on an expired session', async () => {

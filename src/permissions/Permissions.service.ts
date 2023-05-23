@@ -113,11 +113,11 @@ export class PermissionsService {
       ) {
         url = `${this.configService.get<string>(
           'app.mockPermissionsUrl',
-        )}?userId=${userId}`;
+        )}?userId=${userId.toLowerCase()}`;
       } else {
         url = `${this.configService.get<string>(
           'app.permissionsUrl',
-        )}?userId=${userId}`;
+        )}?userId=${userId.toLowerCase()}`;
       }
       return await this.getUserPermissions(clientIp, token, url);
     } else {
@@ -136,7 +136,7 @@ export class PermissionsService {
     let permissionsDto = [];
     const mockPermissionObject = await this.getMockPermissionObject();
     const userPermissions = mockPermissionObject.filter(
-      entry => entry.userId === userId,
+      entry => entry.userId.toLowerCase() === userId.toLowerCase(),
     );
 
     if (
