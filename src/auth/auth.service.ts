@@ -98,6 +98,8 @@ export class AuthService {
   ): Promise<UserDTO> {
     let user: UserDTO;
     let org: OrgEmailAndId;
+    userId = userId.toLowerCase();
+
     if (this.tokenService.bypassEnabled()) {
       //Handle bypass sign in if enabled
       const acceptedUsers = JSON.parse(
@@ -182,8 +184,6 @@ export class AuthService {
     const url = `${this.configService.get<string>(
       'app.cdxSvcs',
     )}/RegisterAuthService?wsdl`;
-
-    userId = userId.toLowerCase();
 
     return createClientAsync(url)
       .then(client => {
