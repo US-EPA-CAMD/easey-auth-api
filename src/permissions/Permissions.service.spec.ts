@@ -115,9 +115,11 @@ describe('PermissionsService', () => {
 
   describe('getUserRoles', () => {
     it('should return roles for the user', async () => {
-      client.RetrieveRolesAsync = jest
-        .fn()
-        .mockResolvedValue([{ Role: [{ type: { description: 'Mock' } }] }]);
+      client.RetrieveRolesAsync = jest.fn().mockResolvedValue([
+        {
+          Role: [{ status: { code: 'Active' }, type: { description: 'Mock' } }],
+        },
+      ]);
       const roles = await service.getUserRoles('', 0, '');
       expect(roles).toEqual(['Mock']);
     });
