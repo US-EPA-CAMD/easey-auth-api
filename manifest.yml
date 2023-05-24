@@ -25,6 +25,7 @@ applications:
       EASEY_CDX_SERVICES: ((cdxSvcs))
       EASEY_NAAS_SERVICES: ((naasSvcs))
       EASEY_API_GATEWAY_HOST: ((apiHost))
+      EASEY_AUTH_CONTENT_API: https://((apiHost))/content-mgmt
       EASEY_AUTH_API_MOCK_PERMISSIONS_URL: https://((apiHost))/auth-mgmt/permissions
       EASEY_AUTH_API_PERMISSIONS_URL: ((permissionsUrl))
       EASEY_AUTH_API_SPONSOR_ROLE: Sponsor

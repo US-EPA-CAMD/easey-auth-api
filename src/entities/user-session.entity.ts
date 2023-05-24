@@ -11,6 +11,9 @@ export class UserSession extends BaseEntity {
   @Column({ name: 'security_token' })
   securityToken: string;
 
+  @Column({ name: 'facilities' })
+  facilities: string;
+
   @Column({ name: 'token_expiration' })
   tokenExpiration: string;
 
