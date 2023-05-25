@@ -36,6 +36,7 @@ applications:
       EASEY_AUTH_API_MOCK_PERMISSIONS_ENABLED: ((mockPermissionsEnabled))
       EASEY_AUTH_API_DATA_FLOW: ((dataFlow))
       EASEY_AUTH_API_ENABLE_ALL_FACILITIES: ((enableAllFacilities))
+      TZ: America/New_York
     routes:
       - route: ((host))/((path))
     services:
