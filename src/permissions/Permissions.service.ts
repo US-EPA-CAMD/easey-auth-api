@@ -32,8 +32,18 @@ export class PermissionsService {
         });
       })
       .then(res => {
-        if (res[0].Role.length > 0) {
-          return res[0].Role.map(r => r.type.description);
+        if (
+          res &&
+          res.length > 0 &&
+          res[0] !== null &&
+          res[0]['Role'] &&
+          res[0].Role.length > 0
+        ) {
+          const activeRoles = res[0].Role.filter(
+            o => o.status.code === 'Active',
+          );
+
+          return activeRoles.map(r => r.type.description);
         }
         return [];
       })
