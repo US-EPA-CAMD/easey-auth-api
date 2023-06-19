@@ -2,7 +2,6 @@ import { v4 as uuid } from 'uuid';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 
 import { UserSession } from '../entities/user-session.entity';
 import { UserSessionRepository } from '../user-session/user-session.repository';
@@ -12,6 +11,7 @@ import { firstValueFrom } from 'rxjs';
 import { getManager } from 'typeorm';
 import { UserCheckOut } from '../entities/user-check-out.entity';
 import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
+import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 
 @Injectable()
 export class UserSessionService {
@@ -32,8 +32,8 @@ export class UserSessionService {
     });
 
     if (!sessionRecord) {
-      throw new LoggingException(
-        'No session record exists for given token',
+      throw new EaseyException(
+        new Error('No session record exists for given token'),
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -61,7 +61,8 @@ export class UserSessionService {
 
     if (applyThreshold) {
       currentExpiration.setSeconds(
-        currentExpiration.getSeconds() - this.configService.get<number>('app.refreshTokenThresholdSeconds'),
+        currentExpiration.getSeconds() -
+          this.configService.get<number>('app.refreshTokenThresholdSeconds'),
       );
     }
 
@@ -88,7 +89,7 @@ export class UserSessionService {
   async isValidSessionForToken(
     sessionId: string,
     token: string,
-    applyThreshold: boolean = true
+    applyThreshold: boolean = true,
   ): Promise<UserSession> {
     const sessionRecord = await this.repository.findOne({
       sessionId: sessionId,
@@ -100,15 +101,15 @@ export class UserSessionService {
         return sessionRecord;
       }
 
-      throw new LoggingException(
-        'Session associated with token has expired',
+      throw new EaseyException(
+        new Error('Session associated with token has expired'),
         HttpStatus.BAD_REQUEST,
         { sessionId: sessionId },
       );
     }
 
-    throw new LoggingException(
-      'No existing session for the provided security token',
+    throw new EaseyException(
+      new Error('No existing session for the provided security token'),
       HttpStatus.BAD_REQUEST,
       { sessionId: sessionId },
     );
@@ -138,8 +139,8 @@ export class UserSessionService {
       return session;
     }
 
-    throw new LoggingException(
-      'Existing session for the provided token does not exist.',
+    throw new EaseyException(
+      new Error('Existing session for the provided token does not exist.'),
       HttpStatus.BAD_REQUEST,
       { userId: userId },
     );

@@ -3,10 +3,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { PermissionsService } from './Permissions.service';
 import { HttpService } from '@nestjs/axios';
-import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
 import { SignService } from '../sign/Sign.service';
 import { UserSessionService } from '../user-session/user-session.service';
+import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 
 let responseVals = {
   ['app.env']: 'production',
@@ -164,7 +164,7 @@ describe('PermissionsService', () => {
   describe('getMockPermissions', () => {
     it('should error in production', async () => {
       await expect(service.getMockPermissions('')).rejects.toThrowError(
-        LoggingException,
+        EaseyException,
       );
     });
     it('should parse user env var and build the permissions properly given a found user', async () => {

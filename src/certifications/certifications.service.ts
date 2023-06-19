@@ -5,7 +5,7 @@ import { CertificationFacilitiesDTO } from '../dtos/cert-facilities.dto';
 import { getManager } from 'typeorm';
 import { CertificationStatementRepository } from './certifications.repository';
 import { CertificationStatementDTO } from '../dtos/certification-statement.dto';
-import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
+import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 
 @Injectable()
 export class CertificationsService {
@@ -68,7 +68,7 @@ export class CertificationsService {
       }
     } catch (e) {
       console.log(e);
-      throw new LoggingException(e, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new EaseyException(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     return certList;
