@@ -1,12 +1,12 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { createClientAsync } from 'soap';
 import { CertificationVerifyParamDTO } from '../dtos/certification-verify-param.dto';
 import { CredentialsSignDTO } from '../dtos/certification-sign-param.dto';
 import { SignAuthResponseDTO } from '../dtos/sign-auth-response.dto';
 import { SendPhonePinParamDTO } from '../dtos/send-phone-pin-param.dto';
+import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 
 interface Question {
   questionId: string;
@@ -37,10 +37,13 @@ export class SignService {
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          throw new LoggingException(err.root.Envelope, HttpStatus.BAD_REQUEST);
+          throw new EaseyException(
+            new Error(JSON.stringify(err.root.Envelope)),
+            HttpStatus.BAD_REQUEST,
+          );
         }
 
-        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
+        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
       });
   }
 
@@ -65,10 +68,13 @@ export class SignService {
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          throw new LoggingException(err.root.Envelope, HttpStatus.BAD_REQUEST);
+          throw new EaseyException(
+            new Error(JSON.stringify(err.root.Envelope)),
+            HttpStatus.BAD_REQUEST,
+          );
         }
 
-        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
+        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
       });
   }
 
@@ -89,10 +95,13 @@ export class SignService {
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          throw new LoggingException(err.root.Envelope, HttpStatus.BAD_REQUEST);
+          throw new EaseyException(
+            new Error(JSON.stringify(err.root.Envelope)),
+            HttpStatus.BAD_REQUEST,
+          );
         }
 
-        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
+        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
       });
   }
 
@@ -118,10 +127,13 @@ export class SignService {
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          throw new LoggingException(err.root.Envelope, HttpStatus.BAD_REQUEST);
+          throw new EaseyException(
+            new Error(JSON.stringify(err.root.Envelope)),
+            HttpStatus.BAD_REQUEST,
+          );
         }
 
-        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
+        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
       });
   }
 
@@ -152,10 +164,13 @@ export class SignService {
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          throw new LoggingException(err.root.Envelope, HttpStatus.BAD_REQUEST);
+          throw new EaseyException(
+            new Error(JSON.stringify(err.root.Envelope)),
+            HttpStatus.BAD_REQUEST,
+          );
         }
 
-        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
+        throw new EaseyException(new Error(err), HttpStatus.BAD_REQUEST);
       });
   }
 
@@ -179,16 +194,17 @@ export class SignService {
         });
       })
       .then(res => {
-        this.logger.info('Authenticated sign authentication for user', {
-          userId: userId,
-        });
+        this.logger.log('Authenticated sign authentication for user');
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          throw new LoggingException(err.root.Envelope, HttpStatus.BAD_REQUEST);
+          throw new EaseyException(
+            new Error(JSON.stringify(err.root.Envelope)),
+            HttpStatus.BAD_REQUEST,
+          );
         }
 
-        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
+        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
       });
   }
 
@@ -217,10 +233,13 @@ export class SignService {
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          throw new LoggingException(err.root.Envelope, HttpStatus.BAD_REQUEST);
+          throw new EaseyException(
+            new Error(JSON.stringify(err.root.Envelope)),
+            HttpStatus.BAD_REQUEST,
+          );
         }
 
-        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
+        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
       });
   }
 
@@ -250,10 +269,13 @@ export class SignService {
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          throw new LoggingException(err.root.Envelope, HttpStatus.BAD_REQUEST);
+          throw new EaseyException(
+            new Error(JSON.stringify(err.root.Envelope)),
+            HttpStatus.BAD_REQUEST,
+          );
         }
 
-        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
+        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
       });
   }
 
@@ -281,10 +303,13 @@ export class SignService {
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          throw new LoggingException(err.root.Envelope, HttpStatus.BAD_REQUEST);
+          throw new EaseyException(
+            new Error(JSON.stringify(err.root.Envelope)),
+            HttpStatus.BAD_REQUEST,
+          );
         }
 
-        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
+        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
       });
   }
 

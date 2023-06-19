@@ -2,12 +2,12 @@ import { createClientAsync } from 'soap';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@us-epa-camd/easey-common/logger';
-import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 
 import { UserDTO } from '../dtos/user.dto';
 import { TokenService } from '../token/token.service';
 import { UserSessionService } from '../user-session/user-session.service';
 import { PermissionsService } from '../permissions/Permissions.service';
+import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 
 interface OrgEmailAndId {
   email: string;
@@ -41,14 +41,14 @@ export class AuthService {
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          throw new LoggingException(
-            err.root.Envelope,
+          throw new EaseyException(
+            new Error(JSON.stringify(err.root.Envelope)),
             HttpStatus.BAD_REQUEST,
             { userId: userId },
           );
         }
 
-        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST, {
+        throw new EaseyException(new Error(err), HttpStatus.BAD_REQUEST, {
           userId: userId,
         });
       });
@@ -78,14 +78,14 @@ export class AuthService {
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          throw new LoggingException(
-            err.root.Envelope,
+          throw new EaseyException(
+            new Error(JSON.stringify(err.root.Envelope)),
             HttpStatus.BAD_REQUEST,
             { userId: userId },
           );
         }
 
-        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST, {
+        throw new EaseyException(err, HttpStatus.BAD_REQUEST, {
           userId: userId,
         });
       });
@@ -108,8 +108,8 @@ export class AuthService {
       const currentPass = this.configService.get<string>('cdxBypass.pass');
 
       if (!acceptedUsers.find(x => x === userId)) {
-        throw new LoggingException(
-          'Incorrect Bypass userId',
+        throw new EaseyException(
+          new Error('Incorrect Bypass userId'),
           HttpStatus.BAD_REQUEST,
         );
       }
@@ -127,8 +127,8 @@ export class AuthService {
           this.configService.get<string>('app.adminRole'),
         ];
       } else {
-        throw new LoggingException(
-          'Incorrect Bypass password',
+        throw new EaseyException(
+          new Error('Incorrect Bypass password'),
           HttpStatus.BAD_REQUEST,
         );
       }
@@ -193,7 +193,7 @@ export class AuthService {
         });
       })
       .then(res => {
-        this.logger.info('User successfully signed in', { userId: userId });
+        this.logger.log('User successfully signed in', { userId: userId });
         const user = res[0].User;
         dto = new UserDTO();
         dto.userId = userId;
@@ -203,8 +203,8 @@ export class AuthService {
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          throw new LoggingException(
-            'Error authenticating user',
+          throw new EaseyException(
+            new Error('Error authenticating user'),
             HttpStatus.BAD_REQUEST,
             {
               userId: userId,
@@ -212,7 +212,7 @@ export class AuthService {
           );
         }
 
-        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST, {
+        throw new EaseyException(err, HttpStatus.BAD_REQUEST, {
           userId: userId,
         });
       });
