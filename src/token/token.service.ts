@@ -2,7 +2,6 @@ import { createClientAsync } from 'soap';
 import { encode, decode } from 'js-base64';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 
 import { UserSessionService } from '../user-session/user-session.service';
 import { UserSession } from '../entities/user-session.entity';
@@ -10,6 +9,7 @@ import { TokenDTO } from '../dtos/token.dto';
 import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
 import { PermissionsService } from '../permissions/Permissions.service';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
+import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 
 @Injectable()
 export class TokenService {
@@ -66,8 +66,8 @@ export class TokenService {
         return res[0].return;
       })
       .catch(err => {
-        throw new LoggingException(
-          err.root.Envelope.Body.Fault.detail.faultdetails,
+        throw new EaseyException(
+          new Error(err.root.Envelope.Body.Fault.detail.faultdetails),
           HttpStatus.INTERNAL_SERVER_ERROR,
           { userId: userId },
         );
@@ -138,8 +138,8 @@ export class TokenService {
         return res[0].return;
       })
       .catch(err => {
-        throw new LoggingException(
-          err.root.Envelope.Body.Fault.detail.faultdetails,
+        throw new EaseyException(
+          new Error(err.root.Envelope.Body.Fault.detail.faultdetails),
           HttpStatus.INTERNAL_SERVER_ERROR,
           { token: token, clientIp: clientIp },
         );
@@ -148,8 +148,8 @@ export class TokenService {
 
   async validateClientIp(user: CurrentUser, clientIp: string) {
     if (user.clientIp !== clientIp) {
-      throw new LoggingException(
-        'Request coming from invalid IP address',
+      throw new EaseyException(
+        new Error('Request coming from invalid IP address'),
         HttpStatus.BAD_REQUEST,
         { userId: user.userId, clientIp: clientIp },
       );

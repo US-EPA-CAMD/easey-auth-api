@@ -2,12 +2,12 @@ import { MockPermissionObject } from './../interfaces/mock-permissions.interface
 import { HttpService } from '@nestjs/axios';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 import { FacilityAccessDTO } from '../dtos/permissions.dto';
 import { firstValueFrom } from 'rxjs';
 import { createClientAsync } from 'soap';
 import { SignService } from '../sign/Sign.service';
 import { UserSessionService } from '../user-session/user-session.service';
+import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 
 @Injectable()
 export class PermissionsService {
@@ -39,16 +39,23 @@ export class PermissionsService {
           res[0]['Role'] &&
           res[0].Role.length > 0
         ) {
-          return res[0].Role.map(r => r.type.description);
+          const activeRoles = res[0].Role.filter(
+            o => o.status.code === 'Active',
+          );
+
+          return activeRoles.map(r => r.type.description);
         }
         return [];
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          throw new LoggingException(err.root.Envelope, HttpStatus.BAD_REQUEST);
+          throw new EaseyException(
+            new Error(JSON.stringify(err.root.Envelope)),
+            HttpStatus.BAD_REQUEST,
+          );
         }
 
-        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
+        throw new EaseyException(new Error(err), HttpStatus.BAD_REQUEST);
       });
   }
 
@@ -69,10 +76,13 @@ export class PermissionsService {
       })
       .catch(err => {
         if (err.root && err.root.Envelope) {
-          throw new LoggingException(err.root.Envelope, HttpStatus.BAD_REQUEST);
+          throw new EaseyException(
+            new Error(JSON.stringify(err.root.Envelope)),
+            HttpStatus.BAD_REQUEST,
+          );
         }
 
-        throw new LoggingException(err.message, HttpStatus.BAD_REQUEST);
+        throw new EaseyException(new Error(err), HttpStatus.BAD_REQUEST);
       });
   }
 
@@ -133,8 +143,8 @@ export class PermissionsService {
 
   async getMockPermissions(userId: string): Promise<FacilityAccessDTO[]> {
     if (this.configService.get<string>('app.env') === 'production') {
-      throw new LoggingException(
-        'Mocking permissions in production is not allowed!',
+      throw new EaseyException(
+        new Error('Mocking permissions in production is not allowed!'),
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -185,7 +195,7 @@ export class PermissionsService {
 
       return null;
     } catch (e) {
-      throw new LoggingException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new EaseyException(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -198,7 +208,7 @@ export class PermissionsService {
       );
       return mockPermissionResult.data;
     } catch (e) {
-      throw new LoggingException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new EaseyException(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
