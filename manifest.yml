@@ -41,3 +41,4 @@ applications:
       - route: ((host))/((path))
     services:
       - camd-pg-db
+      - log-drain
