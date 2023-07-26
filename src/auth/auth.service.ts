@@ -202,17 +202,21 @@ export class AuthService {
         return dto;
       })
       .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error('Error authenticating user'),
-            HttpStatus.BAD_REQUEST,
-            {
-              userId: userId,
-            },
-          );
+        const innerError =
+          err.root?.Envelope?.Body?.Fault?.detail?.RegisterAuthFault;
+
+        if (innerError) {
+          let responseMessage = 'Invalid username or password.';
+          if (innerError.errorCode['$value'] !== 'E_WrongIdPassword') {
+            responseMessage = innerError.description;
+          }
+
+          throw new EaseyException(err, HttpStatus.BAD_REQUEST, {
+            responseObject: responseMessage,
+          });
         }
 
-        throw new EaseyException(err, HttpStatus.BAD_REQUEST, {
+        throw new EaseyException(err, HttpStatus.INTERNAL_SERVER_ERROR, {
           userId: userId,
         });
       });
