@@ -137,17 +137,17 @@ export class AuthService {
       user = await this.loginCdx(userId, password);
       org = await this.getUserEmail(userId);
       user.email = org.email;
+      user.roles = await this.permissionService.retrieveAllUserRoles(userId);
     }
 
-    // Determine if we have a valid session, if so return the current valid session and parse the user from it
+    // Determine if we have a valid session, if so return the current valid session
     let session = await this.userSessionService.findSessionByUserId(userId);
     if (session) {
       await this.userSessionService.removeUserSessionByUserId(userId);
     }
-
-    //Otherwise we need to remove the old if one exists session for the user and generate a new one
+    //Generate a new one
     session = await this.userSessionService.createUserSession(userId);
-    user.roles = await this.permissionService.retrieveAllUserRoles(userId);
+
     const tokenToGenerateFacilitiesList = await this.tokenService.generateToken(
       //The first token we generate needed for the cbs permissions api call
       userId,
@@ -202,17 +202,21 @@ export class AuthService {
         return dto;
       })
       .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error('Error authenticating user'),
-            HttpStatus.BAD_REQUEST,
-            {
-              userId: userId,
-            },
-          );
+        const innerError =
+          err.root?.Envelope?.Body?.Fault?.detail?.RegisterAuthFault;
+
+        if (innerError) {
+          let responseMessage = 'Invalid username or password.';
+          if (innerError.errorCode['$value'] !== 'E_WrongIdPassword') {
+            responseMessage = innerError.description;
+          }
+
+          throw new EaseyException(err, HttpStatus.BAD_REQUEST, {
+            responseObject: responseMessage,
+          });
         }
 
-        throw new EaseyException(err, HttpStatus.BAD_REQUEST, {
+        throw new EaseyException(err, HttpStatus.INTERNAL_SERVER_ERROR, {
           userId: userId,
         });
       });
