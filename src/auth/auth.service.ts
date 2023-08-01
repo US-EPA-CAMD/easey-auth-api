@@ -137,17 +137,17 @@ export class AuthService {
       user = await this.loginCdx(userId, password);
       org = await this.getUserEmail(userId);
       user.email = org.email;
+      user.roles = await this.permissionService.retrieveAllUserRoles(userId);
     }
 
-    // Determine if we have a valid session, if so return the current valid session and parse the user from it
+    // Determine if we have a valid session, if so return the current valid session
     let session = await this.userSessionService.findSessionByUserId(userId);
     if (session) {
       await this.userSessionService.removeUserSessionByUserId(userId);
     }
-
-    //Otherwise we need to remove the old if one exists session for the user and generate a new one
+    //Generate a new one
     session = await this.userSessionService.createUserSession(userId);
-    user.roles = await this.permissionService.retrieveAllUserRoles(userId);
+
     const tokenToGenerateFacilitiesList = await this.tokenService.generateToken(
       //The first token we generate needed for the cbs permissions api call
       userId,
