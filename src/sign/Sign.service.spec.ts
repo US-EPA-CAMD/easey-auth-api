@@ -19,6 +19,7 @@ const client = {
   RetrieveUserMobileAsync: jest.fn().mockResolvedValue([{ return: [] }]),
   GenerateAndSendSecretCodeAsync: jest.fn(),
   ValidateSecretCodeAsync: jest.fn(),
+  SignAsync: jest.fn(),
 };
 
 jest.mock('soap', () => ({
@@ -63,5 +64,13 @@ describe('SignService', () => {
     payload.pin = 'mock';
     await service.validate(payload);
     expect(mockFunc).toHaveBeenCalled();
+  });
+
+  it('should sign all files successfully', async () => {
+    jest.spyOn(service, 'signFile').mockResolvedValue();
+
+    expect(async () => {
+      await service.signAllFiles('', []);
+    }).not.toThrowError();
   });
 });

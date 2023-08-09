@@ -137,6 +137,44 @@ export class SignService {
       });
   }
 
+  async signFile(
+    token: string,
+    activityId: string,
+    file: Express.Multer.File,
+  ): Promise<void> {
+    const url = `${this.configService.get<string>(
+      'app.cdxSvcs',
+    )}/RegisterSignService?wsdl`;
+
+    try {
+      this.logger.log(`Signing ${file.originalname}...`);
+      const client = await createClientAsync(url);
+
+      await client.SignAsync({
+        securityToken: token,
+        activityId: activityId,
+        signatureDocument: {
+          Name: file.originalname,
+          Format: 'BIN',
+          Content: {
+            $value: file.buffer.toString('base64'),
+            $type: 'base64Binary',
+          },
+        },
+      });
+      this.logger.log(`Successfully signed: ${file.originalname}`);
+    } catch (error) {
+      throw new EaseyException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async signAllFiles(activityId: string, files: Array<Express.Multer.File>) {
+    const token = await this.getSignServiceToken();
+    for (const file of files) {
+      await this.signFile(token, activityId, file);
+    }
+  }
+
   async getActivityId(
     token: string,
     userId: string,
