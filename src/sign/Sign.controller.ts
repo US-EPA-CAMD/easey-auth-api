@@ -1,10 +1,25 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { ApiTags, ApiOkResponse, ApiSecurity } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Post,
+  UploadedFiles,
+  UseInterceptors,
+} from '@nestjs/common';
+
+import {
+  ApiTags,
+  ApiOkResponse,
+  ApiSecurity,
+  ApiConsumes,
+  ApiBody,
+  ApiOperation,
+} from '@nestjs/swagger';
 import { SignAuthResponseDTO } from '../dtos/sign-auth-response.dto';
 import { SignService } from './Sign.service';
 import { CredentialsSignDTO } from '../dtos/certification-sign-param.dto';
 import { CertificationVerifyParamDTO } from '../dtos/certification-verify-param.dto';
 import { SendPhonePinParamDTO } from '../dtos/send-phone-pin-param.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -39,5 +54,38 @@ export class SignController {
   })
   validate(@Body() payload: CertificationVerifyParamDTO): Promise<boolean> {
     return this.service.validate(payload);
+  }
+
+  @Post()
+  @ApiOkResponse({
+    description: 'Signs a document and binds it to an activityId',
+  })
+  @UseInterceptors(FilesInterceptor('files'))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload a file' })
+  @ApiBody({
+    description: 'Multiple files and activityId to upload',
+    type: 'multipart/form-data',
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+        activityId: {
+          type: 'string',
+        },
+      },
+    },
+  })
+  async sign(
+    @Body('activityId') activityId: string,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ): Promise<void> {
+    await this.service.signAllFiles(activityId, files);
   }
 }
