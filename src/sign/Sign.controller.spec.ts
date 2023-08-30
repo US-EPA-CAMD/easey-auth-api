@@ -11,6 +11,8 @@ const mockService = () => ({
   authenticate: jest.fn(),
 });
 
+jest.mock('./Sign.service');
+
 describe('SignController', () => {
   let controller: SignController;
   let service: SignService;
@@ -58,6 +60,15 @@ describe('SignController', () => {
     service.sendPhoneVerificationCode = mockFunction;
 
     await controller.sendMobileCode(new SendPhonePinParamDTO());
+
+    expect(mockFunction).toHaveBeenCalled();
+  });
+
+  it('should call the validate service method', async () => {
+    const mockFunction = jest.fn();
+    service.signAllFiles = mockFunction;
+
+    await controller.sign('', []);
 
     expect(mockFunction).toHaveBeenCalled();
   });
