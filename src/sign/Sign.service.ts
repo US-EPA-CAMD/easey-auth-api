@@ -370,6 +370,7 @@ export class SignService {
       credentials.password,
     );
 
+    /*
     let numbers;
     const mockNumber = this.configService.get<string>('app.mockPhoneNumber');
 
@@ -381,6 +382,7 @@ export class SignService {
         credentials.userId,
       );
     }
+    */
 
     const question = await this.getQuestion(
       token,
@@ -392,7 +394,7 @@ export class SignService {
     dto.activityId = activityId;
     dto.question = question.text;
     dto.questionId = question.questionId;
-    dto.mobileNumbers = numbers;
+    dto.mobileNumbers = [];
 
     return dto;
   }
