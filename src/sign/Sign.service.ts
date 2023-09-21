@@ -355,7 +355,6 @@ export class SignService {
     credentials: CredentialsSignDTO,
   ): Promise<SignAuthResponseDTO> {
     const token = await this.getSignServiceToken();
-    const registerToken = await this.getRegisterServiceToken();
 
     const activityId = await this.getActivityId(
       token,
@@ -370,18 +369,6 @@ export class SignService {
       credentials.password,
     );
 
-    let numbers;
-    const mockNumber = this.configService.get<string>('app.mockPhoneNumber');
-
-    if (mockNumber && mockNumber !== '') {
-      numbers = [mockNumber];
-    } else {
-      numbers = await this.getUserMobileNumbers(
-        registerToken,
-        credentials.userId,
-      );
-    }
-
     const question = await this.getQuestion(
       token,
       activityId,
@@ -392,7 +379,7 @@ export class SignService {
     dto.activityId = activityId;
     dto.question = question.text;
     dto.questionId = question.questionId;
-    dto.mobileNumbers = numbers;
+    dto.mobileNumbers = [];
 
     return dto;
   }
