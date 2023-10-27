@@ -235,14 +235,23 @@ export class SignService {
         this.logger.log('Authenticated sign authentication for user');
       })
       .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error(JSON.stringify(err.root.Envelope)),
-            HttpStatus.BAD_REQUEST,
-          );
+        const innerError =
+          err.root?.Envelope?.Body?.Fault?.detail?.RegisterFault;
+
+        if (innerError) {
+          let responseMessage = 'Invalid username or password.';
+          if (innerError.errorCode['$value'] !== 'E_WrongIdPassword') {
+            responseMessage = innerError.description;
+          }
+
+          throw new EaseyException(err, HttpStatus.BAD_REQUEST, {
+            responseObject: responseMessage,
+          });
         }
 
-        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
+        throw new EaseyException(err, HttpStatus.INTERNAL_SERVER_ERROR, {
+          userId: userId,
+        });
       });
   }
 
@@ -306,14 +315,18 @@ export class SignService {
         return true;
       })
       .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error(JSON.stringify(err.root.Envelope)),
-            HttpStatus.BAD_REQUEST,
-          );
+        const innerError =
+          err.root?.Envelope?.Body?.Fault?.detail?.RegisterFault;
+
+        if (innerError) {
+          throw new EaseyException(err, HttpStatus.BAD_REQUEST, {
+            responseObject: innerError.description,
+          });
         }
 
-        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
+        throw new EaseyException(err, HttpStatus.INTERNAL_SERVER_ERROR, {
+          userId: userId,
+        });
       });
   }
 
