@@ -6,6 +6,9 @@ import { CredentialsSignDTO } from '../dtos/certification-sign-param.dto';
 import { SignController } from './Sign.controller';
 import { SignService } from './Sign.service';
 import { SendPhonePinParamDTO } from '../dtos/send-phone-pin-param.dto';
+import { HttpModule } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
 
 const mockService = () => ({
   authenticate: jest.fn(),
@@ -19,13 +22,14 @@ describe('SignController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [LoggerModule],
+      imports: [LoggerModule, HttpModule],
       controllers: [SignController],
       providers: [
         {
           provide: SignService,
           useFactory: mockService,
         },
+        ConfigService,
       ],
     }).compile();
 
@@ -41,7 +45,10 @@ describe('SignController', () => {
     const mockFunction = jest.fn();
     service.authenticate = mockFunction;
 
-    await controller.authenticate(new CredentialsSignDTO());
+    await controller.authenticate(new CredentialsSignDTO(), {
+      userId: 'mock',
+      roles: ['Submitter'],
+    } as CurrentUser);
 
     expect(mockFunction).toHaveBeenCalled();
   });

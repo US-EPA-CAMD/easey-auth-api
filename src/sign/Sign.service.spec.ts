@@ -39,7 +39,13 @@ describe('SignService', () => {
   });
 
   it('authenticate should be called properly and return the mocked services dto structure', async () => {
-    const dto = await service.authenticate(new CredentialsSignDTO());
+    const creds = new CredentialsSignDTO();
+    creds.userId = 'mock';
+
+    const dto = await service.authenticate(creds, {
+      userId: 'mock',
+      roles: ['Submitter'],
+    } as any);
     expect(dto.activityId).toEqual('mockId');
     expect(dto.question).toEqual('mockQuestion');
     expect(dto.questionId).toEqual('mockId');
