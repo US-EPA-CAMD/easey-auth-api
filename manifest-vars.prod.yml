@@ -6,3 +6,6 @@ cdxSvcs:
 naasSvcs:
 mockPermissionsEnabled: false
 enableAllFacilities: false
+mockPermissionsEnabled: false
+enableAllFacilities: false
+permissionsUrl: https://cbsprod.epa.gov/CBSD/api/auth-mgmt/responsibilities
