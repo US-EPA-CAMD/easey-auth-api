@@ -7,3 +7,5 @@ naasSvcs: https://naas.epacdxnode.net/xml/securitytoken_v30.wsdl
 permissionsUrl: https://cbsbeta.epa.gov/CBS/api/auth-mgmt/responsibilities
 dataFlow: EASEY Beta
 enableAllFacilities: false
+mockPermissionsEnabled: false
+enableAllFacilities: false
