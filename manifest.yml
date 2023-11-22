@@ -7,6 +7,8 @@ applications:
       - nodejs_buildpack
     env:
       OPTIMIZE_MEMORY: true
+      EASEY_DB_SERVICE: ((dbSvc))
+      EASEY_AUTH_API: https://((apiHost))/auth-mgmt
       EASEY_AUTH_API_HOST: ((host))
       EASEY_AUTH_API_PORT: ((port))
       EASEY_AUTH_API_PATH: ((path))

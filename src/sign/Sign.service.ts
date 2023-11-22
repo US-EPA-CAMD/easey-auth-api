@@ -7,6 +7,7 @@ import { CredentialsSignDTO } from '../dtos/certification-sign-param.dto';
 import { SignAuthResponseDTO } from '../dtos/sign-auth-response.dto';
 import { SendPhonePinParamDTO } from '../dtos/send-phone-pin-param.dto';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
+import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
 
 interface Question {
   questionId: string;
@@ -235,14 +236,23 @@ export class SignService {
         this.logger.log('Authenticated sign authentication for user');
       })
       .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error(JSON.stringify(err.root.Envelope)),
-            HttpStatus.BAD_REQUEST,
-          );
+        const innerError =
+          err.root?.Envelope?.Body?.Fault?.detail?.RegisterFault;
+
+        if (innerError) {
+          let responseMessage = 'Invalid username or password.';
+          if (innerError.errorCode['$value'] !== 'E_WrongIdPassword') {
+            responseMessage = innerError.description;
+          }
+
+          throw new EaseyException(err, HttpStatus.BAD_REQUEST, {
+            responseObject: responseMessage,
+          });
         }
 
-        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
+        throw new EaseyException(err, HttpStatus.INTERNAL_SERVER_ERROR, {
+          userId: userId,
+        });
       });
   }
 
@@ -306,14 +316,18 @@ export class SignService {
         return true;
       })
       .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error(JSON.stringify(err.root.Envelope)),
-            HttpStatus.BAD_REQUEST,
-          );
+        const innerError =
+          err.root?.Envelope?.Body?.Fault?.detail?.RegisterFault;
+
+        if (innerError) {
+          throw new EaseyException(err, HttpStatus.BAD_REQUEST, {
+            responseObject: innerError.description,
+          });
         }
 
-        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
+        throw new EaseyException(err, HttpStatus.INTERNAL_SERVER_ERROR, {
+          userId: userId,
+        });
       });
   }
 
@@ -353,6 +367,7 @@ export class SignService {
 
   async authenticate(
     credentials: CredentialsSignDTO,
+    user: CurrentUser,
   ): Promise<SignAuthResponseDTO> {
     const token = await this.getSignServiceToken();
 
@@ -368,6 +383,28 @@ export class SignService {
       credentials.userId,
       credentials.password,
     );
+
+    //Extra error handling
+    if (user.userId !== credentials.userId) {
+      throw new EaseyException(
+        new Error('Must authenticate with the current logged in account'),
+        HttpStatus.BAD_REQUEST,
+        {
+          responseObject:
+            'Must authenticate with the current logged in account',
+        },
+      );
+    }
+
+    if (!user.roles.includes('Submitter')) {
+      throw new EaseyException(
+        new Error('This requires the Submitter role'),
+        HttpStatus.BAD_REQUEST,
+        {
+          responseObject: 'This requires the Submitter role',
+        },
+      );
+    }
 
     const question = await this.getQuestion(
       token,

@@ -2,7 +2,8 @@ instances: 2
 environment: production
 host: api-easey.app.cloud.gov
 apiHost: api.epa.gov/easey
-cdxSvcs:
-naasSvcs:
+cdxSvcs: https://cdxnodengn.epa.gov/cdx-register-II/services
+naasSvcs: https://cdxnodenaas.epa.gov/xml/securitytoken_v30.wsdl
+permissionsUrl: https://camd.epa.gov/CBS/api/auth-mgmt/responsibilities
 mockPermissionsEnabled: false
 enableAllFacilities: false

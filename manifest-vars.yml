@@ -10,6 +10,7 @@ title: Authentication & Authorization
 description: Provides authentication, authorization, & security token services for CAMD applications
 environment: development
 apiHost: api.epa.gov/easey/dev
+dbSvc: camd-pg-db
 cdxSvcs: https://devngn.epacdxnode.net/cdx-register-II/services
 naasSvcs: https://naasdev.epacdxnode.net/xml/securitytoken_v30.wsdl
 permissionsUrl: https://cbsstagei.epa.gov/CBSD/api/auth-mgmt/responsibilities

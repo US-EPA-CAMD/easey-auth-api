@@ -4,5 +4,7 @@ host: api-easey-stg.app.cloud.gov
 apiHost: api.epa.gov/easey/staging
 cdxSvcs: https://testngn.epacdxnode.net/cdx-register-II/services
 naasSvcs: https://naas.epacdxnode.net/xml/securitytoken_v30.wsdl
+permissionsUrl: https://cbsstagei.epa.gov/CBS/api/auth-mgmt/responsibilities
+dataFlow: EASEY Staging
 mockPermissionsEnabled: false
 enableAllFacilities: false

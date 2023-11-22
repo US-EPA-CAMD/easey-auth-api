@@ -667,7 +667,7 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@nestjs/axios@0.0.3":
+"@nestjs/axios@0.0.3", "@nestjs/axios@^0.0.3":
   version "0.0.3"
   resolved "https://registry.yarnpkg.com/@nestjs/axios/-/axios-0.0.3.tgz#f53ba265e15687b9acb036642ed5f29998695bd1"
   integrity sha512-Cc+D2S2uesthRpalmZEPdm5wF2N9ji4l9Wsb2vFaug/CVWg2BoegHm0L1jzFUL+6kS+mXWSFvwXJmofv+7bajw==
@@ -1196,10 +1196,10 @@
   resolved "https://registry.yarnpkg.com/@ungap/structured-clone/-/structured-clone-1.2.0.tgz#756641adb587851b5ccb3e095daf27ae581c8406"
   integrity sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==
 
-"@us-epa-camd/easey-common@17.0.0":
-  version "17.0.0"
-  resolved "https://npm.pkg.github.com/download/@US-EPA-CAMD/easey-common/17.0.0/3222a3dc1dc5d87497142f3c0e51c4fea1502140#3222a3dc1dc5d87497142f3c0e51c4fea1502140"
-  integrity sha512-eKTOfV6Kr5XcdtL3v0OJ0kwHqVPxdnReyVStkAr4U4/uVBX5N4nKxVMXT9UmZdXcbeywIQzQNsVrsFC604Ce1w==
+"@us-epa-camd/easey-common@17.1.0":
+  version "17.1.0"
+  resolved "https://npm.pkg.github.com/download/@US-EPA-CAMD/easey-common/17.1.0/6c5e1a1578091ddd85d0684c1bc2defafae58609#6c5e1a1578091ddd85d0684c1bc2defafae58609"
+  integrity sha512-OmG2Wd+QDTCGBa6gNmXv9p6UEWVYW4tTMTmhSrcEizLjlsln6tzhEp6qb7P2dQMXXyU3toBAh5QSS1ODvFxaTg==
   dependencies:
     "@golevelup/ts-jest" "^0.3.4"
     "@nestjs/axios" "0.0.3"
