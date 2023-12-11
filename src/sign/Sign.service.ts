@@ -401,7 +401,7 @@ export class SignService {
         new Error('This requires the Sponsor or Submitter role'),
         HttpStatus.BAD_REQUEST,
         {
-          responseObject: 'This requires the Submitter role',
+          responseObject: 'This requires the Sponsor or Submitter role',
         },
       );
     }
