@@ -64,8 +64,18 @@ The Auth API uses a number of environment variables to properly configure the ap
 | nassAppId | EASEY_NAAS_SERVICES_APP_ID | *** | Dynamically set by CI/CD workflow |
 | nassAppPwd | EASEY_NAAS_SERVICES_APP_PASSWORD | *** | Dynamically set by CI/CD workflow |
 | enableDebug | EASEY_AUTH_API_ENABLE_DEBUG | false | Configurable |
-| apiHost | EASEY_API_GATEWAY_HOST | api.epa.gov/easey/dev | Configurable |
-
+| mockPermissionsUrl | EASEY_AUTH_API_MOCK_PERMISSIONS_URL | https://api.epa.gov/easey/dev/auth-mgmt/permissions | Dynamically set by CI/CD workflow |
+| permissionsUrl | EASEY_AUTH_API_PERMISSIONS_URL | https://cbsstagei.rtpnc.epa.gov/CBSD/api/auth-mgmt/responsibilities | Dynamically set by CI/CD workflow |
+| contentUri | EASEY_AUTH_CONTENT_API | https://api.epa.gov/easey/dev/content-mgmt | Dynamically set by CI/CD workflow | 
+| sponsorRole | EASEY_AUTH_API_SPONSOR_ROLE | 'Sponsor' | Fixed | 
+| submitterRole | EASEY_AUTH_API_SUBMITTER_ROLE | 'Submitter' | Fixed | 
+| preparerRole | EASEY_AUTH_API_PREPARER_ROLE | 'Preparer' | Fixed | 
+| analystRole | EASEY_AUTH_API_ANALYST_ROLE | 'ECMPS Analyst' | Fixed | 
+| adminRole | EASEY_AUTH_API_ADMIN_ROLE | 'ECMPS Admin' | Fixed | 
+| dataFlow | EASEY_AUTH_API_DATA_FLOW | 'EASEY' | Dynamically set by CI/CD workflow | 
+| refreshTokenThresholdSeconds | EASEY_AUTH_API_REFRESH_TOKEN_THRESHOLD_SECONDS | 60 | Configurable | 
+| enableAllFacilities | EASEY_AUTH_API_ENABLE_ALL_FACILITIES | false | Configurable | 
+| authApi | EASEY_AUTH_API | https://${apiHost}/auth-mgmt | Dynamically set by CI/CD workflow |
 ### CDX BYPASS VARIABLES
 | Typescript Var Name | Environment Var Name | Default Value | Comment |
 | :------------------ | :------------------- | :------------ | :------ |
