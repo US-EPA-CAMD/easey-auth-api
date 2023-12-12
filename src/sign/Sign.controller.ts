@@ -58,7 +58,7 @@ export class SignController {
   @Post('validate')
   @ApiOkResponse({
     type: SignAuthResponseDTO,
-    description: 'Verifies a user question using EPA CDX Sign Services',
+    description: 'Verifies a user question using the EPA CDX Sign Services',
   })
   validate(@Body() payload: CertificationVerifyParamDTO): Promise<boolean> {
     return this.service.validate(payload);

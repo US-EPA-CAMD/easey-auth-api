@@ -76,6 +76,7 @@ The Auth API uses a number of environment variables to properly configure the ap
 | refreshTokenThresholdSeconds | EASEY_AUTH_API_REFRESH_TOKEN_THRESHOLD_SECONDS | 60 | Configurable | 
 | enableAllFacilities | EASEY_AUTH_API_ENABLE_ALL_FACILITIES | false | Configurable | 
 | authApi | EASEY_AUTH_API | https://${apiHost}/auth-mgmt | Dynamically set by CI/CD workflow |
+
 ### CDX BYPASS VARIABLES
 | Typescript Var Name | Environment Var Name | Default Value | Comment |
 | :------------------ | :------------------- | :------------ | :------ |
