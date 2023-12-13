@@ -1184,10 +1184,10 @@
   resolved "https://registry.yarnpkg.com/@ungap/structured-clone/-/structured-clone-1.2.0.tgz#756641adb587851b5ccb3e095daf27ae581c8406"
   integrity sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==
 
-"@us-epa-camd/easey-common@11.4.1":
-  version "11.4.1"
-  resolved "https://npm.pkg.github.com/download/@US-EPA-CAMD/easey-common/11.4.1/6cd33fae6c97cf90af84eb164dfc6c6ef9fe3d11#6cd33fae6c97cf90af84eb164dfc6c6ef9fe3d11"
-  integrity sha512-Gj1QRMeouxlR7tG/4Az9c7XQlQqob6Atxk8UMa8c8lflKWlkGCj4dbFuYTLVtdlxYpOU0al81yzvHWe/CqwkIg==
+"@us-epa-camd/easey-common@11.4.2":
+  version "11.4.2"
+  resolved "https://npm.pkg.github.com/download/@US-EPA-CAMD/easey-common/11.4.2/c678ab0d36a62459bcf58262dc634667c02784c1#c678ab0d36a62459bcf58262dc634667c02784c1"
+  integrity sha512-btBxYQL6BCSDu+6zqnAnj/V8lqufjJaKiLxvjA8GO6XlopIn7vhIRmrRP17dnY8hbnr8VEBj5FTp3GDAXCJlWg==
   dependencies:
     "@nestjs/axios" "0.0.3"
     "@nestjs/common" "^8.1.1"
