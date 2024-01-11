@@ -398,10 +398,10 @@ export class SignService {
 
     if (!(user.roles.includes('Submitter') || user.roles.includes('Sponsor') || user.roles.includes('Initial Authorizer'))) {
       throw new EaseyException(
-        new Error('This requires the Sponsor or Submitter role'),
+        new Error('This requires the Sponsor, Submitter or Initial Authorizer role'),
         HttpStatus.BAD_REQUEST,
         {
-          responseObject: 'This requires the Sponsor or Submitter role',
+          responseObject: 'This requires the Sponsor, Submitter or Initial Authorizer role',
         },
       );
     }
