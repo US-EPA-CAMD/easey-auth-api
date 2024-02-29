@@ -1,3 +1,5 @@
+import * as crypto from 'crypto';
+import * as https from 'https';
 import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
 import { HttpService } from '@nestjs/axios';
 import { HttpStatus, Injectable } from '@nestjs/common';
@@ -179,8 +181,15 @@ export class PermissionsService {
     url: string,
   ): Promise<FacilityAccessDTO[]> {
     try {
+      const allowLegacyRenegotiationforNodeJsOptions = {
+        httpsAgent: new https.Agent({
+          rejectUnauthorized:false,
+          secureOptions: crypto.constants.SSL_OP_LEGACY_SERVER_CONNECT,
+        }),
+      };
       const permissionResult = await firstValueFrom(
         this.httpService.get(url, {
+          ...allowLegacyRenegotiationforNodeJsOptions,
           headers: {
             'x-api-key': this.configService.get<string>('app.apiKey'),
             'x-forwarded-for': clientIp,
