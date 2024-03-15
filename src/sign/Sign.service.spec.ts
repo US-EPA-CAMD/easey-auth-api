@@ -39,6 +39,7 @@ describe('SignService', () => {
   });
 
   it('authenticate should be called properly and return the mocked services dto structure', async () => {
+    
     const creds = new CredentialsSignDTO();
     creds.userId = 'mock';
 
