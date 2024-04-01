@@ -203,6 +203,12 @@ export class PermissionsService {
 
       return null;
     } catch (e) {
+      // throwing error, when CBS API returns error.
+      if(!this.configService.get<boolean>('app.mockPermissionsEnabled') && !e.response){
+        throw new EaseyException(new Error(
+          'Unable to obtain user responsibilities from CBS. Please try again later.',
+        ), HttpStatus.INTERNAL_SERVER_ERROR);
+      }
       throw new EaseyException(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
