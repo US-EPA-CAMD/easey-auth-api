@@ -1,6 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
 import { EntityManager } from 'typeorm';
@@ -14,7 +13,6 @@ import { UserSessionRepository } from '../user-session/user-session.repository';
 export class UserSessionService {
   constructor(
     private readonly entityManager: EntityManager,
-    @InjectRepository(UserSessionRepository)
     private readonly repository: UserSessionRepository,
     private readonly configService: ConfigService,
   ) {}

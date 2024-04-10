@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
+import { EntityManager } from 'typeorm';
+
 import { UserSession } from '../entities/user-session.entity';
 import { UserSessionRepository } from './user-session.repository';
 import { UserSessionService } from './user-session.service';
-import { HttpService } from '@nestjs/axios';
-import { ConfigService } from '@nestjs/config';
 
 jest.mock('rxjs', () => ({
   firstValueFrom: jest.fn().mockResolvedValue({ data: 'MOCKED' }),
@@ -27,6 +29,10 @@ describe('User Session Service', () => {
           useFactory: () => ({
             get: jest.fn(),
           }),
+        },
+        {
+          provide: EntityManager,
+          useValue: { query: jest.fn() },
         },
         {
           provide: UserSessionRepository,

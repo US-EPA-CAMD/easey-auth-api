@@ -1,15 +1,16 @@
 import { Injectable, HttpStatus } from '@nestjs/common';
-import { CertificationFacilitiesDTO } from '../dtos/cert-facilities.dto';
+import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { EntityManager } from 'typeorm';
+
+import { CertificationFacilitiesDTO } from '../dtos/cert-facilities.dto';
 import { CertificationStatementRepository } from './certifications.repository';
 import { CertificationStatementDTO } from '../dtos/certification-statement.dto';
-import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 
 @Injectable()
 export class CertificationsService {
   constructor(
-    private readonly entityManager: EntityManager,
     private readonly repository: CertificationStatementRepository,
+    private readonly entityManager: EntityManager,
   ) {}
 
   public returnManager(): any {
