@@ -1,8 +1,6 @@
 import { Injectable, HttpStatus } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Logger } from '@us-epa-camd/easey-common/logger';
 import { CertificationFacilitiesDTO } from '../dtos/cert-facilities.dto';
-import { getManager } from 'typeorm';
+import { EntityManager } from 'typeorm';
 import { CertificationStatementRepository } from './certifications.repository';
 import { CertificationStatementDTO } from '../dtos/certification-statement.dto';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
@@ -10,13 +8,12 @@ import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 @Injectable()
 export class CertificationsService {
   constructor(
-    private readonly logger: Logger,
-    private readonly configService: ConfigService,
+    private readonly entityManager: EntityManager,
     private readonly repository: CertificationStatementRepository,
   ) {}
 
   public returnManager(): any {
-    return getManager();
+    return this.entityManager;
   }
 
   public async getStatements(
@@ -52,9 +49,9 @@ export class CertificationsService {
         let statementData;
 
         if (key === 'null') {
-          statementData = await this.repository.findOne({ prgCode: null });
+          statementData = await this.repository.findOneBy({ prgCode: null });
         } else {
-          statementData = await this.repository.findOne({ prgCode: key });
+          statementData = await this.repository.findOneBy({ prgCode: key });
         }
 
         const certDto = new CertificationStatementDTO();

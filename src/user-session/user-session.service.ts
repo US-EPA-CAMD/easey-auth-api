@@ -1,29 +1,26 @@
-import { v4 as uuid } from 'uuid';
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
+import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
+import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
+import { EntityManager } from 'typeorm';
+import { v4 as uuid } from 'uuid';
 
+import { UserCheckOut } from '../entities/user-check-out.entity';
 import { UserSession } from '../entities/user-session.entity';
 import { UserSessionRepository } from '../user-session/user-session.repository';
-import { ConfigService } from '@nestjs/config';
-import { FacilityAccessDTO } from '../dtos/permissions.dto';
-import { firstValueFrom } from 'rxjs';
-import { getManager } from 'typeorm';
-import { UserCheckOut } from '../entities/user-check-out.entity';
-import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
-import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 
 @Injectable()
 export class UserSessionService {
   constructor(
+    private readonly entityManager: EntityManager,
     @InjectRepository(UserSessionRepository)
     private readonly repository: UserSessionRepository,
-    private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {}
 
   returnManager(): any {
-    return getManager();
+    return this.entityManager;
   }
 
   async refreshLastActivity(token: string): Promise<void> {
@@ -91,8 +88,8 @@ export class UserSessionService {
     token: string,
     applyThreshold: boolean = true,
   ): Promise<UserSession> {
-    const sessionRecord = await this.repository.findOne({
-      sessionId: sessionId,
+    const sessionRecord = await this.repository.findOneBy({
+      sessionId,
       securityToken: token,
     });
 
@@ -116,7 +113,7 @@ export class UserSessionService {
   }
 
   async removeUserSessionByUserId(userId: string) {
-    const existingSession = await this.repository.findOne({ userId: userId });
+    const existingSession = await this.repository.findOneBy({ userId });
     if (existingSession) {
       await this.repository.remove(existingSession);
     }
@@ -130,8 +127,8 @@ export class UserSessionService {
     userId: string,
     token: string,
   ): Promise<UserSession> {
-    const session = await this.repository.findOne({
-      userId: userId,
+    const session = await this.repository.findOneBy({
+      userId,
       securityToken: token,
     });
 
@@ -147,8 +144,8 @@ export class UserSessionService {
   }
 
   async findSessionByUserId(userId: string): Promise<UserSession> {
-    const session = await this.repository.findOne({
-      userId: userId,
+    const session = await this.repository.findOneBy({
+      userId,
     });
 
     if (session) {

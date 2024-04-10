@@ -28,7 +28,7 @@ export class ClientTokenService {
     }
 
     try {
-      const dbRecord = await this.repository.findOne(clientId);
+      const dbRecord = await this.repository.findOneBy({ id: clientId });
 
       //Determine if a match exists
       if (!dbRecord) {

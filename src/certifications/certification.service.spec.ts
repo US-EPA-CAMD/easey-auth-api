@@ -6,7 +6,7 @@ import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { CertificationStatement } from '../entities/certification-statement.entity';
 
 const mockRepository = () => ({
-  findOne: jest.fn().mockResolvedValue(new CertificationStatement()),
+  findOneBy: jest.fn().mockResolvedValue(new CertificationStatement()),
 });
 describe('Certification Controller', () => {
   let service: CertificationsService;
