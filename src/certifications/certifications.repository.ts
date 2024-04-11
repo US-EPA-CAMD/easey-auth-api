@@ -1,4 +1,4 @@
-import { DataSource, Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 
 import { CertificationStatement } from '../entities/certification-statement.entity';
@@ -7,7 +7,7 @@ import { CertificationStatement } from '../entities/certification-statement.enti
 export class CertificationStatementRepository extends Repository<
   CertificationStatement
 > {
-  constructor(private readonly dataSource: DataSource) {
-    super(CertificationStatement, dataSource.manager);
+  constructor(entityManager: EntityManager) {
+    super(CertificationStatement, entityManager);
   }
 }
