@@ -142,7 +142,9 @@ describe('User Session Service', () => {
     it('should update user session last activity date', async () => {
       jest
         .spyOn(service, 'returnManager')
-        .mockReturnValue({ findOne: jest.fn().mockResolvedValue(undefined) });
+        .mockReturnValue({
+          findOne: jest.fn().mockResolvedValue(undefined),
+        } as any);
 
       const mock = jest.fn();
       mockRepo.findOne = jest.fn().mockResolvedValue(new UserSession());

@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { EntityManager } from 'typeorm';
 
@@ -52,7 +51,7 @@ describe('Certification Controller', () => {
           unit_info: '5',
         },
       ]),
-    });
+    } as any);
 
     const result = await service.getStatements(['']);
 
