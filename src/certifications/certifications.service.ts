@@ -13,7 +13,7 @@ export class CertificationsService {
     private readonly entityManager: EntityManager,
   ) {}
 
-  public returnManager(): any {
+  public returnManager() {
     return this.entityManager;
   }
 

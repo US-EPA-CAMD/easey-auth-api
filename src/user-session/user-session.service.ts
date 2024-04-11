@@ -17,7 +17,7 @@ export class UserSessionService {
     private readonly configService: ConfigService,
   ) {}
 
-  returnManager(): any {
+  returnManager() {
     return this.entityManager;
   }
 
