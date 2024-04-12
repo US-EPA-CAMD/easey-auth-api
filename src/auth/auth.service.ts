@@ -101,37 +101,7 @@ export class AuthService {
     userId = userId.toLowerCase();
 
     if (this.tokenService.bypassEnabled()) {
-      //Handle bypass sign in if enabled
-      const acceptedUsers = JSON.parse(
-        this.configService.get<string>('cdxBypass.users'),
-      );
-      const currentPass = this.configService.get<string>('cdxBypass.pass');
-
-      if (!acceptedUsers.find(x => x === userId)) {
-        throw new EaseyException(
-          new Error('Incorrect Bypass userId'),
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      if (password === currentPass) {
-        user = new UserDTO();
-        user.userId = userId;
-        user.firstName = userId;
-        user.lastName = '';
-        user.roles = [
-          this.configService.get<string>('app.sponsorRole'),
-          this.configService.get<string>('app.preparerRole'),
-          this.configService.get<string>('app.submitterRole'),
-          this.configService.get<string>('app.analystRole'),
-          this.configService.get<string>('app.adminRole'),
-        ];
-      } else {
-        throw new EaseyException(
-          new Error('Incorrect Bypass password'),
-          HttpStatus.BAD_REQUEST,
-        );
-      }
+      user = this.bypassAuth(userId, password, user);
     } else {
       // If no bypass is set, log in per usual
       user = await this.loginCdx(userId, password);
@@ -176,6 +146,41 @@ export class AuthService {
     );
     user.token = token.token;
     user.tokenExpiration = token.expiration;
+    return user;
+  }
+
+  bypassAuth(userId: string, password: string, user: UserDTO) {
+    //Handle bypass sign in if enabled
+    const acceptedUsers = JSON.parse(
+      this.configService.get<string>('cdxBypass.users'),
+    );
+    const currentPass = this.configService.get<string>('cdxBypass.pass');
+
+    if (!acceptedUsers.find(x => x === userId)) {
+      throw new EaseyException(
+        new Error('Incorrect Bypass userId'),
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (password === currentPass) {
+      user = new UserDTO();
+      user.userId = userId;
+      user.firstName = userId;
+      user.lastName = '';
+      user.roles = [
+        this.configService.get<string>('app.sponsorRole'),
+        this.configService.get<string>('app.preparerRole'),
+        this.configService.get<string>('app.submitterRole'),
+        this.configService.get<string>('app.analystRole'),
+        this.configService.get<string>('app.adminRole'),
+      ];
+    } else {
+      throw new EaseyException(
+        new Error('Incorrect Bypass password'),
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     return user;
   }
 
