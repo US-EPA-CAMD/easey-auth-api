@@ -7,7 +7,7 @@ import { dbConfig } from '@us-epa-camd/easey-common/config';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { CorsOptionsModule } from '@us-epa-camd/easey-common/cors-options';
 import {
-  IsValidCodeValidator,
+  DbLookupValidator,
   IsValidCodesValidator,
 } from '@us-epa-camd/easey-common/validators';
 
@@ -39,6 +39,6 @@ import { PermissionsModule } from './permissions/Permissions.module';
     SignModule,
     PermissionsModule,
   ],
-  providers: [IsValidCodeValidator, IsValidCodesValidator],
+  providers: [DbLookupValidator, IsValidCodesValidator],
 })
 export class AppModule {}

@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 @Module({
   imports: [TypeOrmModule.forFeature([UserSessionRepository]), HttpModule],
   controllers: [],
-  providers: [UserSessionService, ConfigService, UserSessionRepository],
+  providers: [UserSessionRepository, UserSessionService, ConfigService],
   exports: [TypeOrmModule, UserSessionService],
 })
 export class UserSessionModule {}
