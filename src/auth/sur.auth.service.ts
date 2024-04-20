@@ -38,6 +38,16 @@ export class SurAuthService {
       return await this.oidcHelperService.determinePolicy(userId, apiToken);
     } catch (error) {
       this.logger.error("error calling REST service: ", error.message);
+
+      // Check if the error is due to the specific condition
+      if (error.response && error.response.data && error.response.data.code === 'E_WRONG_USER_ID') {
+        // This is an expected use case. Instead of throwing, return a new PolicyResponse with code and message
+        return new PolicyResponse({
+          code: error.response.data.code,
+          message: "We could not find an account with that user ID or Email."
+        });
+      }
+
       throw new Error(error); // Adjust based on your error handling strategy
     }
 

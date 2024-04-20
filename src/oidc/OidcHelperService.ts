@@ -5,8 +5,13 @@ import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
 import { Logger } from '@us-epa-camd/easey-common/logger';
-import { RegistrationNewUserProfile } from '../dtos/registration-new-user-profile.dto';
+import { Role } from '../dtos/role.dto';
+import { CodeDescription } from '../dtos/role.dto';
+import { RoleType } from '../dtos/role.dto';
+
 import { PolicyResponse } from '../dtos/policy-response';
+import { RegistrationOrganization } from '../dtos/registration-organization.dto';
+const crypto = require('crypto');
 
 
 @Injectable()
@@ -35,7 +40,7 @@ export class OidcHelperService {
     const requestBody = {
       userId: userId,
     };
-    const registerApiUrl = getConfigValue('EASEY_AUTH_REGISTER_API', '');
+    const registerApiUrl = getConfigValue('EASEY_AUTH_BASE_REST_API', '');
     const apiUrl = `${registerApiUrl}/api/v1/oidcEnrichment/determinePolicy`;
 
     //Make the api call
@@ -78,22 +83,24 @@ export class OidcHelperService {
     } else if (policy.endsWith("_MIGRATE")) {
       //TODO add the _MIGRATE auth-flow-url to the PolicyResponse?  this is the URL the user will be navigated to
     } else {
-      //const profile = await this.lookupCdxProfile( userId );
-      //policyResponse.userRoleId = profile.role.getUserRoleId();
-      policyResponse.userRoleId = 777; //TODO replace with actual call 
+      const role  = await this.retrieveUsersByCriteria( userId );
+      policyResponse.userRoleId = role.getUserRoleId();
     }
+
+    const authUrl = `${getConfigValue('OIDC_AUTH_ENDPOINT').replace('%s', policyResponse.policy)}`;
+    policyResponse.url = this.buildUrl( policyResponse, authUrl );
 
     return policyResponse;
   }
 
-  async lookupCdxProfile(userIdToLookup: string): Promise<RegistrationNewUserProfile> {
-    const dataflowName = 'DEMO3';
+  async retrieveUsersByCriteria(userIdToLookup: string): Promise<Role> {
+    const dataflowName = getConfigValue('EASEY_AUTH_DATA_FLOW_NAME', '');
     const requestBody = {
       userId: userIdToLookup,
       dataflow: dataflowName,
     };
 
-    const registerApiUrl = getConfigValue('EASEY_AUTH_REGISTER_API', '');
+    const registerApiUrl = getConfigValue('EASEY_AUTH_BASE_REST_API', '');
     const apiUrl = `${registerApiUrl}/api/v1/streamlined/retrieveUsersByCriteria`;
 
     try {
@@ -106,14 +113,50 @@ export class OidcHelperService {
 
       this.logger.debug(`/streamlined/retrieveUsersByCriteria response:\n${JSON.stringify(response.data)}`);
 
-      const responseArr: RegistrationNewUserProfile[] = response.data;
-      this.logger.debug(`/streamlined/retrieveUsersByCriteria number of profiles returned: ${responseArr.length}`);
+      //const responseArr: RegistrationNewUserProfile[] = response.data;
+      this.logger.debug(`/streamlined/retrieveUsersByCriteria number of profiles returned: ${response.data.length}`);
 
-      if (responseArr.length < 1) {
+      if (response.data.length < 1) {
         throw new Error(`No ${dataflowName} roles found for user ${userIdToLookup}`);
       }
 
-      return responseArr[0];
+      //return responseArr[0];
+      // Directly create and return the Role object from the response as we are not interested in the rest
+      const roleData = response.data[0].role;
+      const status = new CodeDescription(roleData.status.code, roleData.status.description);
+      const type = new RoleType(roleData.type.code, roleData.type.description, roleData.type.status, roleData.type.esaRequirement, roleData.type.signatureQuestionsRequired, roleData.type.manageFacilities);
+      const role = new Role(roleData.userRoleId, roleData.dataflow, status, type, roleData.subject);
+      return role;
+
+    } catch (error) {
+      this.logger.error(`Error calling REST service: ${error.message}`, error.stack);
+      throw new Error(`Application error occurred: ${error.message}`);
+    }
+  }
+
+  async getPrimaryOrganization(userIdToLookup: string): Promise<RegistrationOrganization> {
+    const registerApiUrl = getConfigValue('EASEY_AUTH_BASE_REST_API', '');
+    const apiUrl = `${registerApiUrl}/api/v1/registration/retrievePrimaryOrganization/${userIdToLookup}`;
+
+    try {
+      const response = await firstValueFrom(this.httpService.get<RegistrationOrganization>(apiUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await this.getCdxApiToken()}`,
+        },
+      }));
+
+      this.logger.debug(`retrievePrimaryOrganization response:\n${JSON.stringify(response.data)}`);
+
+      // Directly using response.data as it's supposed to return a single RegistrationOrganization object
+      const registrationOrg: RegistrationOrganization = response.data;
+
+      // Validate only userOrganizationId
+      if (!registrationOrg.userOrganizationId && registrationOrg.userOrganizationId !== 0) {
+        throw new Error(`No valid userOrganizationId found for user ${userIdToLookup}`);
+      }
+
+      return registrationOrg;
     } catch (error) {
       this.logger.error(`Error calling REST service: ${error.message}`, error.stack);
       throw new Error(`Application error occurred: ${error.message}`);
@@ -144,4 +187,32 @@ export class OidcHelperService {
       throw new Error(`Error generating client credentials token: ${error.message}`);
     }
   }
+
+  private buildUrl(policyResponse: PolicyResponse, authUrl: string): string {
+    const responseType = getConfigValue('OIDC_AUTH_RESPONSE_TYPE', 'code');
+    const clientId = getConfigValue('OIDC_CLIENT_ID', '');
+    const redirectUri = getConfigValue('OIDC_AUTH_REDIRECT_URI', '');
+    const nonce = this.generateNonce(32);
+    const p = policyResponse.policy;
+    const acrValues = policyResponse.policy;
+    const scope = getConfigValue('OIDC_AUTH_SCOPES', '');
+
+    return authUrl + `?` +
+      `response_type=${encodeURIComponent(responseType)}&` +
+      `client_id=${encodeURIComponent(clientId)}&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `nonce=${encodeURIComponent(nonce)}&` +
+      `p=${encodeURIComponent(p)}&` +
+      `acr_values=${encodeURIComponent(acrValues)}&` +
+      `scope=${encodeURIComponent(scope)}` +
+      `${policyResponse.userRoleId ? `&userRoleId=${encodeURIComponent(policyResponse.userRoleId.toString())}` : ''}`; //add userRoleId if available
+  }
+
+  private generateNonce(length = 32) {
+    return crypto.randomBytes(length).toString('base64').slice(0, length);
+  }
 }
+
+
+
+
