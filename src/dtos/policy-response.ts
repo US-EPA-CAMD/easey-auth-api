@@ -7,7 +7,9 @@ export class PolicyResponse {
   policy?: string;
   userId?: string;
   userRoleId?: number;
-  url?: string;
+  nonce?: string;
+  state?: string;
+  redirectUri?: string;
 
   //In case of errors, the following is the response
   code?: string;

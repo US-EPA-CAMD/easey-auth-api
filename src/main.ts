@@ -5,12 +5,16 @@ import {
 } from '@us-epa-camd/easey-common/nestjs';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import * as express from 'express';
 
 export async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   await applyMiddleware(AppModule, app, true);
   await applySwagger(app);
+
+  //Allows for the processing of URL encoded form data. See AuthController.validateAndSignIn(..)
+  app.use(express.urlencoded({ extended: true }));
 
   const configService = app.get(ConfigService);
   const appPath = configService.get<string>('app.path');

@@ -3,7 +3,7 @@ import { UserDTO } from '../dtos/user.dto';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
-import { CredentialsDTO } from '../dtos/credentials.dto';
+import { SignInDTO } from '../dtos/signin.dto';
 
 jest.mock('./auth.service');
 jest.mock('../guards/auth.guard');
@@ -35,7 +35,7 @@ describe('Authentication Controller', () => {
     it('should return a new or existing UserDTO', async () => {
       const data = new UserDTO();
       jest.spyOn(service, 'signIn').mockResolvedValue(data);
-      const cred = new CredentialsDTO();
+      const cred = new SignInDTO();
       expect(await controller.signIn(cred, '')).toBe(data);
     });
   });

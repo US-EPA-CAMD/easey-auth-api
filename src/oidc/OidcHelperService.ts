@@ -1,18 +1,15 @@
-import { Cacheable } from 'nestjs-cacheable';
 import { HttpService } from '@nestjs/axios';
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
 import { Logger } from '@us-epa-camd/easey-common/logger';
-import { Role } from '../dtos/role.dto';
-import { CodeDescription } from '../dtos/role.dto';
-import { RoleType } from '../dtos/role.dto';
 
 import { PolicyResponse } from '../dtos/policy-response';
-import { RegistrationOrganization } from '../dtos/registration-organization.dto';
-const crypto = require('crypto');
-
+import * as crypto from 'crypto';
+import { OidcPostRequestDto } from '../dtos/oidc-post.request.dto';
+import { OidcPostResponse } from '../dtos/oidc-post-response.dto';
+import { RetrieveUsersResponse } from '../dtos/oidc-auth-dtos';
 
 @Injectable()
 export class OidcHelperService {
@@ -22,28 +19,15 @@ export class OidcHelperService {
     private readonly logger: Logger,
   ) {}
 
-  // Cache the API token with a default TTL; adjust based on requirements
-  @Cacheable({ key: 'cdxApiToken', ttl: 300 }) // TTL in seconds (e.g., 300s = 5min)
-  async getCdxApiToken(): Promise<string> {
-    const clientId = this.configService.get('OIDC_CLIENT_ID');
-    const scope = `${this.configService.get('OIDC_CREDENTIAL_SCOPE').replace('%s', clientId)}`;
-
-    const tokenUrl = this.configService.get('OIDC_TOKEN_URL');
-    const clientSecret = this.configService.get('OIDC_CLIENT_SECRET');
-    const clientCredentialsPolicy = this.configService.get('OIDC_CLIENT_CREDENTIALS_POLICY');
-
-    return this.generateClientCredentialsToken(tokenUrl, clientId, clientSecret, scope, clientCredentialsPolicy);
-  }
-
   async determinePolicy(userId: string, apiToken: string) : Promise<PolicyResponse> {
     //Prepare request body, ai url etc.
     const requestBody = {
       userId: userId,
     };
-    const registerApiUrl = getConfigValue('EASEY_AUTH_BASE_REST_API', '');
+    const registerApiUrl = getConfigValue('OIDC_REST_API_BASE', '');
     const apiUrl = `${registerApiUrl}/api/v1/oidcEnrichment/determinePolicy`;
 
-    //Make the api call
+    //Make the api call to determine policy
     const response = await firstValueFrom(
       this.httpService.post(apiUrl, requestBody, {
         headers: {
@@ -53,18 +37,38 @@ export class OidcHelperService {
       }),
     );
 
-    const responseData = response.data; // Accessing the data property after having the full response
     this.logger.debug('/oidcEnrichment/determinePolicy response data:\n', response.data);
 
     //Prepare data to be returned to the frontend as a PolicyResponse object
+    return await this.createPolicyResponse(response.data, userId, apiToken);
+  }
+
+  private async createPolicyResponse(response: any, userId: string, apiToken: string): Promise<PolicyResponse> {
     let policyResponse: PolicyResponse;
-    if ('policy' in response.data) {
-      policyResponse = await this.determineAuthFlow(response.data.policy, userId);
-    } else if ('code' in response.data) {
+
+    if ('policy' in response) {
+      // Initial setup for PolicyResponse
+      policyResponse = new PolicyResponse({
+        policy: response.policy,
+        userId: userId,
+      });
+
+      if (response.policy.endsWith("_SIGNIN")) {
+        policyResponse.userRoleId = await this.getUserRoleId(userId, apiToken);
+        const { nonce, state } = await this.generateNonceAndState(userId, response.policy);
+        policyResponse.nonce = nonce;
+        policyResponse.state = state;
+      }
+
+      // Set the redirectUri part of the response here directly
+      policyResponse.redirectUri = getConfigValue('OIDC_AUTH_API_REDIRECT_URI');
+
+    } else if ('code' in response) {
       // Case with error code and message
       policyResponse = new PolicyResponse({
-        code: response.data.code,
-        message: response.data.message,
+        code: response.code,
+        message: response.message,
+        userId: userId,
       });
     } else {
       // Handle unexpected structure or throw an error
@@ -74,59 +78,25 @@ export class OidcHelperService {
     return policyResponse;
   }
 
-  private async determineAuthFlow(policy: string, userId: string): Promise<PolicyResponse> {
 
-    let policyResponse = new PolicyResponse({ policy: policy });
-
-    if (policy.endsWith("_SIGNUP")) {
-      //TODO add the _SIGNUP auth-flow-url to the PolicyResponse?  this is the URL the user will be navigated to
-    } else if (policy.endsWith("_MIGRATE")) {
-      //TODO add the _MIGRATE auth-flow-url to the PolicyResponse?  this is the URL the user will be navigated to
-    } else {
-      const role  = await this.retrieveUsersByCriteria( userId );
-      policyResponse.userRoleId = role.getUserRoleId();
-    }
-
-    const authUrl = `${getConfigValue('OIDC_AUTH_ENDPOINT').replace('%s', policyResponse.policy)}`;
-    policyResponse.url = this.buildUrl( policyResponse, authUrl );
-
-    return policyResponse;
-  }
-
-  async retrieveUsersByCriteria(userIdToLookup: string): Promise<Role> {
-    const dataflowName = getConfigValue('EASEY_AUTH_DATA_FLOW_NAME', '');
+  async getUserRoleId(userIdToLookup: string, apiToken: string): Promise<number> {
+    const dataflowName = getConfigValue('ECMPS_DATA_FLOW_NAME', '');
     const requestBody = {
       userId: userIdToLookup,
       dataflow: dataflowName,
     };
 
-    const registerApiUrl = getConfigValue('EASEY_AUTH_BASE_REST_API', '');
+    const registerApiUrl = getConfigValue('OIDC_REST_API_BASE', '');
     const apiUrl = `${registerApiUrl}/api/v1/streamlined/retrieveUsersByCriteria`;
 
     try {
-      const response = await firstValueFrom(this.httpService.post(apiUrl, requestBody, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await this.getCdxApiToken()}`,
-        },
-      }));
-
-      this.logger.debug(`/streamlined/retrieveUsersByCriteria response:\n${JSON.stringify(response.data)}`);
-
-      //const responseArr: RegistrationNewUserProfile[] = response.data;
-      this.logger.debug(`/streamlined/retrieveUsersByCriteria number of profiles returned: ${response.data.length}`);
-
-      if (response.data.length < 1) {
+      const response = await this.makePostRequestJson<RetrieveUsersResponse>(apiUrl, requestBody, apiToken);
+      if (!response || response.length === 0) {
         throw new Error(`No ${dataflowName} roles found for user ${userIdToLookup}`);
       }
+      this.logger.debug(`/streamlined/retrieveUsersByCriteria response:\n${JSON.stringify(response)}`);
 
-      //return responseArr[0];
-      // Directly create and return the Role object from the response as we are not interested in the rest
-      const roleData = response.data[0].role;
-      const status = new CodeDescription(roleData.status.code, roleData.status.description);
-      const type = new RoleType(roleData.type.code, roleData.type.description, roleData.type.status, roleData.type.esaRequirement, roleData.type.signatureQuestionsRequired, roleData.type.manageFacilities);
-      const role = new Role(roleData.userRoleId, roleData.dataflow, status, type, roleData.subject);
-      return role;
+      return response[0].role.userRoleId;
 
     } catch (error) {
       this.logger.error(`Error calling REST service: ${error.message}`, error.stack);
@@ -134,84 +104,161 @@ export class OidcHelperService {
     }
   }
 
-  async getPrimaryOrganization(userIdToLookup: string): Promise<RegistrationOrganization> {
-    const registerApiUrl = getConfigValue('EASEY_AUTH_BASE_REST_API', '');
-    const apiUrl = `${registerApiUrl}/api/v1/registration/retrievePrimaryOrganization/${userIdToLookup}`;
-
+  async makePostRequestJson<T>(url: string, body: any, apiToken: string): Promise<T> {
     try {
-      const response = await firstValueFrom(this.httpService.get<RegistrationOrganization>(apiUrl, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await this.getCdxApiToken()}`,
-        },
-      }));
+      /*if (!apiToken) {
+        apiToken = await this.oidcTokenService.getCdxApiToken();
+      }*/
 
-      this.logger.debug(`retrievePrimaryOrganization response:\n${JSON.stringify(response.data)}`);
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiToken}`,
+      };
 
-      // Directly using response.data as it's supposed to return a single RegistrationOrganization object
-      const registrationOrg: RegistrationOrganization = response.data;
-
-      // Validate only userOrganizationId
-      if (!registrationOrg.userOrganizationId && registrationOrg.userOrganizationId !== 0) {
-        throw new Error(`No valid userOrganizationId found for user ${userIdToLookup}`);
-      }
-
-      return registrationOrg;
+      const response = await firstValueFrom(
+        this.httpService.post<T>(url, body, { headers }),
+      );
+      return response.data;
     } catch (error) {
-      this.logger.error(`Error calling REST service: ${error.message}`, error.stack);
-      throw new Error(`Application error occurred: ${error.message}`);
+      this.logger.error('Failed to make POST request:', error);
+      throw error;
     }
   }
 
-  private async generateClientCredentialsToken(tokenUrl: string, clientId: string, clientSecret: string, scope: string, clientCredentialsPolicy: string): Promise<string> {
-    const params = new URLSearchParams();
-    params.append('grant_type', 'client_credentials');
-    params.append('client_id', clientId);
-    params.append('client_secret', clientSecret);
-    params.append('scope', scope);
-    params.append('p', clientCredentialsPolicy);
+  async makePostRequestForToken<T>(tokenUrl: string, params: URLSearchParams): Promise<T> {
 
     try {
-      const response = await firstValueFrom(this.httpService.post(tokenUrl, params, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      }));
+      const headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      };
 
-      const tokenResponse = response.data;
-      if (!tokenResponse.access_token) {
-        throw new Error('Failed to retrieve access token');
-      }
-      return tokenResponse.access_token;
+      const response = await firstValueFrom(
+        this.httpService.post<T>(tokenUrl, params, { headers }),
+        );
+      return response.data;
     } catch (error) {
-      throw new Error(`Error generating client credentials token: ${error.message}`);
+      this.logger.error('Failed to make POST request:', error);
+      throw error;
     }
   }
 
-  private buildUrl(policyResponse: PolicyResponse, authUrl: string): string {
-    const responseType = getConfigValue('OIDC_AUTH_RESPONSE_TYPE', 'code');
-    const clientId = getConfigValue('OIDC_CLIENT_ID', '');
-    const redirectUri = getConfigValue('OIDC_AUTH_REDIRECT_URI', '');
+
+  async makeGetRequest<T>(url: string, apiToken: string, params: Record<string, any> = {}): Promise<T> {
+    try {
+      /*if (!apiToken) {
+        apiToken = await this.oidcTokenService.getCdxApiToken();
+      }*/
+
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiToken}`,
+      };
+
+      const response = await firstValueFrom(
+        this.httpService.get<T>(url, {
+          headers,
+          params,
+        }),
+      );
+      return response.data;
+    } catch (error) {
+      this.logger.error('Failed to make GET request:', error);
+      throw error;
+    }
+  }
+
+  /*
+  Since we are not using session to store the nonce and state values (to compare later after user is redirected back
+  to us), we are going to include the nonce value in the state (since we are encrypting the state value) and send it off
+  on the auth flow. Upon redirect, we can decrypt the state value and make sure it is intact by checking its signature.
+  Then extract the nonce value and then compare that against the nonce value included in the id token.
+   */
+  async generateNonceAndState(userId: string, policy: string): Promise<{ nonce: string, state: string }> {
     const nonce = this.generateNonce(32);
-    const p = policyResponse.policy;
-    const acrValues = policyResponse.policy;
-    const scope = getConfigValue('OIDC_AUTH_SCOPES', '');
-
-    return authUrl + `?` +
-      `response_type=${encodeURIComponent(responseType)}&` +
-      `client_id=${encodeURIComponent(clientId)}&` +
-      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-      `nonce=${encodeURIComponent(nonce)}&` +
-      `p=${encodeURIComponent(p)}&` +
-      `acr_values=${encodeURIComponent(acrValues)}&` +
-      `scope=${encodeURIComponent(scope)}` +
-      `${policyResponse.userRoleId ? `&userRoleId=${encodeURIComponent(policyResponse.userRoleId.toString())}` : ''}`; //add userRoleId if available
+    const timestamp = Date.now().toString();
+    const state = await this.generateState(nonce, timestamp, userId, policy);
+    return { nonce, state };
   }
 
-  private generateNonce(length = 32) {
-    return crypto.randomBytes(length).toString('base64').slice(0, length);
+  /*
+   We generate a nonce to prevent replay attacks. The nonce value will be included in the ID token returned by the OIDC
+   provider. This allows us to verify that the token we receive is indeed directly in response our own recent
+   request and not a replay of a previous request.
+   */
+  generateNonce(length = 32): string {
+    return crypto.randomBytes(length).toString('hex').slice(0, length);
   }
+
+  /*
+   We generate a random state value to protect against Cross-Site Request Forgery (CSRF) attacks.
+   We do this by maintaining a link between a user's initial auth request and the callback from the
+   authorization server. Since we are NOT maintaining a session, we are encrypting a nonce and state values
+   and sending it with the auth request, and we will validate it again when the redirect bring the user back to
+   our page.
+   */
+  async generateState(nonce: string, timestamp: string, userId: string, policy: string): Promise<string> {
+    const secretKey = getConfigValue('OIDC_HMAC_SECRET_KEY');
+    const hmac = crypto.createHmac('sha256', secretKey);
+    const dataToSign = `${nonce}|${timestamp}|${userId}|${policy}`;
+    hmac.update(dataToSign);
+    const signature = hmac.digest('hex');
+    return `${nonce}.${timestamp}.${userId}.${policy}.${signature}`;
+  }
+
+  async validateNonceAndState(state: string): Promise<{ isValid: boolean, userId?: string, policy?: string }> {
+    if (!state) {
+      return { isValid: false };
+    }
+
+    const [nonce, timestamp, userId, policy, signature] = state.split('.');
+    const secretKey = getConfigValue('OIDC_HMAC_SECRET_KEY');
+    const hmac = crypto.createHmac('sha256', secretKey);
+    const dataToSign = `${nonce}|${timestamp}|${userId}|${policy}`;  // Include userId in the data to sign
+    hmac.update(dataToSign);
+    const computedSignature = hmac.digest('hex');
+
+    // Check if the computed signature matches the one in the state
+    if (signature === computedSignature) {
+      return { isValid: true, userId, policy };  // Return userId if valid
+    } else {
+      return { isValid: false };
+    }
+  }
+
+  /*
+  Checks if the OIDC post coming from the auth-flow redirect has errors
+   */
+  async validateOidcPostRequest(oidcPostDto: OidcPostRequestDto) {
+
+    const oidcPostResponse: OidcPostResponse = new OidcPostResponse({
+      isValid: true
+    });
+
+    //Does the OidcPost request itself has an error?
+    if (oidcPostDto.error) {
+      oidcPostResponse.isValid = false;
+      oidcPostResponse.code = oidcPostDto.code;
+      oidcPostResponse.message = oidcPostDto.error_description;
+      return oidcPostResponse;
+    }
+
+    //Check and state values and return userId if they are valid.
+    const validationResult = await this.validateNonceAndState(oidcPostDto.state);
+    if (!validationResult.isValid) {
+      oidcPostResponse.isValid = false;
+      oidcPostResponse.code = encodeURIComponent('INVALID_NONCE_OR_STATE');
+      oidcPostResponse.message = encodeURIComponent('Invalid state or nonce');
+      return oidcPostResponse;
+    }
+
+    oidcPostResponse.userId = validationResult.userId;
+    oidcPostResponse.policy = validationResult.policy;
+    return oidcPostResponse;
+  }
+
 }
+
+
 
 
 

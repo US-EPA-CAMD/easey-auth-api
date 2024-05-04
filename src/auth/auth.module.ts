@@ -9,8 +9,7 @@ import { AuthController } from './auth.controller';
 import { SignModule } from '../sign/Sign.module';
 import { PermissionsModule } from '../permissions/Permissions.module';
 import { OidcHelperService } from '../oidc/OidcHelperService';
-import { SurAuthService } from './sur.auth.service';
-import { SurController } from './sur.controller';
+import { BypassService } from './bypass.service';
 
 @Module({
   imports: [
@@ -20,8 +19,8 @@ import { SurController } from './sur.controller';
     PermissionsModule,
     HttpModule,
   ],
-  controllers: [AuthController,SurController],
-  providers: [AuthService,SurAuthService, OidcHelperService],
-  exports: [AuthService,SurAuthService, OidcHelperService],
+  controllers: [AuthController],
+  providers: [AuthService, OidcHelperService, BypassService],
+  exports: [AuthService, OidcHelperService, BypassService],
 })
 export class AuthModule {}

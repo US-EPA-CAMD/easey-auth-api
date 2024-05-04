@@ -1,4 +1,4 @@
-import { sign, verify } from 'jsonwebtoken';
+import { JwtPayload, sign, verify } from 'jsonwebtoken';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -41,7 +41,7 @@ export class ClientTokenService {
       }
 
       //Attempt to verify the incoming token
-      const decoded = verify(clientToken, dbRecord.encryptionKey);
+      const decoded = verify(clientToken, dbRecord.encryptionKey) as JwtPayload;
 
       if (decoded.passCode !== dbRecord.passCode) {
         throw new EaseyException(
