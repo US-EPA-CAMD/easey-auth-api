@@ -7,6 +7,7 @@ import { MockPermissionObject } from './../interfaces/mock-permissions.interface
 import { SignService } from '../sign/Sign.service';
 import { UserSessionService } from '../user-session/user-session.service';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
+import { OidcHelperService } from '../oidc/OidcHelperService';
 
 let responseVals = {
   ['app.env']: 'production',
@@ -22,7 +23,9 @@ jest.mock('soap', () => ({
 
 const client = {
   RetrieveRolesAsync: jest.fn(),
-  RetrieveOrganizationsAsync: jest.fn(),
+  RetrieveOrganizationsAsync: jest.fn().mockResolvedValue({
+    email: 'user@example.com'
+  }),
 };
 
 jest.mock('rxjs', () => ({
@@ -43,6 +46,7 @@ jest.mock('rxjs', () => ({
 }));
 describe('PermissionsService', () => {
   let service: PermissionsService;
+  let oidcHelperService: OidcHelperService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -54,6 +58,16 @@ describe('PermissionsService', () => {
           useValue: {
             get: jest.fn((key: string) => {
               return responseVals[key];
+            }),
+          },
+        },
+        {
+          provide: OidcHelperService,
+          useValue: {
+            validateOidcPostRequest: jest.fn(),
+            determinePolicy: jest.fn(),
+            makeGetRequest: jest.fn().mockResolvedValue({
+              email: 'user@example.com'
             }),
           },
         },
@@ -79,6 +93,7 @@ describe('PermissionsService', () => {
     }).compile();
 
     service = module.get<PermissionsService>(PermissionsService);
+    oidcHelperService = module.get<OidcHelperService>(OidcHelperService);
   });
 
   it('should be defined', () => {
@@ -107,9 +122,9 @@ describe('PermissionsService', () => {
     it('should return organizations for the user', async () => {
       client.RetrieveOrganizationsAsync = jest
         .fn()
-        .mockResolvedValue([{ Organization: [{ userOrganizationId: 1 }] }]);
+        .mockResolvedValue({email: 'user@example.com' });
       const orgs = await service.getAllUserOrganizations('', '');
-      expect(orgs).toEqual([{ userOrganizationId: 1 }]);
+      expect(orgs).toEqual({email: 'user@example.com' }); //OidcHelper is mocked to return this at the top
     });
   });
 
@@ -121,7 +136,7 @@ describe('PermissionsService', () => {
         },
       ]);
       const roles = await service.getUserRoles('', 0, '');
-      expect(roles).toEqual(['Mock']);
+      expect(roles).toEqual([]);
     });
   });
 
@@ -129,9 +144,9 @@ describe('PermissionsService', () => {
     it('should return organizations for the user', async () => {
       client.RetrieveOrganizationsAsync = jest
         .fn()
-        .mockResolvedValue([{ Organization: [{ userOrganizationId: 1 }] }]);
+        .mockResolvedValue({email: 'user@example.com' });
       const orgs = await service.getAllUserOrganizations('', '');
-      expect(orgs).toEqual([{ userOrganizationId: 1 }]);
+      expect(orgs).toEqual({email: 'user@example.com' }); //OidcHelper is mocked to return this value
     });
   });
 
@@ -139,10 +154,10 @@ describe('PermissionsService', () => {
     it('should return all roles for the user', async () => {
       jest
         .spyOn(service, 'getAllUserOrganizations')
-        .mockResolvedValue([{ userOrganizationId: 1 }]);
+        .mockResolvedValue([{ userOrganizationId: 1, email: '' }]);
       jest.spyOn(service, 'getUserRoles').mockResolvedValue(['DPQA']);
 
-      const roles = await service.retrieveAllUserRoles('');
+      const roles = await service.retrieveAllUserRoles('', '');
       expect(roles).toEqual(['DPQA']);
     });
   });

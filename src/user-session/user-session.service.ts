@@ -74,7 +74,7 @@ export class UserSessionService {
     return true;
   }
 
-  async createUserSession(userId: string, oidcPolicy: string): Promise<UserSession> {
+  async createUserSession(userId: string, authCode: string, oidcPolicy: string, clientIp: string): Promise<UserSession> {
     const sessionId = uuid();
     await this.removeUserSessionByUserId(userId);
 
@@ -82,6 +82,8 @@ export class UserSessionService {
     session.sessionId = sessionId;
     session.userId = userId.toLowerCase();
     session.oidcPolicy = oidcPolicy;
+    session.securityToken = authCode;
+    session.clientIp = clientIp;
     session.lastLoginDate = dateToEstString();
     session.lastActivity = dateToEstString();
     await this.repository.insert(session);
@@ -179,7 +181,11 @@ export class UserSessionService {
   ) {
     await this.repository.update(
       { sessionId: sessionId },
-      { tokenExpiration: expiration, securityToken: accessTokenResponse.access_token, refreshToken: accessTokenResponse.refresh_token },
+      {
+        tokenExpiration: expiration,
+        securityToken: accessTokenResponse.access_token,
+        refreshToken: accessTokenResponse.refresh_token
+      },
     );
   }
 

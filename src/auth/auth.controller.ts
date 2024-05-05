@@ -10,10 +10,10 @@ import { AuthGuard } from '../guards/auth.guard';
 import { AuthService } from './auth.service';
 import { UserIdDTO } from '../dtos/user-id.dto';
 import { PolicyResponse } from '../dtos/policy-response';
-import { CredentialsOidcDTO } from '../dtos/credentialsOidc.dto';
-import { OidcPostRequestDto } from '../dtos/oidc-post.request.dto';
+import { OidcAuthValidationRequestDto } from '../dtos/oidc-auth-validation-request.dto';
 import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
 import { SignInDTO } from '../dtos/signin.dto';
+import { CredentialsDTO } from '../dtos/credentials.dto';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -24,11 +24,10 @@ export class AuthController {
   @Post('/determinePolicy')
   @ApiOkResponse({
     type: PolicyResponse,
-    description: 'Determines the users policy based a given user id',
+    description: 'Determines the users policy based the given user id',
   })
   async determinePolicy(
-    @Body() credentials: CredentialsOidcDTO,
-    @ClientIP() clientIp: string,
+    @Body() credentials: CredentialsDTO
   ): Promise<PolicyResponse> {
 
     return this.service.determinePolicy(
@@ -38,27 +37,27 @@ export class AuthController {
 
   @Post('/oauth2/code')
   @ApiOkResponse({
-    description: 'Validates the OIDC parameters and redirect the user to the ECMPS UI home page ',
+    description: 'Validates the given OIDC parameters and redirects the user to the ECMPS UI home page ',
   })
   async processOidcRedirect(
-      @Req() req: Request,
-      @Body() oidcPostRequest: OidcPostRequestDto,
+      @Body() oidcPostRequest: OidcAuthValidationRequestDto,
+      @ClientIP() clientIp: string,
       @Res() res: Response,
   ): Promise<void> {
 
     console.log('oidcPostRequest is', oidcPostRequest);
     const ecmpsUiRedirectUrl = getConfigValue('ECMPS_UI_REDIRECT_URL');
-    const oidcPostResponse = await this.service.validateAndCreateSession(oidcPostRequest);
-    if (!oidcPostResponse || !oidcPostResponse.isValid) {
-      return res.redirect(`${ecmpsUiRedirectUrl}?message=${oidcPostResponse.message}&code=${oidcPostResponse.code}`);
+    const oidcAuthValidationResponse = await this.service.validateAndCreateSession(oidcPostRequest, clientIp);
+    if (!oidcAuthValidationResponse || !oidcAuthValidationResponse.isValid) {
+      return res.redirect(`${ecmpsUiRedirectUrl}?message=${oidcAuthValidationResponse.message}&code=${oidcAuthValidationResponse.code}`);
     }
 
-    return res.redirect(`${ecmpsUiRedirectUrl}?sessionId=${oidcPostResponse.userSession.sessionId}`);
+    return res.redirect(`${ecmpsUiRedirectUrl}?sessionId=${oidcAuthValidationResponse.userSession.sessionId}`);
   }
 
   @Post('/sign-in')
   @ApiOkResponse({
-    type: SignInDTO,
+    type: UserDTO,
     description: 'Authenticates a user using a previously provided sessionId',
   })
   async signIn(

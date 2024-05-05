@@ -24,7 +24,6 @@ export class TokenService {
   constructor(
     private configService: ConfigService,
     private readonly userSessionService: UserSessionService,
-    private readonly permissionsService: PermissionsService,
     private readonly oidcHelperService: OidcHelperService,
     private readonly bypassService: BypassService,
     private readonly logger: Logger,
@@ -38,13 +37,12 @@ export class TokenService {
       token,
     );
 
-    //Retrieve fresh token from the token refresh endpoint
-    const accessTokenResponse = await this.newTokens(session);
-    //Get the updated session information from the database (updated by retrieveRefreshTokenCall)
-    session = await this.userSessionService.findSessionBySessionId(session.sessionId);
+    //Retrieve fresh token from the token refresh endpoint and store it in the user session
+    const accessTokenResponse = await this.updateUserSessionWithNewTokens(session);
+    session = await this.userSessionService.findSessionBySessionId(session.sessionId); //Get updated session
 
     const authToken = new TokenDTO();
-    authToken.token = accessTokenResponse.access_token;
+    authToken.token = session.securityToken;
     authToken.expiration = session.tokenExpiration;
 
     return authToken;
@@ -90,7 +88,7 @@ export class TokenService {
     return accessTokenResponse;
   }
 
-  async newTokens(userSession: UserSession): Promise<AccessTokenResponse> {
+  async updateUserSessionWithNewTokens(userSession: UserSession): Promise<AccessTokenResponse> {
     const params = new URLSearchParams();
     params.append('grant_type', 'refresh_token');
     params.append('refresh_token', userSession.refreshToken);
@@ -107,12 +105,7 @@ export class TokenService {
       throw new EaseyException(new Error('Unable to validate access token'), HttpStatus.UNAUTHORIZED);
     }
 
-    const expiration = dateToEstString(
-      Date.now() +
-      this.configService.get<number>('app.tokenExpirationDurationMinutes') *
-      60000,
-    );
-
+    const expiration = this.calculateTokenExpirationInMills(accessTokenResponse.expires_in);
     await this.userSessionService.updateUserSessionToken(
       userSession.sessionId,
       accessTokenResponse,
@@ -136,6 +129,10 @@ export class TokenService {
     return await this.oidcHelperService.makePostRequestForToken<AccessTokenResponse>(tokenEndpoint, params);
   }
 
+  calculateTokenExpirationInMills(seconds : number ) {
+    return dateToEstString(Date.now() + seconds * 1000);
+  }
+
   private getJwksClient(jwksUri: string): JwksClient {
     if (!this.jwksClients.has(jwksUri)) {
       const client = new JwksClient({ jwksUri });
@@ -144,7 +141,7 @@ export class TokenService {
     return this.jwksClients.get(jwksUri);
   }
 
-  private async getKey(jwksUri: string, header): Promise<string> {
+  private async getKey(jwksUri: string, header: { kid: string; }): Promise<string> {
     const client = this.getJwksClient(jwksUri);
     const key = await client.getSigningKey(header.kid);
     return key.getPublicKey();
@@ -205,7 +202,6 @@ export class TokenService {
     }
 
     return true;
-    // Add any additional claim validations here
   }
 
   async validateToken(token: string, clientIp: string): Promise<any> {
@@ -240,11 +236,11 @@ export class TokenService {
     user.userId = userSession.userId;
     user.sessionId = userSession.sessionId;
     user.expiration = userSession.tokenExpiration
-    //user.clientIp = userSession
+    user.clientIp = userSession.clientIp;
     user.facilities = JSON.parse(userSession.facilities);
-    user.roles = await this.permissionsService.retrieveAllUserRoles( userSession.userId, await this.getCdxApiToken() );
+    user.roles = JSON.parse(userSession.roles);
 
-    //await this.validateClientIp(user, clientIp);
+    await this.validateClientIp(user, clientIp);
 
     if (
       await this.userSessionService.isValidSessionForToken(

@@ -1,6 +1,6 @@
 import { IsOptional, IsString } from 'class-validator';
 
-export class OidcPostRequestDto {
+export class OidcAuthValidationRequestDto {
   @IsString()
   @IsOptional()
   code?: string;

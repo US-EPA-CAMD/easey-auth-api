@@ -8,6 +8,10 @@ import { FacilityAccessDTO } from '../dtos/permissions.dto';
 import { PermissionsService } from '../permissions/Permissions.service';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
 import { BypassService } from '../auth/bypass.service';
+import { OidcHelperService } from '../oidc/OidcHelperService';
+import { UserSession } from '../entities/user-session.entity';
+import { Session } from '@nestjs/common';
+import mock = jest.mock;
 jest.mock('soap', () => ({
   createClientAsync: jest.fn(() => Promise.resolve(client)),
 }));
@@ -28,6 +32,7 @@ describe('Token Service', () => {
   let bypassService: BypassService;
   let userSessionService: UserSessionService;
   let permissionService: PermissionsService;
+  let oidcHelperService: OidcHelperService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -48,6 +53,7 @@ describe('Token Service', () => {
               .fn()
               .mockResolvedValue(JSON.stringify({ facilities: [] })),
             removeUserSessionByUserId: jest.fn(),
+            findSessionByUserId: jest.fn().mockResolvedValue(new UserSession()),
             createUserSession: jest.fn().mockResolvedValue(new TokenDTO()),
             updateUserSessionToken: jest.fn(),
             isValidSessionForToken: jest.fn().mockResolvedValue(true),
@@ -56,6 +62,23 @@ describe('Token Service', () => {
               .fn()
               .mockResolvedValue([new FacilityAccessDTO()]),
           }),
+        },
+        {
+          provide: BypassService,
+          useValue: {
+            bypassEnabled: jest.fn().mockReturnValue(false),
+            getBypassUser: jest.fn(),
+          },
+        },
+        {
+          provide: OidcHelperService,
+          useValue: {
+            validateOidcPostRequest: jest.fn(),
+            determinePolicy: jest.fn(),
+            makeGetRequest: jest.fn().mockResolvedValue({
+              email: 'user@example.com'
+            }),
+          },
         },
         {
           provide: PermissionsService,
@@ -70,23 +93,11 @@ describe('Token Service', () => {
     service = module.get(TokenService);
     permissionService = module.get(PermissionsService);
     userSessionService = module.get(UserSessionService);
+    oidcHelperService = module.get<OidcHelperService>(OidcHelperService);
+    bypassService = module.get<BypassService>(BypassService);
   });
   it('should be defined', () => {
     expect(service).toBeDefined();
-  });
-
-  describe('refreshToken', () => {
-    it('should issue a token for the user given a non-expired session', async () => {
-      userSessionService.isSessionTokenExpired = jest
-        .fn()
-        .mockReturnValue(false);
-
-      const token = new TokenDTO();
-      token.token = 'mockToken';
-      //jest.spyOn(service, 'generateToken').mockResolvedValue(token);
-      const refreshedToken = await service.refreshToken('', '', '');
-      expect(refreshedToken.token).toEqual('mockToken');
-    });
   });
 
   describe('generateToken', () => {

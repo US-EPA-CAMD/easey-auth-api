@@ -9,6 +9,7 @@ import { TokenController } from './token.controller';
 import { PermissionsModule } from '../permissions/Permissions.module';
 import { AuthModule } from '../auth/auth.module';
 import { OidcHelperService } from '../oidc/OidcHelperService';
+import { BypassService } from '../auth/bypass.service';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { OidcHelperService } from '../oidc/OidcHelperService';
     PermissionsModule,
   ],
   controllers: [TokenController],
-  providers: [TokenService, OidcHelperService],
-  exports: [TokenService, OidcHelperService],
+  providers: [TokenService, OidcHelperService, BypassService],
+  exports: [TokenService, OidcHelperService, BypassService],
 })
 export class TokenModule {}

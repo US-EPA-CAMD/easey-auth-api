@@ -5,7 +5,7 @@ import { Logger } from '@us-epa-camd/easey-common/logger';
 import { UserDTO } from './user.dto';
 import { UserSession } from '../entities/user-session.entity';
 
-export class OidcPostResponse {
+export class OidcAuthValidationResponseDto {
 
   isValid?: boolean;
   code?: string;
@@ -15,7 +15,7 @@ export class OidcPostResponse {
   userSession?: UserSession;
   userDTO?: UserDTO;
 
-  constructor(init?: Partial<OidcPostResponse>) {
+  constructor(init?: Partial<OidcAuthValidationResponseDto>) {
     Object.assign(this, init);
   }
 }

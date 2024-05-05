@@ -9,8 +9,8 @@ import { UserSessionService } from '../user-session/user-session.service';
 import { PermissionsService } from '../permissions/Permissions.service';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { PolicyResponse } from '../dtos/policy-response';
-import { OidcPostRequestDto } from '../dtos/oidc-post.request.dto';
-import { OidcPostResponse } from '../dtos/oidc-post-response.dto';
+import { OidcAuthValidationRequestDto } from '../dtos/oidc-auth-validation-request.dto';
+import { OidcAuthValidationResponseDto } from '../dtos/oidc-auth-validation-response.dto';
 import { SignInDTO } from '../dtos/signin.dto';
 import * as jwt from 'jsonwebtoken';
 import { OidcJwtPayload, OrganizationResponse } from '../dtos/oidc-auth-dtos';
@@ -51,7 +51,7 @@ export class AuthService {
       //Make the determinePolicyCall
       return await this.oidcHelperService.determinePolicy(userId, apiToken);
     } catch (error) {
-      this.logger.error("error calling REST service: ", error.message);
+      this.logger.error("error determining user policy: ", error.message);
 
       // Check if the error is due to the specific condition of an invalid user ID
       if (error.response && error.response.data && error.response.data.code === 'E_WRONG_USER_ID') {
@@ -68,45 +68,42 @@ export class AuthService {
   }
 
   async validateAndCreateSession(
-    oidcPostDto: OidcPostRequestDto,
-  ): Promise<OidcPostResponse> {
+    oidcAuthValidationRequest: OidcAuthValidationRequestDto,
+    clientIp: string
+  ): Promise<OidcAuthValidationResponseDto> {
 
-    let oidcPostResponse: OidcPostResponse = new OidcPostResponse({
+    let oidcAuthValidationResponse = new OidcAuthValidationResponseDto({
       isValid: true
     });
 
     try {
-      oidcPostResponse = await this.oidcHelperService.validateOidcPostRequest(oidcPostDto);
-      if (! oidcPostResponse.isValid) {
-        return oidcPostResponse;
+      oidcAuthValidationResponse = await this.oidcHelperService.validateOidcPostRequest(oidcAuthValidationRequest);
+      if (! oidcAuthValidationResponse.isValid) {
+        return oidcAuthValidationResponse;
       }
 
-      oidcPostResponse.userId = oidcPostResponse.userId.toLowerCase();
-      const userId = oidcPostResponse.userId;
+      oidcAuthValidationResponse.userId = oidcAuthValidationResponse.userId.toLowerCase();
+      const userId = oidcAuthValidationResponse.userId;
       let userSession = await this.userSessionService.findSessionByUserId(userId);
       if (userSession) {
         await this.userSessionService.removeUserSessionByUserId(userId);
       }
-      userSession = await this.userSessionService.createUserSession(userId, oidcPostResponse.policy);
 
-      //We are storing the auth code in the token field for now. When ECMPS UI sends
-      //the session ID back for signing in, we will exchange it for a valid token
-      userSession.securityToken = oidcPostDto.code;
-
-      //Update session
-      await this.userSessionService.updateSession(userSession);
-      oidcPostResponse.userSession = userSession;
+      //Create the userSession and save the auth code in the security_token temporarily.
+      //SignIn method will exchange it for a valid token
+      userSession = await this.userSessionService.createUserSession(userId, oidcAuthValidationRequest.code, oidcAuthValidationResponse.policy, clientIp);
+      oidcAuthValidationResponse.userSession = userSession;
 
     } catch (error) {
       this.logger.error('Error exchanging code for tokens:', error);
-      oidcPostResponse = new OidcPostResponse({
+      oidcAuthValidationResponse = new OidcAuthValidationResponseDto({
         isValid: false,
         code: "ERROR_TOKEN_PROCESSING",
         message: error.message
       });
     }
 
-    return oidcPostResponse;
+    return oidcAuthValidationResponse;
   }
 
   async signIn(
@@ -125,7 +122,12 @@ export class AuthService {
     session = await this.userSessionService.findSessionBySessionId(signInDto.sessionId);
 
     //Decode and retrieve the claims from the token
-    const oidcJwtPayload = jwt.decode(accessTokenResponse.access_token, { complete: true }) as { header: any, payload: OidcJwtPayload, signature: string };
+    const decoded = jwt.decode(accessTokenResponse.access_token, { complete: true });
+    if (!decoded || !decoded.payload) {
+      throw new Error('Invalid token: Unable to decode access token.');
+    }
+    const oidcJwtPayload = decoded as { header: any, payload: OidcJwtPayload, signature: string };
+
     const userDto = new UserDTO();
     userDto.userId = oidcJwtPayload.payload.userId;
     userDto.firstName = oidcJwtPayload.payload.given_name;
@@ -133,14 +135,13 @@ export class AuthService {
     userDto.token = accessTokenResponse.access_token
     // Set the token expiration. This was previously calculated from an ENV value.
     // Now, we calculate based on token response value. expires_in is in seconds
-    userDto.tokenExpiration = dateToEstString(Date.now() + accessTokenResponse.expires_in * 1000,);
+    userDto.tokenExpiration = this.tokenService.calculateTokenExpirationInMills(accessTokenResponse.expires_in);
 
     //Retrieve email
     const apiToken = await this.tokenService.getCdxApiToken();
     const orgResponse = await this.getUserEmail(userDto.userId, apiToken);
     userDto.email = orgResponse.email;
     userDto.roles = await this.permissionsService.retrieveAllUserRoles(userDto.userId, apiToken);
-
     //Retrieve the list of facilities.
     const facilities =
       await this.permissionsService.retrieveAllUserFacilities(
@@ -149,9 +150,11 @@ export class AuthService {
         apiToken,
         clientIp,
       );
-    session.facilities = JSON.stringify(facilities);
     userDto.facilities = facilities;
 
+    session.tokenExpiration = userDto.tokenExpiration;
+    session.roles = JSON.stringify(userDto.roles);
+    session.facilities = JSON.stringify(facilities);
     //Update the session with user and facility information
     await this.userSessionService.updateSession(session);
 
@@ -165,41 +168,9 @@ export class AuthService {
     try {
       return await this.oidcHelperService.makeGetRequest<OrganizationResponse>(apiUrl, token, null);
     } catch (error) {
-      this.logger.error('Failed to make GET request to ', apiUrl, error);
+      this.logger.error('Unable to get user email. ', apiUrl, error);
       throw new EaseyException(error, HttpStatus.BAD_REQUEST);
     }
-  }
-
-  //OLD
-
-  async getStreamlinedRegistrationToken(userId: string): Promise<string> {
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/StreamlinedRegistrationService?wsdl`;
-
-    return createClientAsync(url)
-      .then(client => {
-        return client.AuthenticateAsync({
-          userId: this.configService.get<string>('app.naasAppId'),
-          credential: this.configService.get<string>('app.nassAppPwd'),
-        });
-      })
-      .then(res => {
-        return res[0].securityToken;
-      })
-      .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error(JSON.stringify(err.root.Envelope)),
-            HttpStatus.BAD_REQUEST,
-            { userId: userId },
-          );
-        }
-
-        throw new EaseyException(new Error(err), HttpStatus.BAD_REQUEST, {
-          userId: userId,
-        });
-      });
   }
 
   async updateLastActivity(token: string): Promise<void> {

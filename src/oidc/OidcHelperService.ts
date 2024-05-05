@@ -7,8 +7,8 @@ import { Logger } from '@us-epa-camd/easey-common/logger';
 
 import { PolicyResponse } from '../dtos/policy-response';
 import * as crypto from 'crypto';
-import { OidcPostRequestDto } from '../dtos/oidc-post.request.dto';
-import { OidcPostResponse } from '../dtos/oidc-post-response.dto';
+import { OidcAuthValidationRequestDto } from '../dtos/oidc-auth-validation-request.dto';
+import { OidcAuthValidationResponseDto } from '../dtos/oidc-auth-validation-response.dto';
 import { RetrieveUsersResponse } from '../dtos/oidc-auth-dtos';
 
 @Injectable()
@@ -94,22 +94,17 @@ export class OidcHelperService {
       if (!response || response.length === 0) {
         throw new Error(`No ${dataflowName} roles found for user ${userIdToLookup}`);
       }
-      this.logger.debug(`/streamlined/retrieveUsersByCriteria response:\n${JSON.stringify(response)}`);
 
       return response[0].role.userRoleId;
 
     } catch (error) {
-      this.logger.error(`Error calling REST service: ${error.message}`, error.stack);
-      throw new Error(`Application error occurred: ${error.message}`);
+      this.logger.error(`Error obtaining user role id: `, error);
+      throw new Error(`Error obtaining user role id: ${error.message}`);
     }
   }
 
   async makePostRequestJson<T>(url: string, body: any, apiToken: string): Promise<T> {
     try {
-      /*if (!apiToken) {
-        apiToken = await this.oidcTokenService.getCdxApiToken();
-      }*/
-
       const headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiToken}`,
@@ -120,7 +115,7 @@ export class OidcHelperService {
       );
       return response.data;
     } catch (error) {
-      this.logger.error('Failed to make POST request:', error);
+      this.logger.error('Failed to make POST request:', url, body, error);
       throw error;
     }
   }
@@ -137,7 +132,7 @@ export class OidcHelperService {
         );
       return response.data;
     } catch (error) {
-      this.logger.error('Failed to make POST request:', error);
+      this.logger.error('Failed to make POST request:', tokenUrl, params.toString(), error);
       throw error;
     }
   }
@@ -162,7 +157,7 @@ export class OidcHelperService {
       );
       return response.data;
     } catch (error) {
-      this.logger.error('Failed to make GET request:', error);
+      this.logger.error('Failed to make GET request:', url, params.toString(), error);
       throw error;
     }
   }
@@ -228,32 +223,32 @@ export class OidcHelperService {
   /*
   Checks if the OIDC post coming from the auth-flow redirect has errors
    */
-  async validateOidcPostRequest(oidcPostDto: OidcPostRequestDto) {
+  async validateOidcPostRequest(oidcAuthValidationRequest: OidcAuthValidationRequestDto) {
 
-    const oidcPostResponse: OidcPostResponse = new OidcPostResponse({
+    const oidcAuthValidationResponse: OidcAuthValidationResponseDto = new OidcAuthValidationResponseDto({
       isValid: true
     });
 
     //Does the OidcPost request itself has an error?
-    if (oidcPostDto.error) {
-      oidcPostResponse.isValid = false;
-      oidcPostResponse.code = oidcPostDto.code;
-      oidcPostResponse.message = oidcPostDto.error_description;
-      return oidcPostResponse;
+    if (oidcAuthValidationRequest.error) {
+      oidcAuthValidationResponse.isValid = false;
+      oidcAuthValidationResponse.code = oidcAuthValidationRequest.code;
+      oidcAuthValidationResponse.message = oidcAuthValidationRequest.error_description;
+      return oidcAuthValidationResponse;
     }
 
     //Check and state values and return userId if they are valid.
-    const validationResult = await this.validateNonceAndState(oidcPostDto.state);
+    const validationResult = await this.validateNonceAndState(oidcAuthValidationRequest.state);
     if (!validationResult.isValid) {
-      oidcPostResponse.isValid = false;
-      oidcPostResponse.code = encodeURIComponent('INVALID_NONCE_OR_STATE');
-      oidcPostResponse.message = encodeURIComponent('Invalid state or nonce');
-      return oidcPostResponse;
+      oidcAuthValidationResponse.isValid = false;
+      oidcAuthValidationResponse.code = encodeURIComponent('INVALID_NONCE_OR_STATE');
+      oidcAuthValidationResponse.message = encodeURIComponent('Invalid state or nonce');
+      return oidcAuthValidationResponse;
     }
 
-    oidcPostResponse.userId = validationResult.userId;
-    oidcPostResponse.policy = validationResult.policy;
-    return oidcPostResponse;
+    oidcAuthValidationResponse.userId = validationResult.userId;
+    oidcAuthValidationResponse.policy = validationResult.policy;
+    return oidcAuthValidationResponse;
   }
 
 }

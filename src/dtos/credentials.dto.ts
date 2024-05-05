@@ -1,8 +1,6 @@
-import { IsBoolean, IsString } from 'class-validator';
-import { CredentialsOidcDTO } from './credentialsOidc.dto';
+import { IsString } from 'class-validator';
 
-export class CredentialsDTO extends CredentialsOidcDTO {
-
+export class CredentialsDTO {
   @IsString()
-  password?: string;
+  userId: string;
 }

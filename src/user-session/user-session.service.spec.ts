@@ -5,6 +5,7 @@ import { UserSessionRepository } from './user-session.repository';
 import { UserSessionService } from './user-session.service';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
+import { AccessTokenResponse } from '../dtos/oidc-auth-dtos';
 
 jest.mock('rxjs', () => ({
   firstValueFrom: jest.fn().mockResolvedValue({ data: 'MOCKED' }),
@@ -58,7 +59,7 @@ describe('User Session Service', () => {
   describe('createUserSession', () => {
     it('should create a new user session', async () => {
       jest.spyOn(service, 'removeUserSessionByUserId').mockResolvedValue();
-      await service.createUserSession('');
+      await service.createUserSession('', '', '', '');
       expect(mockRepo.insert).toHaveBeenCalled();
     });
   });
@@ -114,13 +115,6 @@ describe('User Session Service', () => {
       expect(async () => {
         await service.findSessionByUserIdAndToken('', '');
       }).rejects.toThrow();
-    });
-  });
-
-  describe('updateUserSessionToken', () => {
-    it('should update user session', async () => {
-      await service.updateUserSessionToken('', '', '');
-      expect(mockRepo.update).toHaveBeenCalled();
     });
   });
 

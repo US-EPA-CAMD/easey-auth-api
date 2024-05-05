@@ -217,7 +217,7 @@ export class SignService {
     token: string,
     activityId: string,
     userId: string,
-    password: string,
+    /*password: string,*/
   ) {
     const url = `${this.configService.get<string>(
       'app.cdxSvcs',
@@ -229,7 +229,7 @@ export class SignService {
           securityToken: token,
           activityId: activityId,
           userId: userId,
-          password: password,
+          password: '', //TODO update for CROMERR signing
         });
       })
       .then(res => {
@@ -380,8 +380,8 @@ export class SignService {
     await this.authenticateUser(
       token,
       activityId,
-      credentials.userId,
-      credentials.password,
+      credentials.userId
+      //credentials.password,
     );
 
     //Extra error handling

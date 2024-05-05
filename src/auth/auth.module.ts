@@ -10,6 +10,7 @@ import { SignModule } from '../sign/Sign.module';
 import { PermissionsModule } from '../permissions/Permissions.module';
 import { OidcHelperService } from '../oidc/OidcHelperService';
 import { BypassService } from './bypass.service';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [

@@ -16,15 +16,11 @@ export class BypassService {
   constructor(
     private readonly logger: Logger,
     private readonly configService: ConfigService,
-    private readonly tokenService: TokenService,
-    private readonly permissionsService: PermissionsService,
-    private readonly userSessionService: UserSessionService,
   ) {
     this.bypass =
       this.configService.get<string>('app.env') !== 'production' &&
       this.configService.get<boolean>('cdxBypass.enabled');
   }
-
 
   bypassEnabled() {
     return this.bypass;

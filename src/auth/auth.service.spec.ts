@@ -1,243 +1,190 @@
-import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
-import { LoggerModule } from '@us-epa-camd/easey-common/logger';
-import { UserSessionService } from '../user-session/user-session.service';
-import { HttpService } from '@nestjs/axios';
-import { TokenDTO } from '../dtos/token.dto';
+import * as jwt from 'jsonwebtoken';
 import { AuthService } from './auth.service';
 import { TokenService } from '../token/token.service';
-import { SignService } from '../sign/Sign.service';
+import { UserSessionService } from '../user-session/user-session.service';
 import { PermissionsService } from '../permissions/Permissions.service';
-import { UserDTO } from '../dtos/user.dto';
-import { UserSession } from '../entities/user-session.entity';
+import { OidcHelperService } from '../oidc/OidcHelperService';
 import { BypassService } from './bypass.service';
+import { Logger } from '@us-epa-camd/easey-common/logger';
+import { ConfigService } from '@nestjs/config';
+import { AccessTokenResponse } from '../dtos/oidc-auth-dtos';
+import { OidcAuthValidationRequestDto } from '../dtos/oidc-auth-validation-request.dto';
+import { UserSession } from '../entities/user-session.entity';
+
 jest.mock('soap', () => ({
-  createClientAsync: jest.fn(() => Promise.resolve(client)),
+  createClientAsync: jest.fn(),
 }));
-jest.mock('rxjs', () => ({
-  firstValueFrom: jest.fn().mockResolvedValue({
-    data: [
-      {
-        userid: 'test',
-        facilities: [
-          {
-            facilityId: 1,
-            orisCode: 1,
-            name: '',
-            roles: [''],
-          },
-        ],
-      },
-    ],
-  }),
+jest.mock('@nestjs/axios', () => ({
+  HttpService: jest.fn(),
 }));
-const responseVals = {
-  ['app.env']: 'development',
-  ['cdxBypass.pass']: 'pass',
-  ['cdxBypass.users']: '["user"]',
-  ['app.cdxSvcs']: '',
-};
-const client = {
-  AuthenticateAsync: jest.fn(),
-  RetrievePrimaryOrganizationAsync: jest.fn(),
-  RetrieveOrganizationsAsync: jest.fn(),
-};
-
 jest.mock('@us-epa-camd/easey-common/utilities', () => ({
-  dateToEstString: jest.fn().mockReturnValue(new Date().toLocaleString()),
+  getConfigValue: jest.fn().mockReturnValue('http://api-url.com'),
+}));
+jest.mock('jsonwebtoken', () => ({
+  ...jest.requireActual<typeof jwt>('jsonwebtoken'),
+  decode: jest.fn().mockReturnValue({
+    header: {},
+    payload: {
+      userId: 'user1',
+      given_name: 'John',
+      family_name: 'Doe'
+    },
+    signature: 'signature'
+  })
 }));
 
-describe('Authentication Service', () => {
+describe('AuthService', () => {
   let service: AuthService;
   let tokenService: TokenService;
-  let bypassService: BypassService;
   let userSessionService: UserSessionService;
+  let permissionsService: PermissionsService;
+  let oidcHelperService: OidcHelperService;
+  let bypassService: BypassService;
+  let logger: Logger;
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [LoggerModule],
       providers: [
         AuthService,
         {
-          provide: SignService,
-          useFactory: () => ({
-            getRegisterServiceToken: jest.fn().mockResolvedValue(''),
-          }),
+          provide: TokenService,
+          useValue: {
+            getCdxApiToken: jest.fn().mockResolvedValue('api-token'),
+            exchangeAuthCodeForToken: jest.fn(),
+            signOut: jest.fn(),
+            calculateTokenExpirationInMills: jest.fn(),
+          },
         },
         {
-          provide: ConfigService,
+          provide: UserSessionService,
           useValue: {
-            get: jest.fn((key: string) => {
-              return responseVals[key];
+            findSessionByUserId: jest.fn(),
+            createUserSession: jest.fn(),
+            updateSession: jest.fn(),
+            removeUserSessionByUserId: jest.fn(),
+            refreshLastActivity: jest.fn(),
+            findSessionBySessionId: jest.fn().mockResolvedValue({
+              userId: 'user1',
+              roles: JSON.stringify(['role1']),
+              facilities: JSON.stringify(['facility1']),
+            }),
+            findSessionByUserIdAndToken: jest.fn().mockResolvedValue({
+              userId: 'user1',
+              token: 'token',
+            }),
+
+          },
+        },
+        {
+          provide: PermissionsService,
+          useValue: {
+            retrieveAllUserRoles: jest.fn().mockResolvedValue(['role1']),
+            retrieveAllUserFacilities: jest.fn().mockResolvedValue(['facility1']),
+          },
+        },
+        {
+          provide: OidcHelperService,
+          useValue: {
+            validateOidcPostRequest: jest.fn(),
+            determinePolicy: jest.fn(),
+            makeGetRequest: jest.fn().mockResolvedValue({
+              email: 'user@example.com'
             }),
           },
         },
         {
-          provide: TokenService,
-          useFactory: () => ({
+          provide: BypassService,
+          useValue: {
             bypassEnabled: jest.fn().mockReturnValue(false),
-            generateToken: jest.fn().mockResolvedValue(new TokenDTO()),
-            unencryptToken: jest.fn().mockResolvedValue(''),
-          }),
+            getBypassUser: jest.fn(),
+          },
         },
         {
-          provide: UserSessionService,
-          useFactory: () => ({
-            bypass: false,
-            findSessionByUserIdAndToken: jest.fn(),
-            isSessionTokenExpired: jest.fn(),
-            removeUserSessionByUserId: jest.fn(),
-            generateToken: jest.fn(),
-            createUserSession: jest.fn().mockResolvedValue(new TokenDTO()),
-            refreshLastActivity: jest.fn(),
-            findSessionByUserId: jest.fn(),
-            updateSession: jest.fn(),
-          }),
+          provide: Logger,
+          useValue: {
+            error: jest.fn(),
+          },
         },
-        {
-          provide: HttpService,
-          useFactory: () => ({
-            get: jest.fn(),
-          }),
-        },
-        {
-          provide: PermissionsService,
-          useFactory: () => ({
-            retrieveAllUserRoles: jest.fn().mockResolvedValue(['Preparer']),
-            retrieveAllUserFacilities: jest.fn().mockResolvedValue([]),
-          }),
-        },
+        ConfigService,
       ],
     }).compile();
-    service = module.get(AuthService);
-    tokenService = module.get(TokenService);
-    userSessionService = module.get(UserSessionService);
+
+    service = module.get<AuthService>(AuthService);
+    tokenService = module.get<TokenService>(TokenService);
+    userSessionService = module.get<UserSessionService>(UserSessionService);
+    permissionsService = module.get<PermissionsService>(PermissionsService);
+    oidcHelperService = module.get<OidcHelperService>(OidcHelperService);
+    bypassService = module.get<BypassService>(BypassService);
+    logger = module.get<Logger>(Logger);
   });
+
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  describe('getStreamlinedRegistrationToken', () => {
-    it('should issue a token for the user', async () => {
-      client.AuthenticateAsync = jest
-        .fn()
-        .mockResolvedValue([{ securityToken: '1' }]);
-      const token = await service.getStreamlinedRegistrationToken('');
-      expect(token).toEqual('1');
+  describe('determinePolicy', () => {
+    it('should return a PolicyResponse based on userId', async () => {
+      const response = { policy: 'Standard' };
+      jest.spyOn(oidcHelperService, 'determinePolicy').mockResolvedValue(response);
+      const result = await service.determinePolicy('user1');
+      expect(result).toEqual(response);
     });
   });
 
-  describe('getUserEmail', () => {
-    it('should return an email for the user', async () => {
-      client.RetrievePrimaryOrganizationAsync = jest
-        .fn()
-        .mockResolvedValue([
-          { result: { email: 'email', userOrganizationId: 0 } },
-        ]);
-      const email = await service.getUserEmail('', '');
-      expect(email).toEqual({ email: 'email', userOrgId: 0 });
+  describe('validateAndCreateSession', () => {
+    it('should create and return a session', async () => {
+      const oidcResponse = { isValid: true, userId: 'user1', policy: 'policy1' };
+      jest.spyOn(oidcHelperService, 'validateOidcPostRequest').mockResolvedValue(oidcResponse);
+      const userSession = new UserSession();
+      userSession.sessionId = 'session123';
+      userSession.tokenExpiration = 'expiration';
+      jest.spyOn(userSessionService, 'createUserSession').mockResolvedValue(userSession);
+
+      const requestDto = new OidcAuthValidationRequestDto();
+      const result = await service.validateAndCreateSession(requestDto, '127.0.0.1');
+      expect(result.userSession).toBeDefined();
     });
   });
 
-  describe('loginCdx', () => {
-    it('should perform a login for a user', async () => {
-      client.AuthenticateAsync = jest
-        .fn()
-        .mockResolvedValue([{ User: { firstName: 'k', lastName: 't' } }]);
-      //const user = await service.loginCdx('', '');
-      //expect(user.firstName).toEqual('k');
-    });
-  });
+  describe('signIn', () => {
+    it('should sign in a user and return UserDTO', async () => {
+      const token = jwt.sign({
+        userId: 'user1',
+        given_name: 'John',
+        family_name: 'Doe'
+      }, 'your_secret_key');
+      const accessTokenResponse: AccessTokenResponse = {
+        access_token: 'dummy_access_token',
+        token_type: 'Bearer',
+        expires_in: 3600,
 
-  describe('signOut', () => {
-    it('should sign out a user with no error', async () => {
-      await service.signOut('', '');
-      expect(userSessionService.findSessionByUserIdAndToken).toHaveBeenCalled();
-      expect(userSessionService.removeUserSessionByUserId).toHaveBeenCalled();
-    });
-  });
+        id_token: 'dummy_id_token',
+        id_token_expires_in: '3600',
+        profile_info: 'dummy_profile_info',
+        scope: 'openid email profile',
+        refresh_token: 'dummy_refresh_token',
+        refresh_token_expires_in: '7200'
+      };
+      jest.spyOn(tokenService, 'exchangeAuthCodeForToken').mockResolvedValue(accessTokenResponse);
+      jest.spyOn(tokenService, 'calculateTokenExpirationInMills').mockReturnValue('3600000');
 
-  /*describe('signIn', () => {
-    it('should sign in a user with no errors on a non-expired session', async () => {
-      const mockedUser = new UserDTO();
-      mockedUser.firstName = 'test';
-      jest.spyOn(tokenService, 'bypassEnabled').mockReturnValue(false);
-      jest.spyOn(service, 'loginCdx').mockResolvedValue(mockedUser);
-      jest
-        .spyOn(service, 'getStreamlinedRegistrationToken')
-        .mockResolvedValue('');
-      jest
-        .spyOn(service, 'getUserEmail')
-        .mockResolvedValue({ userOrgId: 1, email: '' });
-
-      userSessionService.findSessionByUserId = jest
-        .fn()
-        .mockResolvedValue(new UserSession());
-      userSessionService.isSessionTokenExpired = jest
-        .fn()
-        .mockReturnValue(false);
-
-      const user = await service.signIn('', '', '');
-      expect(user.roles).toEqual(['Preparer']);
-    });
-
-    it('should sign in a user with no errors on an expired session', async () => {
-      const mockedUser = new UserDTO();
-      mockedUser.firstName = 'test';
-      jest.spyOn(tokenService, 'bypassEnabled').mockReturnValue(false);
-      jest.spyOn(service, 'loginCdx').mockResolvedValue(mockedUser);
-      jest
-        .spyOn(service, 'getStreamlinedRegistrationToken')
-        .mockResolvedValue('');
-      jest
-        .spyOn(service, 'getUserEmail')
-        .mockResolvedValue({ userOrgId: 1, email: '' });
-
-      userSessionService.findSessionByUserId = jest
-        .fn()
-        .mockResolvedValue(undefined);
-      userSessionService.isSessionTokenExpired = jest
-        .fn()
-        .mockReturnValue(false);
-
-      const user = await service.signIn('', '', '');
-      expect(user.roles).toEqual(['Preparer']);
-    });
-  });*/
-
-  describe('signIn bypassed', () => {
-    it('should sign in a user with the bypass flag enabled with no error', async () => {
-      jest.spyOn(bypassService, 'bypassEnabled').mockReturnValue(true);
-      //const user = await service.signIn('user', 'pass', '');
-      //expect(user.firstName).toEqual('user');
+      const result = await service.signIn({ sessionId: 'session123' }, '127.0.0.1');
+      expect(result.token).toEqual('dummy_access_token');
+      expect(result.tokenExpiration).toEqual('3600000');
     });
   });
 
   describe('updateLastActivity', () => {
-    it('should update the users last activity successfully', async () => {
-      const mock = jest.fn();
-      jest
-        .spyOn(userSessionService, 'refreshLastActivity')
-        .mockImplementation(mock);
-      await service.updateLastActivity('');
-      expect(mock).toHaveBeenCalled();
+    it('should update last activity without throwing an error', async () => {
+      await expect(service.updateLastActivity('some-token')).resolves.not.toThrow();
     });
   });
 
-  describe('signIn bypassed error', () => {
-    it('should sign in a user with the bypass flag enabled with an error from userId', async () => {
-      jest.spyOn(bypassService, 'bypassEnabled').mockReturnValue(true);
-
-      /*expect(async () => {
-        await service.signIn('errors', 'pass', '');
-      }).rejects.toThrowError();*/
-    });
-
-    it('should sign in a user with the bypass flag enabled with an error from password', async () => {
-      jest.spyOn(bypassService, 'bypassEnabled').mockReturnValue(true);
-
-      /*expect(async () => {
-        await service.signIn('user', 'bad_pass', '');
-      }).rejects.toThrowError();*/
+  describe('signOut', () => {
+    it('should remove user session successfully', async () => {
+      await service.signOut('user1', 'some-token');
+      expect(userSessionService.removeUserSessionByUserId).toHaveBeenCalledWith('user1');
     });
   });
 });
