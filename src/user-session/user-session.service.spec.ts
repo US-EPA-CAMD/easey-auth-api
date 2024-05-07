@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
+import { EntityManager } from 'typeorm';
+
 import { UserSession } from '../entities/user-session.entity';
 import { UserSessionRepository } from './user-session.repository';
 import { UserSessionService } from './user-session.service';
-import { HttpService } from '@nestjs/axios';
-import { ConfigService } from '@nestjs/config';
 
 jest.mock('rxjs', () => ({
   firstValueFrom: jest.fn().mockResolvedValue({ data: 'MOCKED' }),
@@ -29,10 +31,15 @@ describe('User Session Service', () => {
           }),
         },
         {
+          provide: EntityManager,
+          useValue: { query: jest.fn() },
+        },
+        {
           provide: UserSessionRepository,
           useFactory: () => ({
             insert: jest.fn(),
             findOne: jest.fn(),
+            findOneBy: jest.fn(),
             remove: jest.fn(),
             update: jest.fn(),
           }),
@@ -67,7 +74,7 @@ describe('User Session Service', () => {
     it('should return if a session is valid', async () => {
       const session = new UserSession();
       session.tokenExpiration = '01-01-3000';
-      mockRepo.findOne = jest.fn().mockResolvedValue(session);
+      mockRepo.findOneBy = jest.fn().mockResolvedValue(session);
       const returned = await service.isValidSessionForToken('', '');
       expect(returned).toEqual(session);
     });
@@ -75,7 +82,7 @@ describe('User Session Service', () => {
     it('should error if a session is invalid', async () => {
       const session = new UserSession();
       session.tokenExpiration = '01-01-1000';
-      mockRepo.findOne = jest.fn().mockResolvedValue(session);
+      mockRepo.findOneBy = jest.fn().mockResolvedValue(session);
 
       expect(async () => {
         await service.isValidSessionForToken('', '');
@@ -83,7 +90,7 @@ describe('User Session Service', () => {
     });
 
     it('should error if a session is invalid', async () => {
-      mockRepo.findOne = jest.fn().mockResolvedValue(null);
+      mockRepo.findOneBy = jest.fn().mockResolvedValue(null);
 
       expect(async () => {
         await service.isValidSessionForToken('', '');
@@ -94,7 +101,7 @@ describe('User Session Service', () => {
   describe('removeUserSessionByUserId', () => {
     it('should remove user session', async () => {
       const session = new UserSession();
-      mockRepo.findOne = jest.fn().mockResolvedValue(session);
+      mockRepo.findOneBy = jest.fn().mockResolvedValue(session);
       await service.removeUserSessionByUserId('');
       expect(mockRepo.remove).toHaveBeenCalled();
     });
@@ -103,13 +110,13 @@ describe('User Session Service', () => {
   describe('findSessionByUserIdAndToken', () => {
     it('should find user session', async () => {
       const session = new UserSession();
-      mockRepo.findOne = jest.fn().mockResolvedValue(session);
+      mockRepo.findOneBy = jest.fn().mockResolvedValue(session);
       const returned = await service.findSessionByUserIdAndToken('', '');
       expect(returned).toEqual(session);
     });
 
     it('should error if a session is missing', async () => {
-      mockRepo.findOne = jest.fn().mockResolvedValue(null);
+      mockRepo.findOneBy = jest.fn().mockResolvedValue(null);
 
       expect(async () => {
         await service.findSessionByUserIdAndToken('', '');
@@ -135,7 +142,9 @@ describe('User Session Service', () => {
     it('should update user session last activity date', async () => {
       jest
         .spyOn(service, 'returnManager')
-        .mockReturnValue({ findOne: jest.fn().mockResolvedValue(undefined) });
+        .mockReturnValue({
+          findOne: jest.fn().mockResolvedValue(undefined),
+        } as any);
 
       const mock = jest.fn();
       mockRepo.findOne = jest.fn().mockResolvedValue(new UserSession());

@@ -6,6 +6,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { dbConfig } from '@us-epa-camd/easey-common/config';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { CorsOptionsModule } from '@us-epa-camd/easey-common/cors-options';
+import {
+  DbLookupValidator,
+  IsValidCodesValidator,
+} from '@us-epa-camd/easey-common/validators';
 
 import routes from './routes';
 import appConfig from './config/app.config';
@@ -35,5 +39,6 @@ import { PermissionsModule } from './permissions/Permissions.module';
     SignModule,
     PermissionsModule,
   ],
+  providers: [DbLookupValidator, IsValidCodesValidator],
 })
 export class AppModule {}
