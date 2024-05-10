@@ -6,12 +6,12 @@ import { PermissionsController } from './Permissions.controller';
 import { PermissionsService } from './Permissions.service';
 import { SignModule } from '../sign/Sign.module';
 import { UserSessionModule } from '../user-session/user-session.module';
-import { OidcHelperService } from '../oidc/OidcHelperService';
+import { OidcHelperModule } from '../oidc/OidcHelper.module';
 
 @Module({
-  imports: [HttpModule, SignModule, UserSessionModule],
+  imports: [HttpModule, OidcHelperModule],
   controllers: [PermissionsController],
-  providers: [PermissionsService, ConfigService, OidcHelperService],
-  exports: [PermissionsService, OidcHelperService],
+  providers: [PermissionsService, ConfigService],
+  exports: [PermissionsService],
 })
 export class PermissionsModule {}

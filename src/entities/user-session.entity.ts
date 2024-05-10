@@ -17,6 +17,9 @@ export class UserSession extends BaseEntity {
   @Column({ name: 'refresh_token' })
   refreshToken: string;
 
+  @Column({ name: 'id_token' })
+  idToken: string;
+
   @Column({ name: 'facilities' })
   facilities: string;
 

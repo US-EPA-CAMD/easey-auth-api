@@ -183,6 +183,7 @@ export class UserSessionService {
       { sessionId: sessionId },
       {
         tokenExpiration: expiration,
+        idToken: accessTokenResponse.id_token,
         securityToken: accessTokenResponse.access_token,
         refreshToken: accessTokenResponse.refresh_token
       },

@@ -4,15 +4,17 @@ import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
 import { Logger } from '@us-epa-camd/easey-common/logger';
-
+import FormData from 'form-data';
 import { PolicyResponse } from '../dtos/policy-response';
 import * as crypto from 'crypto';
 import { OidcAuthValidationRequestDto } from '../dtos/oidc-auth-validation-request.dto';
 import { OidcAuthValidationResponseDto } from '../dtos/oidc-auth-validation-response.dto';
 import { RetrieveUsersResponse } from '../dtos/oidc-auth-dtos';
+import { SignatureRequest } from '../dtos/certification-sign-param.dto';
 
 @Injectable()
 export class OidcHelperService {
+
   constructor(
     private httpService: HttpService,
     private configService: ConfigService,
@@ -103,12 +105,17 @@ export class OidcHelperService {
     }
   }
 
-  async makePostRequestJson<T>(url: string, body: any, apiToken: string): Promise<T> {
+  async makePostRequestJson<T>(url: string, body: any, apiToken: string, customHeaders?: Record<string, string>): Promise<T> {
     try {
-      const headers = {
+      let headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiToken}`,
       };
+
+      // If custom headers are provided, merge them with the default headers
+      if (customHeaders && Object.keys(customHeaders).length > 0) {
+        headers = { ...headers, ...customHeaders };
+      }
 
       const response = await firstValueFrom(
         this.httpService.post<T>(url, body, { headers }),
@@ -133,6 +140,47 @@ export class OidcHelperService {
       return response.data;
     } catch (error) {
       this.logger.error('Failed to make POST request:', tokenUrl, params.toString(), error);
+      throw error;
+    }
+  }
+
+  async makePostRequestForFile<T>(postUrl: string, apiToken: string, files: Express.Multer.File[], signatureRequest: SignatureRequest): Promise<T> {
+
+    try {
+
+      const formData = new FormData();
+      signatureRequest.documents = signatureRequest.documents || [];
+
+      // Append files to formData and construct documents array in DTO
+      files.forEach((file, index) => {
+        formData.append(`file`, file.buffer, {
+          filename: file.originalname,
+          contentType: file.mimetype,
+        });
+        // Populate the documents array in the SignatureRequest DTO
+        signatureRequest.documents[index] = {
+          name: file.originalname,
+          format: file.mimetype.split('/')[1] // Extracts the file extension from MIME type
+        };
+      });
+
+      // Append the metadata (SignatureRequest) as JSON string
+      formData.append('meta', JSON.stringify(signatureRequest), {
+        contentType: 'application/json',
+      });
+
+      const headers = {
+        ...formData.getHeaders(),
+        'Authorization': `Bearer ${apiToken}`,
+      };
+
+      const response = await firstValueFrom(
+        this.httpService.post<T>(postUrl, formData, { headers })
+      );
+
+      return response.data;
+    } catch (error) {
+      this.logger.error('Failed to make POST request:', postUrl, error);
       throw error;
     }
   }

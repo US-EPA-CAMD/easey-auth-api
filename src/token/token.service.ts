@@ -14,7 +14,7 @@ import * as jwt from 'jsonwebtoken';
 import { JwksClient } from 'jwks-rsa';
 import { OidcHelperService } from '../oidc/OidcHelperService';
 import { TokenDTO } from '../dtos/token.dto';
-import { BypassService } from '../auth/bypass.service';
+import { BypassService } from '../oidc/Bypass.service';
 
 @Injectable()
 export class TokenService {
@@ -63,7 +63,7 @@ export class TokenService {
   async getCdxApiToken(): Promise<string> {
     const clientId = this.configService.get('OIDC_CLIENT_ID');
     const clientSecret = this.configService.get('OIDC_CLIENT_SECRET');
-    const scope = `${this.configService.get('OIDC_CREDENTIAL_SCOPE').replace('%s', clientId)}`;
+    const scope = `${this.configService.get('OIDC_CLIENT_CREDENTIAL_SCOPE').replace('%s', clientId)}`;
     const tokenUrl = this.configService.get('OIDC_CDX_API_TOKEN_URL');
 
     const params = new URLSearchParams();

@@ -5,7 +5,7 @@ import { TokenService } from '../token/token.service';
 import { UserSessionService } from '../user-session/user-session.service';
 import { PermissionsService } from '../permissions/Permissions.service';
 import { OidcHelperService } from '../oidc/OidcHelperService';
-import { BypassService } from './bypass.service';
+import { BypassService } from '../oidc/Bypass.service';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { ConfigService } from '@nestjs/config';
 import { AccessTokenResponse } from '../dtos/oidc-auth-dtos';

@@ -18,8 +18,6 @@ import { Logger } from '@us-epa-camd/easey-common/logger';
 @Injectable()
 export class PermissionsService {
   constructor(
-    private readonly signService: SignService,
-    private readonly userSessionService: UserSessionService,
     private readonly configService: ConfigService,
     private httpService: HttpService,
     private readonly oidcHelperService: OidcHelperService,

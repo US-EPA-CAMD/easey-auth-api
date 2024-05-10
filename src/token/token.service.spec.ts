@@ -7,7 +7,7 @@ import { TokenService } from './token.service';
 import { FacilityAccessDTO } from '../dtos/permissions.dto';
 import { PermissionsService } from '../permissions/Permissions.service';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
-import { BypassService } from '../auth/bypass.service';
+import { BypassService } from '../oidc/Bypass.service';
 import { OidcHelperService } from '../oidc/OidcHelperService';
 import { UserSession } from '../entities/user-session.entity';
 import { Session } from '@nestjs/common';

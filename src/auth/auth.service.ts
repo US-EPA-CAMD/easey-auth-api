@@ -17,7 +17,7 @@ import { OidcJwtPayload, OrganizationResponse } from '../dtos/oidc-auth-dtos';
 import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
 import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
 import { OidcHelperService } from '../oidc/OidcHelperService';
-import { BypassService } from './bypass.service';
+import { BypassService } from '../oidc/Bypass.service';
 
 interface OrgEmailAndId {
   email: string;
@@ -28,7 +28,6 @@ interface OrgEmailAndId {
 export class AuthService {
   constructor(
     private readonly logger: Logger,
-    private readonly configService: ConfigService,
     private readonly tokenService: TokenService,
     private readonly permissionsService: PermissionsService,
     private readonly userSessionService: UserSessionService,
