@@ -59,7 +59,7 @@ describe('Token Service', () => {
     });
 
     it('should fail when client id is invalid', async () => {
-      repo.findOne = jest.fn().mockResolvedValue(null);
+      repo.findOneBy = jest.fn().mockResolvedValue(null);
 
       expect(async () => {
         await service.validateToken('id', 'token');
@@ -70,7 +70,7 @@ describe('Token Service', () => {
       const clientConfig = new ClientConfig();
       clientConfig.passCode = 'passcode_error';
 
-      repo.findOne = jest.fn().mockResolvedValue(clientConfig);
+      repo.findOneBy = jest.fn().mockResolvedValue(clientConfig);
 
       expect(async () => {
         await service.validateToken('id', 'token');
@@ -81,7 +81,7 @@ describe('Token Service', () => {
       const clientConfig = new ClientConfig();
       clientConfig.passCode = 'passcode';
 
-      repo.findOne = jest.fn().mockResolvedValue(clientConfig);
+      repo.findOneBy = jest.fn().mockResolvedValue(clientConfig);
 
       expect(await service.validateToken('id', 'token')).toBe(true);
     });
@@ -95,7 +95,7 @@ describe('Token Service', () => {
     });
 
     it('should fail when client id is invalid', async () => {
-      repo.findOne = jest.fn().mockResolvedValue(null);
+      repo.findOneBy = jest.fn().mockResolvedValue(null);
 
       expect(async () => {
         await service.generateToken('id', 'secret');
@@ -106,7 +106,7 @@ describe('Token Service', () => {
       const clientConfig = new ClientConfig();
       clientConfig.passCode = 'passcode_error';
 
-      repo.findOne = jest.fn().mockResolvedValue(clientConfig);
+      repo.findOneBy = jest.fn().mockResolvedValue(clientConfig);
 
       const tokenDto = await service.generateToken('id', 'secret');
 

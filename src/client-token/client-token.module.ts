@@ -7,12 +7,9 @@ import { ClientTokenRepository } from './client-token.repository';
 import { ClientTokenService } from './client-token.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([ClientTokenRepository]),
-    HttpModule,
-  ],
+  imports: [TypeOrmModule.forFeature([ClientTokenRepository]), HttpModule],
   controllers: [ClientTokenController],
-  providers: [ClientTokenService],
+  providers: [ClientTokenRepository, ClientTokenService],
   exports: [TypeOrmModule],
 })
 export class ClientTokenModule {}

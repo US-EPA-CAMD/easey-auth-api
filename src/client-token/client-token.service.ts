@@ -1,17 +1,15 @@
 import { JwtPayload, sign, verify } from 'jsonwebtoken';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
+import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
+import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
 
 import { TokenDTO } from '../dtos/token.dto';
 import { ClientTokenRepository } from './client-token.repository';
-import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
-import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 
 @Injectable()
 export class ClientTokenService {
   constructor(
-    @InjectRepository(ClientTokenRepository)
     private readonly repository: ClientTokenRepository,
     private readonly configService: ConfigService,
   ) {}
@@ -28,7 +26,7 @@ export class ClientTokenService {
     }
 
     try {
-      const dbRecord = await this.repository.findOne(clientId);
+      const dbRecord = await this.repository.findOneBy({ id: clientId });
 
       //Determine if a match exists
       if (!dbRecord) {
@@ -74,7 +72,7 @@ export class ClientTokenService {
 
     try {
       // Lookup record by clientId, clientSecret
-      const dbRecord = await this.repository.findOne({
+      const dbRecord = await this.repository.findOneBy({
         id: clientId,
         secret: clientSecret,
       });

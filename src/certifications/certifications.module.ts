@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { AuthModule } from '../auth/auth.module';
 import { CertificationsController } from './certifications.controller';
 import { CertificationStatementRepository } from './certifications.repository';
@@ -12,6 +13,10 @@ import { CertificationsService } from './certifications.service';
     AuthModule,
   ],
   controllers: [CertificationsController],
-  providers: [CertificationsService, ConfigService],
+  providers: [
+    CertificationsService,
+    CertificationStatementRepository,
+    ConfigService,
+  ],
 })
 export class CertificationsModule {}
