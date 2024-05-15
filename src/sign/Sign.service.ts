@@ -89,6 +89,11 @@ export class SignService {
     fileArray: Express.Multer.File[]
   ): Promise<void> {
 
+    //If bypass is enabled, skip the call to sign
+    if (this.bypassService.bypassEnabled()) {
+      return;
+    }
+
     const apiToken = await this.tokenService.getCdxApiToken();
     const registerApiUrl = getConfigValue('OIDC_REST_API_BASE', '');
     const apiUrl = `${registerApiUrl}/api/v1/cromerr/sign`;
