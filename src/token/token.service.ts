@@ -101,7 +101,7 @@ export class TokenService {
 
   private async validateAndSaveTokenInUserSession(accessTokenResponse: AccessTokenResponse, userSession: UserSession) {
     //Validate the token
-    if (!await this.isTokenValid(accessTokenResponse.access_token)) {
+    if (!await this.isOidcTokenValid(accessTokenResponse.access_token)) {
       throw new EaseyException(new Error('Unable to validate access token'), HttpStatus.UNAUTHORIZED);
     }
 
@@ -147,7 +147,7 @@ export class TokenService {
     return key.getPublicKey();
   }
 
-  async isTokenValid(authToken: string): Promise<any> {
+  async isOidcTokenValid(authToken: string): Promise<any> {
 
     try {
       const oidcJwtPayload = jwt.decode(authToken, { complete: true }) as { header: any, payload: OidcJwtPayload, signature: string };
@@ -206,12 +206,31 @@ export class TokenService {
 
   async validateToken(token: string, clientIp: string): Promise<any> {
 
-    if (! await this.isTokenValid(token)) {
-      return false;
-    }
+    let user: CurrentUser = {
+      userId: null,
+      sessionId: null,
+      expiration: null,
+      clientIp: null,
+      facilities: [],
+      roles: [],
+    };
+    let userId: string;
+    if (this.bypassService.bypassEnabled()) {
+      user = await this.bypassService.extractUserFromValidatedBypassToken(token);
+      userId = user.userId;
+    } else {
+      if (!await this.isOidcTokenValid(token)) {
+        return false;
+      }
 
-    const oidcJwtPayload = jwt.decode(token, { complete: true }) as { header: any, payload: OidcJwtPayload, signature: string };
-    const userId = oidcJwtPayload.payload.userId;
+      const oidcJwtPayload = jwt.decode(token, { complete: true }) as {
+        header: any,
+        payload: OidcJwtPayload,
+        signature: string
+      };
+
+      userId = oidcJwtPayload.payload.userId;
+    }
 
     // Look up facilities based on userId and token
     const userSession = await this.userSessionService.findSessionByUserIdAndToken(
@@ -223,15 +242,6 @@ export class TokenService {
       return false;
     }
 
-    const user: CurrentUser = {
-      userId: null,
-      sessionId: null,
-      expiration: null,
-      clientIp: null,
-      facilities: [],
-      roles: [],
-    };
-
     //populate user values
     user.userId = userSession.userId;
     user.sessionId = userSession.sessionId;
@@ -239,7 +249,6 @@ export class TokenService {
     user.clientIp = userSession.clientIp;
     user.facilities = JSON.parse(userSession.facilities);
     user.roles = JSON.parse(userSession.roles);
-
     await this.validateClientIp(user, clientIp);
 
     if (

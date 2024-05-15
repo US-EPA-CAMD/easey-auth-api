@@ -19,7 +19,8 @@ import { CredentialsDTO } from '../dtos/credentials.dto';
 @ApiSecurity('APIKey')
 @ApiTags('Authentication')
 export class AuthController {
-  constructor(private service: AuthService) {}
+  constructor(
+    private service: AuthService) {}
 
   @Post('/determinePolicy')
   @ApiOkResponse({
@@ -27,12 +28,9 @@ export class AuthController {
     description: 'Determines the users policy based the given user id',
   })
   async determinePolicy(
-    @Body() credentials: CredentialsDTO
+    @Body() credentials: CredentialsDTO,
   ): Promise<PolicyResponse> {
-
-    return this.service.determinePolicy(
-      credentials.userId
-    );
+    return await this.service.determinePolicy(credentials.userId);
   }
 
   @Post('/oauth2/code')
