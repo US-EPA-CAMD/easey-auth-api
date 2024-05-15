@@ -11,6 +11,8 @@ import { UserSessionService } from '../user-session/user-session.service';
 import { TokenService } from '../token/token.service';
 import { OidcHelperService } from '../oidc/OidcHelperService';
 import { CredentialsSignDTO, SignatureRequest } from '../dtos/certification-sign-param.dto';
+import { BypassService } from '../oidc/Bypass.service';
+import { PolicyResponse } from '../dtos/policy-response';
 
 @Injectable()
 export class SignService {
@@ -19,6 +21,7 @@ export class SignService {
     private readonly configService: ConfigService,
     private readonly userSessionService: UserSessionService,
     private readonly tokenService: TokenService,
+    private readonly bypassService: BypassService,
     private readonly oidcHelperService: OidcHelperService,
   ) {}
 
@@ -86,6 +89,11 @@ export class SignService {
     fileArray: Express.Multer.File[]
   ): Promise<void> {
 
+    //If bypass is enabled, skip the call to sign
+    if (this.bypassService.bypassEnabled()) {
+      return;
+    }
+
     const apiToken = await this.tokenService.getCdxApiToken();
     const registerApiUrl = getConfigValue('OIDC_REST_API_BASE', '');
     const apiUrl = `${registerApiUrl}/api/v1/cromerr/sign`;
@@ -111,11 +119,19 @@ export class SignService {
     credentials: CredentialsSignDTO, idToken?: string
   ): Promise<SignAuthResponseDTO> {
 
+    //If bypass is enabled AND a valid idToken is not given, then we cannot make
+    // a call to create an activity as the CROMERR POST call requires a valid idToken
+    if (!idToken && this.bypassService.bypassEnabled()) {
+      const signAuthResponseDTO = new SignAuthResponseDTO();
+      signAuthResponseDTO.activityId = '1';
+      return signAuthResponseDTO;
+    }
+
     //If an idToken is not passed in, see if the user has a valid session
     if (!idToken) {
       const userSession = await this.userSessionService.findSessionByUserId(user.userId);
       if (!userSession) {
-        throw new EaseyException(new Error('No session record exists for this user.'), HttpStatus.BAD_REQUEST);
+        throw new EaseyException(new Error('Unable to create activity. There is no ID token provided or the user does not have a valid session.'), HttpStatus.BAD_REQUEST);
       }
       idToken = userSession.idToken;
     }

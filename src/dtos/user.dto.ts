@@ -13,6 +13,10 @@ export class UserDTO {
   @IsString()
   tokenExpiration: string;
   @IsString()
+  idToken: string;
+  @IsString()
+  refreshToken: string;
+  @IsString()
   email: string;
   facilities: FacilityAccessDTO[];
   @IsArray()

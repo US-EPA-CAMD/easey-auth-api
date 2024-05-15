@@ -1,10 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
-import { CertificationVerifyParamDTO } from '../dtos/certification-verify-param.dto';
-import { CredentialsSignDTO } from '../dtos/certification-sign-param.dto';
 import { SignService } from './Sign.service';
-import { SendPhonePinParamDTO } from '../dtos/send-phone-pin-param.dto';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
 import { TokenService } from '../token/token.service';
 import { OidcHelperService } from '../oidc/OidcHelperService';
@@ -17,6 +14,7 @@ import { UserSession } from '../entities/user-session.entity';
 import { ClientTokenRepository } from '../client-token/client-token.repository';
 import { UserSessionService } from '../user-session/user-session.service';
 import { SignAuthResponseDTO } from '../dtos/sign-auth-response.dto';
+import { BypassService } from '../oidc/Bypass.service';
 
 const client = {
   AuthenticateAsync: jest.fn().mockResolvedValue([{ securityToken: '' }]),
@@ -51,6 +49,10 @@ const mockTokenService = () => ({
   validateClientIp: jest.fn(),
 });
 
+const mockBypassService = () => ({
+  bypassEnabled: jest.fn(),
+});
+
 describe('SignService', () => {
   let service: SignService;
 
@@ -69,6 +71,10 @@ describe('SignService', () => {
         {
           provide: TokenService,
           useValue: mockTokenService,
+        },
+        {
+          provide: BypassService,
+          useValue: mockBypassService,
         },
       ],
     }).compile();
