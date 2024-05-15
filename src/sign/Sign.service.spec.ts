@@ -5,6 +5,18 @@ import { CertificationVerifyParamDTO } from '../dtos/certification-verify-param.
 import { CredentialsSignDTO } from '../dtos/certification-sign-param.dto';
 import { SignService } from './Sign.service';
 import { SendPhonePinParamDTO } from '../dtos/send-phone-pin-param.dto';
+import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
+import { TokenService } from '../token/token.service';
+import { OidcHelperService } from '../oidc/OidcHelperService';
+import { OidcHelperModule } from '../oidc/OidcHelper.module';
+import { UserSessionModule } from '../user-session/user-session.module';
+import { TokenModule } from '../token/token.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserSessionRepository } from '../user-session/user-session.repository';
+import { UserSession } from '../entities/user-session.entity';
+import { ClientTokenRepository } from '../client-token/client-token.repository';
+import { UserSessionService } from '../user-session/user-session.service';
+import { SignAuthResponseDTO } from '../dtos/sign-auth-response.dto';
 
 const client = {
   AuthenticateAsync: jest.fn().mockResolvedValue([{ securityToken: '' }]),
@@ -26,55 +38,46 @@ jest.mock('soap', () => ({
   createClientAsync: jest.fn(() => Promise.resolve(client)),
 }));
 
+const mockUserSessionService = () => ({
+  findSessionByUserId: jest.fn().mockResolvedValue(new UserSession() ),
+});
+
+const mockOidcHelperService = () => ({
+  makePostRequestForFile: jest.fn().mockResolvedValue(new SignAuthResponseDTO() ),
+  makePostRequestJson: jest.fn().mockResolvedValue(new SignAuthResponseDTO() ),
+});
+
+const mockTokenService = () => ({
+  validateClientIp: jest.fn(),
+});
+
 describe('SignService', () => {
   let service: SignService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [LoggerModule],
-      providers: [SignService, ConfigService],
+      providers: [SignService, ConfigService,
+        {
+          provide: UserSessionService,
+          useValue: mockUserSessionService,
+        },
+        {
+          provide: OidcHelperService,
+          useValue: mockOidcHelperService,
+        },
+        {
+          provide: TokenService,
+          useValue: mockTokenService,
+        },
+      ],
     }).compile();
 
     service = module.get<SignService>(SignService);
   });
 
-  it('authenticate should be called properly and return the mocked services dto structure', async () => {
-    
-    const creds = new CredentialsSignDTO();
-    creds.userId = 'mock';
-
-    const dto = await service.authenticate(creds, {
-      userId: 'mock',
-      roles: ['Submitter'],
-    } as any);
-    expect(dto.activityId).toEqual('mockId');
-    expect(dto.question).toEqual('mockQuestion');
-    expect(dto.questionId).toEqual('mockId');
-  });
-
-  it('validate should be called properly and return true', async () => {
-    const result = await service.validate(new CertificationVerifyParamDTO());
-    expect(result).toBe(true);
-  });
-
-  it('should call the send phone verification method', async () => {
-    expect(async () => {
-      await service.sendPhoneVerificationCode(new SendPhonePinParamDTO());
-    }).not.toThrowError();
-  });
-
-  it('should verify with a pin present', async () => {
-    const mockFunc = jest.fn();
-    client.ValidateSecretCodeAsync = mockFunc;
-
-    const payload = new CertificationVerifyParamDTO();
-    payload.pin = 'mock';
-    await service.validate(payload);
-    expect(mockFunc).toHaveBeenCalled();
-  });
-
   it('should sign all files successfully', async () => {
-    jest.spyOn(service, 'signFile').mockResolvedValue();
+    jest.spyOn(service, 'signAllFiles').mockResolvedValue();
 
     expect(async () => {
       await service.signAllFiles('', []);

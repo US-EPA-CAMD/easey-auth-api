@@ -21,7 +21,7 @@ describe('Certification Controller', () => {
 
   it('verifyCredentials', () => {
     expect(async () => {
-      await controller.verifyCredentials({ userId: '', password: '' }, '');
+      await controller.verifyCredentials({ userId: '' }, '');
     }).not.toThrowError();
   });
 

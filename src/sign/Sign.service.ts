@@ -2,82 +2,25 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { createClientAsync } from 'soap';
-import { CertificationVerifyParamDTO } from '../dtos/certification-verify-param.dto';
-import { CredentialsSignDTO } from '../dtos/certification-sign-param.dto';
 import { SignAuthResponseDTO } from '../dtos/sign-auth-response.dto';
 import { SendPhonePinParamDTO } from '../dtos/send-phone-pin-param.dto';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
-
-interface Question {
-  questionId: string;
-  text: string;
-}
+import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
+import { UserSessionService } from '../user-session/user-session.service';
+import { TokenService } from '../token/token.service';
+import { OidcHelperService } from '../oidc/OidcHelperService';
+import { CredentialsSignDTO, SignatureRequest } from '../dtos/certification-sign-param.dto';
 
 @Injectable()
 export class SignService {
   constructor(
     private readonly logger: Logger,
     private readonly configService: ConfigService,
+    private readonly userSessionService: UserSessionService,
+    private readonly tokenService: TokenService,
+    private readonly oidcHelperService: OidcHelperService,
   ) {}
-
-  async getRegisterServiceToken(): Promise<string> {
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/RegisterService?wsdl`;
-
-    return createClientAsync(url)
-      .then(client => {
-        return client.AuthenticateAsync({
-          userId: this.configService.get<string>('app.naasAppId'),
-          credential: this.configService.get<string>('app.nassAppPwd'),
-        });
-      })
-      .then(res => {
-        return res[0].securityToken;
-      })
-      .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error(JSON.stringify(err.root.Envelope)),
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-
-        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
-      });
-  }
-
-  async getUserMobileNumbers(token, userId): Promise<string[]> {
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/RegisterService?wsdl`;
-
-    return createClientAsync(url)
-      .then(client => {
-        return client.RetrieveUserMobileAsync({
-          securityToken: token,
-          user: { userId: userId },
-        });
-      })
-      .then(res => {
-        if (res[0].return) {
-          return res[0].return.map(n => n.MobilePhone);
-        }
-
-        return null;
-      })
-      .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error(JSON.stringify(err.root.Envelope)),
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-
-        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
-      });
-  }
 
   async getSignServiceToken(): Promise<string> {
     const url = `${this.configService.get<string>(
@@ -138,262 +81,43 @@ export class SignService {
       });
   }
 
-  async signFile(
-    token: string,
+  async signAllFiles(
     activityId: string,
-    file: Express.Multer.File,
+    fileArray: Express.Multer.File[]
   ): Promise<void> {
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/RegisterSignService?wsdl`;
+
+    const apiToken = await this.tokenService.getCdxApiToken();
+    const registerApiUrl = getConfigValue('OIDC_REST_API_BASE', '');
+    const apiUrl = `${registerApiUrl}/api/v1/cromerr/sign`;
 
     try {
-      this.logger.log(`Signing ${file.originalname}...`);
-      const client = await createClientAsync(url);
+      const signatureRequest = new SignatureRequest();
+      signatureRequest.activityId = activityId;
+      const signAuthResponseDTO =
+        await this.oidcHelperService.makePostRequestForFile<SignAuthResponseDTO>(apiUrl, apiToken, fileArray, signatureRequest);
 
-      await client.SignAsync({
-        securityToken: token,
-        activityId: activityId,
-        signatureDocument: {
-          Name: file.originalname,
-          Format: 'BIN',
-          Content: {
-            $value: file.buffer.toString('base64'),
-            $type: 'base64Binary',
-          },
-        },
-      });
-      this.logger.log(`Successfully signed: ${file.originalname}`);
+      if (!signAuthResponseDTO) {
+        throw new Error(`Unable to sign document with activity id ${activityId}`);
+      }
+
     } catch (error) {
+      this.logger.error(`Unable to sign document with activity id ${activityId}`, error);
       throw new EaseyException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async signAllFiles(activityId: string, files: Array<Express.Multer.File>) {
-    const token = await this.getSignServiceToken();
-    for (const file of files) {
-      await this.signFile(token, activityId, file);
-    }
-  }
-
-  async getActivityId(
-    token: string,
-    userId: string,
-    firstName: string,
-    lastName: string,
-  ): Promise<string> {
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/RegisterSignService?wsdl`;
-
-    return createClientAsync(url)
-      .then(client => {
-        return client.CreateActivityAsync({
-          securityToken: token,
-          signatureUser: {
-            UserId: userId,
-            FirstName: firstName,
-            LastName: lastName,
-          },
-          dataflowName: this.configService.get<string>('app.dataFlow'),
-        });
-      })
-      .then(res => {
-        return res[0].activityId;
-      })
-      .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error(JSON.stringify(err.root.Envelope)),
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-
-        throw new EaseyException(new Error(err), HttpStatus.BAD_REQUEST);
-      });
-  }
-
-  async authenticateUser(
-    token: string,
-    activityId: string,
-    userId: string,
-    password: string,
-  ) {
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/RegisterSignService?wsdl`;
-
-    return createClientAsync(url)
-      .then(client => {
-        return client.AuthenticateUserAsync({
-          securityToken: token,
-          activityId: activityId,
-          userId: userId,
-          password: password,
-        });
-      })
-      .then(res => {
-        this.logger.log('Authenticated sign authentication for user');
-      })
-      .catch(err => {
-        const innerError =
-          err.root?.Envelope?.Body?.Fault?.detail?.RegisterFault;
-
-        if (innerError) {
-          let responseMessage = 'Invalid username or password.';
-          if (innerError.errorCode['$value'] !== 'E_WrongIdPassword') {
-            responseMessage = innerError.description;
-          }
-
-          throw new EaseyException(err, HttpStatus.BAD_REQUEST, {
-            responseObject: responseMessage,
-          });
-        }
-
-        throw new EaseyException(err, HttpStatus.INTERNAL_SERVER_ERROR, {
-          userId: userId,
-        });
-      });
-  }
-
-  async getQuestion(
-    token: string,
-    activityId: string,
-    userId: string,
-  ): Promise<Question> {
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/RegisterSignService?wsdl`;
-
-    return createClientAsync(url)
-      .then(client => {
-        return client.GetQuestionAsync({
-          securityToken: token,
-          activityId: activityId,
-          userId: userId,
-        });
-      })
-      .then(res => {
-        return {
-          questionId: res[0].question.questionId,
-          text: res[0].question.text,
-        };
-      })
-      .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error(JSON.stringify(err.root.Envelope)),
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-
-        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
-      });
-  }
-
-  validateQuestion(
-    token: string,
-    activityId: string,
-    questionId: string,
-    answer: string,
-    userId: string,
-  ): Promise<boolean> {
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/RegisterSignService?wsdl`;
-
-    return createClientAsync(url)
-      .then(client => {
-        return client.ValidateAnswerAsync({
-          securityToken: token,
-          activityId: activityId,
-          userId: userId,
-          questionId: questionId,
-          answer: answer,
-        });
-      })
-      .then(res => {
-        return true;
-      })
-      .catch(err => {
-        const innerError =
-          err.root?.Envelope?.Body?.Fault?.detail?.RegisterFault;
-
-        if (innerError) {
-          throw new EaseyException(err, HttpStatus.BAD_REQUEST, {
-            responseObject: innerError.description,
-          });
-        }
-
-        throw new EaseyException(err, HttpStatus.INTERNAL_SERVER_ERROR, {
-          userId: userId,
-        });
-      });
-  }
-
-  validatePin(
-    token: string,
-    activityId: string,
-    userId: string,
-    code: string,
-  ): Promise<boolean> {
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/RegisterSignService?wsdl`;
-
-    return createClientAsync(url)
-      .then(client => {
-        return client.ValidateSecretCodeAsync({
-          securityToken: token,
-          activityId: activityId,
-          userId: userId,
-          secretCode: code,
-        });
-      })
-      .then(res => {
-        return true;
-      })
-      .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error(JSON.stringify(err.root.Envelope)),
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-
-        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
-      });
-  }
-
-  async authenticate(
-    credentials: CredentialsSignDTO,
+  async createCromerrActivity(
     user: CurrentUser,
+    credentials: CredentialsSignDTO, idToken?: string
   ): Promise<SignAuthResponseDTO> {
-    const token = await this.getSignServiceToken();
 
-    const activityId = await this.getActivityId(
-      token,
-      credentials.userId,
-      credentials.firstName,
-      credentials.lastName,
-    );
-    await this.authenticateUser(
-      token,
-      activityId,
-      credentials.userId,
-      credentials.password,
-    );
-
-    //Extra error handling
-    if (user.userId !== credentials.userId) {
-      throw new EaseyException(
-        new Error('Must authenticate with the current logged in account'),
-        HttpStatus.BAD_REQUEST,
-        {
-          responseObject:
-            'Must authenticate with the current logged in account',
-        },
-      );
+    //If an idToken is not passed in, see if the user has a valid session
+    if (!idToken) {
+      const userSession = await this.userSessionService.findSessionByUserId(user.userId);
+      if (!userSession) {
+        throw new EaseyException(new Error('No session record exists for this user.'), HttpStatus.BAD_REQUEST);
+      }
+      idToken = userSession.idToken;
     }
 
     if (!(user.roles.includes('Submitter') || user.roles.includes('Sponsor') || user.roles.includes('Initial Authorizer')) ) {
@@ -406,19 +130,42 @@ export class SignService {
       );
     }
 
-    const question = await this.getQuestion(
-      token,
-      activityId,
-      credentials.userId,
-    );
+    //create the activity
+    const apiToken = await this.tokenService.getCdxApiToken();
+    return await this.sendToCromerr(apiToken, credentials, idToken);
+  }
 
-    const dto = new SignAuthResponseDTO();
-    dto.activityId = activityId;
-    dto.question = question.text;
-    dto.questionId = question.questionId;
-    dto.mobileNumbers = [];
+  async sendToCromerr(apiToken: string, credentials: CredentialsSignDTO, idToken: string): Promise<SignAuthResponseDTO> {
+    const dataflowName = getConfigValue('ECMPS_DATA_FLOW_NAME', '');
+    const requestBody = {
+      user: {
+        userId: credentials.userId,
+        firstName: credentials.firstName,
+        lastName: credentials.lastName,
+        middleInitial: credentials.middleInitial,
+      },
+      dataflow: dataflowName,
+      activityDescription: credentials.activityDescription,
+    };
 
-    return dto;
+    const customHeaders = {
+      'Id-Token': idToken,
+    };
+    const registerApiUrl = getConfigValue('OIDC_REST_API_BASE', '');
+    const apiUrl = `${registerApiUrl}/api/v1/cromerr/createActivity`;
+
+    try {
+      const signAuthResponseDTO = await this.oidcHelperService.makePostRequestJson<SignAuthResponseDTO>(apiUrl, requestBody, apiToken, customHeaders);
+      if (!signAuthResponseDTO) {
+        throw new Error(`Unable to create a CROMERR activity for user ${credentials.userId}`);
+      }
+
+      return signAuthResponseDTO;
+
+    } catch (error) {
+      this.logger.error(`Unable to create a CROMERR activity for user ${credentials.userId}`, error);
+      throw new Error(`Unable to create a CROMERR activity for user ${credentials.userId}.  ${error.message}`);
+    }
   }
 
   async sendPhoneVerificationCode(
@@ -434,28 +181,4 @@ export class SignService {
     );
   }
 
-  async validate(payload: CertificationVerifyParamDTO): Promise<boolean> {
-    const token = await this.getSignServiceToken();
-
-    if (payload.pin && payload.pin !== '') {
-      //Phone verification
-      await this.validatePin(
-        token,
-        payload.activityId,
-        payload.userId,
-        payload.pin,
-      );
-    } else {
-      // Question verification
-      await this.validateQuestion(
-        token,
-        payload.activityId,
-        payload.questionId,
-        payload.answer,
-        payload.userId,
-      );
-    }
-
-    return true;
-  }
 }

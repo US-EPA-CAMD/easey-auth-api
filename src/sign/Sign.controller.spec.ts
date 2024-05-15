@@ -43,21 +43,9 @@ describe('SignController', () => {
 
   it('should call the authenticate service method', async () => {
     const mockFunction = jest.fn();
-    service.authenticate = mockFunction;
-
-    await controller.authenticate(new CredentialsSignDTO(), {
-      userId: 'mock',
-      roles: ['Submitter'],
-    } as CurrentUser);
-
-    expect(mockFunction).toHaveBeenCalled();
-  });
-
-  it('should call the validate service method', async () => {
-    const mockFunction = jest.fn();
-    service.validate = mockFunction;
-
-    await controller.validate(new CertificationVerifyParamDTO());
+    service.createCromerrActivity = mockFunction;
+    const credentialsSignDTO = new CredentialsSignDTO();
+    await controller.createCromerrActivity(credentialsSignDTO, null, '');
 
     expect(mockFunction).toHaveBeenCalled();
   });
@@ -75,7 +63,7 @@ describe('SignController', () => {
     const mockFunction = jest.fn();
     service.signAllFiles = mockFunction;
 
-    await controller.sign('', []);
+    await controller.sign('',  []);
 
     expect(mockFunction).toHaveBeenCalled();
   });

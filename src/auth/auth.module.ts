@@ -8,11 +8,14 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { SignModule } from '../sign/Sign.module';
 import { PermissionsModule } from '../permissions/Permissions.module';
+import { BypassService } from '../oidc/Bypass.service';
+import { OidcHelperModule } from '../oidc/OidcHelper.module';
 
 @Module({
   imports: [
     TokenModule,
     UserSessionModule,
+    OidcHelperModule,
     SignModule,
     PermissionsModule,
     HttpModule,

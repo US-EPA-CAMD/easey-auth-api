@@ -8,6 +8,16 @@ import { TokenService } from '../token/token.service';
 import { UserSessionService } from '../user-session/user-session.service';
 import { PermissionsService } from '../permissions/Permissions.service';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
+import { PolicyResponse } from '../dtos/policy-response';
+import { OidcAuthValidationRequestDto } from '../dtos/oidc-auth-validation-request.dto';
+import { OidcAuthValidationResponseDto } from '../dtos/oidc-auth-validation-response.dto';
+import { SignInDTO } from '../dtos/signin.dto';
+import * as jwt from 'jsonwebtoken';
+import { OidcJwtPayload, OrganizationResponse } from '../dtos/oidc-auth-dtos';
+import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
+import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
+import { OidcHelperService } from '../oidc/OidcHelperService';
+import { BypassService } from '../oidc/Bypass.service';
 
 interface OrgEmailAndId {
   email: string;
@@ -18,208 +28,148 @@ interface OrgEmailAndId {
 export class AuthService {
   constructor(
     private readonly logger: Logger,
-    private readonly configService: ConfigService,
     private readonly tokenService: TokenService,
-    private readonly permissionService: PermissionsService,
+    private readonly permissionsService: PermissionsService,
     private readonly userSessionService: UserSessionService,
+    private readonly oidcHelperService: OidcHelperService,
+    private readonly bypassService: BypassService,
   ) {}
 
-  async getStreamlinedRegistrationToken(userId: string): Promise<string> {
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/StreamlinedRegistrationService?wsdl`;
+  async determinePolicy(userId: string): Promise<PolicyResponse> {
 
-    return createClientAsync(url)
-      .then(client => {
-        return client.AuthenticateAsync({
-          userId: this.configService.get<string>('app.naasAppId'),
-          credential: this.configService.get<string>('app.nassAppPwd'),
-        });
-      })
-      .then(res => {
-        return res[0].securityToken;
-      })
-      .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error(JSON.stringify(err.root.Envelope)),
-            HttpStatus.BAD_REQUEST,
-            { userId: userId },
-          );
-        }
+    try {
 
-        throw new EaseyException(new Error(err), HttpStatus.BAD_REQUEST, {
-          userId: userId,
+      /*let user: UserDTO;
+      if (this.bypassService.bypassEnabled()) {
+        user = this.bypassService.getBypassUser(userId);
+      }*/
+
+      //Get the Api Token to use as bearer Token in the determinePolicy call
+      const apiToken = await this.tokenService.getCdxApiToken();
+
+      //Make the determinePolicyCall
+      return await this.oidcHelperService.determinePolicy(userId, apiToken);
+    } catch (error) {
+      this.logger.error("error determining user policy: ", error.message);
+
+      // Check if the error is due to the specific condition of an invalid user ID
+      if (error.response && error.response.data && error.response.data.code === 'E_WRONG_USER_ID') {
+        // This is an expected use case. Instead of throwing, return a new PolicyResponse with code and message
+        return new PolicyResponse({
+          code: error.response.data.code,
+          message: "You must have a CDX account to use ECMPS. Please check if the CDX User ID you typed in is correct and try again. If you do not have a CDX account, please use the 'create an account' link to register an account on CDX."
         });
-      });
+      }
+
+      throw new Error(error);
+    }
+
   }
 
-  async getUserEmail(userId: string): Promise<OrgEmailAndId> {
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/StreamlinedRegistrationService?wsdl`;
+  async validateAndCreateSession(
+    oidcAuthValidationRequest: OidcAuthValidationRequestDto,
+    clientIp: string
+  ): Promise<OidcAuthValidationResponseDto> {
 
-    const streamlinedRegistrationToken = await this.getStreamlinedRegistrationToken(
-      userId,
-    );
+    let oidcAuthValidationResponse = new OidcAuthValidationResponseDto({
+      isValid: true
+    });
 
-    return createClientAsync(url)
-      .then(client => {
-        return client.RetrievePrimaryOrganizationAsync({
-          securityToken: streamlinedRegistrationToken,
-          user: { userId: userId },
-        });
-      })
-      .then(res => {
-        return {
-          email: res[0].result.email,
-          userOrgId: res[0].result.userOrganizationId,
-        };
-      })
-      .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error(JSON.stringify(err.root.Envelope)),
-            HttpStatus.BAD_REQUEST,
-            { userId: userId },
-          );
-        }
+    try {
+      oidcAuthValidationResponse = await this.oidcHelperService.validateOidcPostRequest(oidcAuthValidationRequest);
+      if (! oidcAuthValidationResponse.isValid) {
+        return oidcAuthValidationResponse;
+      }
 
-        throw new EaseyException(err, HttpStatus.BAD_REQUEST, {
-          userId: userId,
-        });
+      oidcAuthValidationResponse.userId = oidcAuthValidationResponse.userId.toLowerCase();
+      const userId = oidcAuthValidationResponse.userId;
+      let userSession = await this.userSessionService.findSessionByUserId(userId);
+      if (userSession) {
+        await this.userSessionService.removeUserSessionByUserId(userId);
+      }
+
+      //Create the userSession and save the auth code in the security_token temporarily.
+      //SignIn method will exchange it for a valid token
+      userSession = await this.userSessionService.createUserSession(userId, oidcAuthValidationRequest.code, oidcAuthValidationResponse.policy, clientIp);
+      oidcAuthValidationResponse.userSession = userSession;
+
+    } catch (error) {
+      this.logger.error('Error exchanging code for tokens:', error);
+      oidcAuthValidationResponse = new OidcAuthValidationResponseDto({
+        isValid: false,
+        code: "ERROR_TOKEN_PROCESSING",
+        message: error.message
       });
+    }
+
+    return oidcAuthValidationResponse;
   }
 
   async signIn(
-    userId: string,
-    password: string,
-    clientIp: string,
+    signInDto: SignInDTO,
+    clientIp: string
   ): Promise<UserDTO> {
-    let user: UserDTO;
-    let org: OrgEmailAndId;
-    userId = userId.toLowerCase();
 
-    if (this.tokenService.bypassEnabled()) {
-      //Handle bypass sign in if enabled
-      const acceptedUsers = JSON.parse(
-        this.configService.get<string>('cdxBypass.users'),
+    let session = await this.userSessionService.findSessionBySessionId(signInDto.sessionId);
+    if (!session) {
+      throw new EaseyException(new Error('Unable to sign-in user. No session record exists for the given session ID.'), HttpStatus.BAD_REQUEST);
+    }
+
+    //Exchange the code for a valid token from Azure AD
+    const accessTokenResponse = await this.tokenService.exchangeAuthCodeForToken(session);
+    //Get the updated session information here (after code is exchanged for token)
+    session = await this.userSessionService.findSessionBySessionId(signInDto.sessionId);
+
+    //Decode and retrieve the claims from the token
+    const decoded = jwt.decode(accessTokenResponse.access_token, { complete: true });
+    if (!decoded || !decoded.payload) {
+      throw new Error('Invalid token: Unable to decode access token.');
+    }
+    const oidcJwtPayload = decoded as { header: any, payload: OidcJwtPayload, signature: string };
+
+    const userDto = new UserDTO();
+    userDto.userId = oidcJwtPayload.payload.userId;
+    userDto.firstName = oidcJwtPayload.payload.given_name;
+    userDto.lastName = oidcJwtPayload.payload.family_name;
+    userDto.token = accessTokenResponse.access_token
+    // Set the token expiration. This was previously calculated from an ENV value.
+    // Now, we calculate based on token response value. expires_in is in seconds
+    userDto.tokenExpiration = this.tokenService.calculateTokenExpirationInMills(accessTokenResponse.expires_in);
+
+    //Retrieve email
+    const apiToken = await this.tokenService.getCdxApiToken();
+    const orgResponse = await this.getUserEmail(userDto.userId, apiToken);
+    userDto.email = orgResponse.email;
+    userDto.roles = await this.permissionsService.retrieveAllUserRoles(userDto.userId, apiToken);
+    //Retrieve the list of facilities.
+    const facilities =
+      await this.permissionsService.retrieveAllUserFacilities(
+        userDto.userId,
+        userDto.roles,
+        apiToken,
+        clientIp,
       );
-      const currentPass = this.configService.get<string>('cdxBypass.pass');
+    userDto.facilities = facilities;
 
-      if (!acceptedUsers.find(x => x === userId)) {
-        throw new EaseyException(
-          new Error('Incorrect Bypass userId'),
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      if (password === currentPass) {
-        user = new UserDTO();
-        user.userId = userId;
-        user.firstName = userId;
-        user.lastName = '';
-        user.roles = [
-          this.configService.get<string>('app.sponsorRole'),
-          this.configService.get<string>('app.preparerRole'),
-          this.configService.get<string>('app.submitterRole'),
-          this.configService.get<string>('app.analystRole'),
-          this.configService.get<string>('app.adminRole'),
-        ];
-      } else {
-        throw new EaseyException(
-          new Error('Incorrect Bypass password'),
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    } else {
-      // If no bypass is set, log in per usual
-      user = await this.loginCdx(userId, password);
-      org = await this.getUserEmail(userId);
-      user.email = org.email;
-      user.roles = await this.permissionService.retrieveAllUserRoles(userId);
-    }
-
-    // Determine if we have a valid session, if so return the current valid session
-    let session = await this.userSessionService.findSessionByUserId(userId);
-    if (session) {
-      await this.userSessionService.removeUserSessionByUserId(userId);
-    }
-    //Generate a new one
-    session = await this.userSessionService.createUserSession(userId);
-
-    const tokenToGenerateFacilitiesList = await this.tokenService.generateToken(
-      //The first token we generate needed for the cbs permissions api call
-      userId,
-      session.sessionId,
-      clientIp,
-      [],
-    );
-
-    const facilities = await this.permissionService.retrieveAllUserFacilities(
-      userId,
-      user.roles,
-      tokenToGenerateFacilitiesList.token,
-      clientIp,
-    );
-
+    session.tokenExpiration = userDto.tokenExpiration;
+    session.roles = JSON.stringify(userDto.roles);
     session.facilities = JSON.stringify(facilities);
-    user.facilities = facilities;
-
+    //Update the session with user and facility information
     await this.userSessionService.updateSession(session);
 
-    const token = await this.tokenService.generateToken(
-      userId,
-      session.sessionId,
-      clientIp,
-      user.roles,
-    );
-    user.token = token.token;
-    user.tokenExpiration = token.expiration;
-    return user;
+    return userDto;
   }
 
-  async loginCdx(userId: string, password: string): Promise<UserDTO> {
-    let dto: UserDTO;
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/RegisterAuthService?wsdl`;
+  async getUserEmail(userId: string, token: string): Promise<OrganizationResponse> {
+    const registerApiUrl = getConfigValue('OIDC_REST_API_BASE');
+    const apiUrl = `${registerApiUrl}/api/v1/registration/retrievePrimaryOrganization/${userId}`;
 
-    return createClientAsync(url)
-      .then(client => {
-        return client.AuthenticateAsync({
-          userId,
-          password,
-        });
-      })
-      .then(res => {
-        this.logger.log('User successfully signed in', { userId: userId });
-        const user = res[0].User;
-        dto = new UserDTO();
-        dto.userId = userId;
-        dto.firstName = user.firstName;
-        dto.lastName = user.lastName;
-        return dto;
-      })
-      .catch(err => {
-        const innerError =
-          err.root?.Envelope?.Body?.Fault?.detail?.RegisterAuthFault;
-
-        if (innerError) {
-          let responseMessage = 'Invalid username or password.';
-          if (innerError.errorCode['$value'] !== 'E_WrongIdPassword') {
-            responseMessage = innerError.description;
-          }
-
-          throw new EaseyException(err, HttpStatus.BAD_REQUEST, {
-            responseObject: responseMessage,
-          });
-        }
-
-        throw new EaseyException(err, HttpStatus.INTERNAL_SERVER_ERROR, {
-          userId: userId,
-        });
-      });
+    try {
+      return await this.oidcHelperService.makeGetRequest<OrganizationResponse>(apiUrl, token, null);
+    } catch (error) {
+      this.logger.error('Unable to get user email. ', apiUrl, error);
+      throw new EaseyException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 
   async updateLastActivity(token: string): Promise<void> {

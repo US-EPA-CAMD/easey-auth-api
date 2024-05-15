@@ -8,6 +8,10 @@ import { v4 as uuid } from 'uuid';
 import { UserCheckOut } from '../entities/user-check-out.entity';
 import { UserSession } from '../entities/user-session.entity';
 import { UserSessionRepository } from '../user-session/user-session.repository';
+import { FacilityAccessDTO } from '../dtos/permissions.dto';
+import { firstValueFrom } from 'rxjs';
+import { getManager } from 'typeorm';
+import { AccessTokenResponse } from '../dtos/oidc-auth-dtos';
 
 @Injectable()
 export class UserSessionService {
@@ -68,13 +72,16 @@ export class UserSessionService {
     return true;
   }
 
-  async createUserSession(userId: string): Promise<UserSession> {
+  async createUserSession(userId: string, authCode: string, oidcPolicy: string, clientIp: string): Promise<UserSession> {
     const sessionId = uuid();
     await this.removeUserSessionByUserId(userId);
 
     const session = new UserSession();
     session.sessionId = sessionId;
     session.userId = userId.toLowerCase();
+    session.oidcPolicy = oidcPolicy;
+    session.securityToken = authCode;
+    session.clientIp = clientIp;
     session.lastLoginDate = dateToEstString();
     session.lastActivity = dateToEstString();
     await this.repository.insert(session);
@@ -153,14 +160,31 @@ export class UserSessionService {
     return null;
   }
 
+  async findSessionBySessionId(sessionId: string): Promise<UserSession> {
+    const session = await this.repository.findOneBy({
+      sessionId: sessionId,
+    });
+
+    if (session) {
+      return session;
+    }
+
+    return null;
+  }
+
   async updateUserSessionToken(
     sessionId: string,
-    token: string,
+    accessTokenResponse: AccessTokenResponse,
     expiration: string,
   ) {
     await this.repository.update(
       { sessionId: sessionId },
-      { tokenExpiration: expiration, securityToken: token },
+      {
+        tokenExpiration: expiration,
+        idToken: accessTokenResponse.id_token,
+        securityToken: accessTokenResponse.access_token,
+        refreshToken: accessTokenResponse.refresh_token
+      },
     );
   }
 

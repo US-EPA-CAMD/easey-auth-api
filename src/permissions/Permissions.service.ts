@@ -7,96 +7,32 @@ import { ConfigService } from '@nestjs/config';
 import { FacilityAccessDTO } from '../dtos/permissions.dto';
 import { firstValueFrom } from 'rxjs';
 import { createClientAsync } from 'soap';
+import { OidcHelperService } from '../oidc/OidcHelperService';
 import { SignService } from '../sign/Sign.service';
 import { UserSessionService } from '../user-session/user-session.service';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
+import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
+import { OrganizationResponse, UserRolesResponse } from '../dtos/oidc-auth-dtos';
+import { Logger } from '@us-epa-camd/easey-common/logger';
 
 @Injectable()
 export class PermissionsService {
   constructor(
-    private readonly signService: SignService,
-    private readonly userSessionService: UserSessionService,
     private readonly configService: ConfigService,
     private httpService: HttpService,
+    private readonly oidcHelperService: OidcHelperService,
+    private readonly logger: Logger,
   ) {}
 
-  async getUserRoles(userId, orgId, registerToken): Promise<string[]> {
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/RegisterService?wsdl`;
 
-    return createClientAsync(url)
-      .then(client => {
-        return client.RetrieveRolesAsync({
-          securityToken: registerToken,
-          user: { userId: userId },
-          org: { userOrganizationId: orgId },
-        });
-      })
-      .then(res => {
-        if (
-          res &&
-          res.length > 0 &&
-          res[0] !== null &&
-          res[0]['Role'] &&
-          res[0].Role.length > 0
-        ) {
-          const activeRoles = res[0].Role.filter(
-            o => o.status.code === 'Active',
-          );
-
-          return activeRoles.map(r => r.type.description);
-        }
-        return [];
-      })
-      .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error(JSON.stringify(err.root.Envelope)),
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-
-        throw new EaseyException(new Error(err), HttpStatus.BAD_REQUEST);
-      });
-  }
-
-  async getAllUserOrganizations(userId, registerToken): Promise<any> {
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/RegisterService?wsdl`;
-
-    return createClientAsync(url)
-      .then(client => {
-        return client.RetrieveOrganizationsAsync({
-          securityToken: registerToken,
-          user: { userId: userId },
-        });
-      })
-      .then(res => {
-        return res[0].Organization;
-      })
-      .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error(JSON.stringify(err.root.Envelope)),
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-
-        throw new EaseyException(new Error(err), HttpStatus.BAD_REQUEST);
-      });
-  }
-
-  async retrieveAllUserRoles(userId: string): Promise<Array<string>> {
-    const registerToken = await this.signService.getRegisterServiceToken();
-    const orgs = await this.getAllUserOrganizations(userId, registerToken);
+  async retrieveAllUserRoles(userId: string, apiToken: string): Promise<Array<string>> {
+    const orgs = await this.getAllUserOrganizations(userId, apiToken);
     const roleSet = new Set<string>();
     for (const o of orgs) {
       const rolesForOrg = await this.getUserRoles(
         userId,
         o.userOrganizationId,
-        registerToken,
+        apiToken,
       );
 
       rolesForOrg.forEach(r => {
@@ -105,6 +41,39 @@ export class PermissionsService {
     }
 
     return Array.from(roleSet.values());
+  }
+
+  async getUserRoles(userId: string, orgId: number, token: string): Promise<string[]> {
+    const registerApiUrl = getConfigValue('OIDC_REST_API_BASE', '');
+    const apiUrl = `${registerApiUrl}/api/v1/registration/retrieveRoles/${userId}/${orgId}`;
+
+    try {
+      const res = await this.oidcHelperService.makeGetRequest<UserRolesResponse>(apiUrl, token, null);
+
+      if (res && res.length > 0) {
+        const activeDescriptions = res.filter(role => role.status.code === 'Active')
+          .map(role => role.type.description);
+        return activeDescriptions;
+      }
+      return [];
+
+    } catch (error) {
+      this.logger.error('Failed to make GET request to ', apiUrl, error);
+      throw new EaseyException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getAllUserOrganizations(userId: string, token: string): Promise<OrganizationResponse[]> {
+    const registerApiUrl = getConfigValue('OIDC_REST_API_BASE', '');
+    const apiUrl = `${registerApiUrl}/api/v1/registration/retrieveOrganizations/${userId}`;
+
+    try {
+      const orgs = await this.oidcHelperService.makeGetRequest<OrganizationResponse[]>(apiUrl, token, null);
+      return orgs;
+    } catch (error) {
+      this.logger.error('Failed to make GET request to ', apiUrl, error);
+      throw new EaseyException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 
   async retrieveAllUserFacilities(
@@ -151,7 +120,7 @@ export class PermissionsService {
       );
     }
 
-    let permissionsDto = [];
+    const permissionsDto = [];
     const mockPermissionObject = await this.getMockPermissionObject();
     const userPermissions = mockPermissionObject.filter(
       entry => entry.userId.toLowerCase() === userId.toLowerCase(),
@@ -161,7 +130,7 @@ export class PermissionsService {
       userPermissions.length > 0 &&
       userPermissions[0].facilities.length > 0
     ) {
-      for (let facility of userPermissions[0].facilities) {
+      for (const facility of userPermissions[0].facilities) {
         const dto = new FacilityAccessDTO();
         dto.facId = facility.facId;
         dto.orisCode = facility.orisCode;

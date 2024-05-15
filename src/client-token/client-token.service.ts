@@ -1,6 +1,6 @@
+import { JwtPayload, sign, verify } from 'jsonwebtoken';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { sign, verify } from 'jsonwebtoken';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
 
@@ -39,7 +39,7 @@ export class ClientTokenService {
       }
 
       //Attempt to verify the incoming token
-      const decoded = verify(clientToken, dbRecord.encryptionKey);
+      const decoded = verify(clientToken, dbRecord.encryptionKey) as JwtPayload;
 
       if (decoded.passCode !== dbRecord.passCode) {
         throw new EaseyException(
