@@ -77,12 +77,27 @@ The Auth API uses a number of environment variables to properly configure the ap
 | enableAllFacilities | EASEY_AUTH_API_ENABLE_ALL_FACILITIES | false | Configurable | 
 | authApi | EASEY_AUTH_API | https://${apiHost}/auth-mgmt | Dynamically set by CI/CD workflow |
 
+### OIDC Authentication/Authorization Variables
+| Typescript Var Name | Environment Var Name | Default Value | Comment                    |
+| :-------- | :------------------- | :------------ |:---------------------------|
+|  | OIDC_CLIENT_ID | *** | Configurable |
+|  | OIDC_CLIENT_SECRET | *** | Configurable |
+|  | OIDC_CLIENT_CREDENTIAL_SCOPE | *** | Configurable |
+|  | OIDC_CDX_API_TOKEN_URL | *** | Configurable |
+|  | OIDC_HMAC_SECRET_KEY | *** | Configurable               |
+|  | OIDC_REST_API_BASE | *** | Configurable |
+|  | ECMPS_DATA_FLOW_NAME | *** | Configurable |
+|  | ECMPS_UI_REDIRECT_URL | *** | Configurable               |
+|  | OIDC_AUTH_API_REDIRECT_URI | *** | Configurable |
+|  | OIDC_CDX_TOKEN_ENDPOINT | *** | Configurable |
+|  | OIDC_CDX_JWKS_URI | *** | Configurable |
+|  | OIDC_CDX_TOKEN_ISSUER | *** | Configurable |
+
 ### CDX BYPASS VARIABLES
 | Typescript Var Name | Environment Var Name | Default Value | Comment |
 | :------------------ | :------------------- | :------------ | :------ |
 | enabled | EASEY_CDX_BYPASS_ENABLED | false | Configurable |
 | users | EASEY_CDX_BYPASS_USERS | *** | Configurable |
-| password | EASEY_CDX_BYPASS_PASSWORD | *** | Configurable |
 | mockPermissionsEnabled | EASEY_CDX_MOCK_PERMISSIONS_ENABLED | false | Configurable |
 
 ## Environment Variables File
@@ -98,9 +113,6 @@ Database credentials are injected into the cloud.gov environments as part of the
 - EASEY_CDX_BYPASS_ENABLED=true|false
   - IF ABOVE IS TRUE THEN SET
     - EASEY_CDX_BYPASS_USERS={ask project dev/tech lead}
-    - EASEY_CDX_BYPASS_PASSWORD={ask project dev/tech lead}
-- EASEY_NAAS_SERVICES_APP_ID={ask project dev/tech lead}
-- EASEY_NAAS_SERVICES_APP_PASSWORD={ask project dev/tech lead}
 
 **Please refer to our [Getting Started](https://github.com/US-EPA-CAMD/devops/blob/master/GETTING-STARTED.md) instructions on how to configure the following environment variables & connect to the database.**
 - EASEY_DB_HOST
@@ -142,52 +154,69 @@ Please refer to the auth Management API Swagger Documentation for descriptions o
 [Dev Environment](https://api.epa.gov/easey/dev/auth-mgmt/swagger/) | [Test Environment](https://api.epa.gov/easey/test/auth-mgmt/swagger/) | [Performance Environment](https://api.epa.gov/easey/perf/auth-mgmt/swagger/) | [Beta Environment](https://api.epa.gov/easey/beta/auth-mgmt/swagger/) | [Staging Environment](https://api.epa.gov/easey/staging/auth-mgmt/swagger/)
 
 ## CDX Services
-​The Auth Api makes use of the government provided [cdx soap](https://testngn.epacdxnode.net/cdx-register-II/documentation) services. By importing`createClientAsync from "soap"` a user created service can make a connection to any soap api, provided they have the correct security token. A call to `createClientAsync` will return a client object, and that client object can reference any of the api endpoints within that service category, while passing in the required authentication token. Here is an example of the Authenticate endpoint being called asynchronously. 
+​The Auth Api makes use of the government provided [cdx REST](https://devngn.epacdxnode.net/cdx-register-II-rest/apidocs/index.html#/) services. These new REST endpoints replaced the old [cdx soap](https://testngn.epacdxnode.net/cdx-register-II/documentation) services. 
+
+With the shift from SOAP to OIDC (OpenID Connect), we transition from a service-specific token-based authentication to a more standardized and secure OAuth 2.0 based authentication framework. OIDC allows clients to verify the identity of the user and to obtain their profile information.
+
+### Getting Started with OIDC Authentication
+
+#### 1. **Client Registration**
+Register your application with the ICAM team (OIDC team) to obtain the `client_id` and `client_secret`. These are necessary for the OAuth 2.0 flow to authenticate and communicate securely with the OIDC provider.
+
+#### 2. **Authorization Request**
+The customized authentication process starts with a call to determinePolicy endpoint.  Here is the complete auth flow
+- The client makes a determine policy call to Auth API
+- Auth API makes a determine policy call to the OIDC provider
+- OIDC provider and thus Auth API responds with one of _SIGNIN, _MIGRATE, or _SIGNUP policy. 
+- The client forwards the user to the Auth endpoint of the OIDC provider. 
+- User completes authentication flow at the OIDC provider
+- When the user authentication process finishes, OIDC provider sends a POST request with an authorization code back to the AUTH Api (/oauth2/code endpoint)
+- Auth API validates the authentication result (nonce and state values), exchanges the auth code for an access token, retrieve the user's CDX roles, and retrieve the user's CBS facilities and permissions, creates a user session and finally redirects the user back to the home page as a logged-in user
+
+For making any REST api calls against the OIDC provider, you need to first obtain an api token. This token, provided against a given client id and secret, will authorize Auth API to make most API calls. However, endpoints that require the user be specifically identified or authenticated (such as createActivity) will require a token to be available in the header with the request. 
+
+#### 2. **Token Exchange**
+After successful authentication, the OIDC provider redirects back to Auth API with an authorization code. Exchange this code for an ID token and access token at the token endpoint.
+```
+const params = new URLSearchParams();
+    params.append('grant_type', 'authorization_code');
+    params.append('code', authorizationCode);  
+    const tokenEndpoint = `${this.configService.get('OIDC_CDX_TOKEN_ENDPOINT').replace('%s', userSession.oidcPolicy)}`;
+    params.append('p', userSession.oidcPolicy);
+    params.append('client_id', clientId);
+    params.append('client_secret', clientSecret);
+    const response = await firstValueFrom(
+        this.httpService.post<T>(tokenEndpoint, params, { headers }),
+        );
+      return response.data;
+```
+
+Note that once the token is received from the OIDC provider, Auth API will validate the token: verifies the signature and issuer at the JWKS URI endpoint, ensures the token has not expired, that it was issued by the expected issuer for the right audience, etc.
+
+Here are the three types of tokens returned by the token exchange
+- **ID Token**: Contains the user identity information in a JWT (JSON Web Token) format.
+- **Access Token**: Used to make authenticated API requests (should be transmitted only over HTTPS).
+- **Refresh Token**: Used by Auth API to obtain new access tokens without requiring the user to authenticate again (such as from a refresh token call).
+
+#### 2. **Obtaining an API Token**
+
+Before making any API calls to the CDX REST endpoints, you must first obtain an api token. Example below (see TokenService.getCdxApiToken() )
 
 ```
-const  url = `${this.configService.get<string>('app.cdxSvcs',)}/RegisterAuthService?wsdl`;
-createClientAsync(url).then(client  => {
-	return  client.AuthenticateAsync({
-		userId,
-		password,
-	});
-}).then(result => {})
-```
+const params = new URLSearchParams();
+    params.append('grant_type', 'client_credentials');
+    params.append('scope', scope);
+    params.append('client_id', clientId);
+    params.append('client_secret', clientSecret);
 
-Before using most endpoints that are part of the majority of soap services, authentication to that particular service must be performed, and the token returned from authenticating to that service must be passed with each request. 
-
-For example, to receive a user's primary organization, first you must authenticate against the StreamlinedRegistrationService. In this example a `naasAppId` and  `naasAppPwd` are required to make this authentication.  
-
-```
-const  url = `${this.configService.get<string>('app.cdxSvcs',)}/StreamlinedRegistrationService?wsdl`;
-
-return createClientAsync(url).then(client  => {
-	return  client.AuthenticateAsync({
-		userId:  this.configService.get<string>('app.naasAppId'),
-		credential:  this.configService.get<string>('app.nassAppPwd'),
-	});
-})
-.then(res  => {
-	return  res[0].securityToken;
-})
-```
-
-Once the token has been stored / returned, any request in the StreamlinedRegistrationService can be executed. For instance, retrieving a users primary organization: 
-
-```
-const  url = `${this.configService.get<string>(
-'app.cdxSvcs',
-)}/StreamlinedRegistrationService?wsdl`;
-
-return  createClientAsync(url).then(client  => {
-	return  client.RetrievePrimaryOrganizationAsync({
-		securityToken:  RETRIEVED_TOKEN_ABOVE,
-		user: { userId:  userId },
-	});
-})
-.then(res  => {
-return  res[0].result.email;
-})
+    const headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      };
+    
+      const response = await firstValueFrom(
+        this.httpService.post<T>(tokenUrl, params, { headers }),
+        );
+      return response.data;
 ```
 
 ## License & Contributing

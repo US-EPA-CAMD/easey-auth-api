@@ -14,13 +14,16 @@ import { OidcAuthValidationRequestDto } from '../dtos/oidc-auth-validation-reque
 import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
 import { SignInDTO } from '../dtos/signin.dto';
 import { CredentialsDTO } from '../dtos/credentials.dto';
+import { Logger } from '@us-epa-camd/easey-common/logger';
 
 @Controller()
 @ApiSecurity('APIKey')
 @ApiTags('Authentication')
 export class AuthController {
   constructor(
-    private service: AuthService) {}
+    private service: AuthService,
+    private readonly logger: Logger,
+  ) {}
 
   @Post('/determinePolicy')
   @ApiOkResponse({
@@ -62,6 +65,7 @@ export class AuthController {
     @Body() signInDto: SignInDTO,
     @ClientIP() clientIp: string,
   ): Promise<UserDTO> {
+    this.logger.debug('controller: starting signIn process', { signInDto });
     return this.service.signIn(
       signInDto,
       clientIp,

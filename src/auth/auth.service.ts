@@ -37,20 +37,28 @@ export class AuthService {
   ) {}
 
   async determinePolicy(userId: string): Promise<PolicyResponse> {
+    this.logger.debug('Starting determinePolicy', { userId });
+
     if (this.bypassService.bypassEnabled()) {
       const policyResponse = new PolicyResponse({
         policy: '_BYPASS',
         userId: userId,
       });
+
+      this.logger.debug('Bypass service is enabled, returning bypass policy response', { policyResponse });
       return policyResponse;
     }
 
     try {
       //Get the Api Token to use as bearer Token in the determinePolicy call
       const apiToken = await this.tokenService.getCdxApiToken();
+      this.logger.debug('Retrieved API token for policy calls ');
 
       //Make the determinePolicyCall
-      return await this.oidcHelperService.determinePolicy(userId, apiToken);
+      const policyResponse = await this.oidcHelperService.determinePolicy(userId, apiToken);
+      this.logger.debug('Received policy response', { policyResponse });
+
+      return policyResponse;
     } catch (error) {
       this.logger.error('error determining user policy: ', error.message);
 
@@ -60,6 +68,8 @@ export class AuthService {
         error.response.data &&
         error.response.data.code === 'E_WRONG_USER_ID'
       ) {
+        this.logger.warn('Invalid user ID provided', { userId, code: error.response.data.code });
+
         // This is an expected use case. Instead of throwing, return a new PolicyResponse with code and message
         return new PolicyResponse({
           code: error.response.data.code,
@@ -81,9 +91,15 @@ export class AuthService {
     });
 
     try {
+      this.logger.debug('Starting OIDC (/oauth2/code) validation process', { oidcAuthValidationRequest, clientIp });
+
       oidcAuthValidationResponse = await this.oidcHelperService.validateOidcPostRequest(
         oidcAuthValidationRequest,
       );
+      this.logger.debug('OIDC post request validation result', {
+        code: oidcAuthValidationResponse.isValid,
+        policy: oidcAuthValidationResponse.policy, });
+
       if (!oidcAuthValidationResponse.isValid) {
         return oidcAuthValidationResponse;
       }
@@ -95,6 +111,7 @@ export class AuthService {
       );
       if (userSession) {
         await this.userSessionService.removeUserSessionByUserId(userId);
+        this.logger.debug('Removed existing user session', { userId });
       }
 
       //Create the userSession and save the auth code in the security_token temporarily.
@@ -106,6 +123,7 @@ export class AuthService {
         clientIp,
       );
       oidcAuthValidationResponse.userSession = userSession;
+      this.logger.debug('Created new user session. Validation successful.', { userSession });
     } catch (error) {
       this.logger.error('Error exchanging code for tokens:', error);
       oidcAuthValidationResponse = new OidcAuthValidationResponseDto({
@@ -123,8 +141,10 @@ export class AuthService {
     let session: UserSession;
     try {
 
+      this.logger.debug('service: starting signIn process', { signInDto, clientIp });
       const apiToken = await this.tokenService.getCdxApiToken(); //For api calls
       if (this.bypassService.bypassEnabled()) {
+        this.logger.debug('Bypass is enabled');
         //For bypass, sessionId has the userID
         userDto = this.bypassService.getBypassUser(signInDto.sessionId);
 
@@ -136,6 +156,8 @@ export class AuthService {
           clientIp,
         );
         signInDto.sessionId = session.sessionId;
+
+        this.logger.debug('Created new user session for bypass user', { session });
 
         //Bypass Tokens
         const tokenDto = await this.bypassService.generateToken(session.userId, session.sessionId, clientIp, userDto.roles);
@@ -156,10 +178,13 @@ export class AuthService {
           );
         }
 
+        this.logger.debug('Found existing session', { session });
         //Exchange the code for a valid token from Azure AD
         const accessTokenResponse = await this.tokenService.exchangeAuthCodeForToken(
           session,
-        );
+        )
+        this.logger.debug(`Exchanged auth code for token, access token expires in ${accessTokenResponse.expires_in / 60} minutes`, );
+
         //Get the updated session information here (after code is exchanged for token)
         session = await this.userSessionService.findSessionBySessionId(
           signInDto.sessionId,
@@ -170,8 +195,11 @@ export class AuthService {
           complete: true,
         });
         if (!decoded || !decoded.payload) {
+          this.logger.error('Invalid token: Unable to decode access token');
           throw new Error('Invalid token: Unable to decode access token.');
         }
+
+        this.logger.debug('Decoded access token');
         const oidcJwtPayload = decoded as {
           header: any;
           payload: OidcJwtPayload;
@@ -189,14 +217,19 @@ export class AuthService {
         userDto.tokenExpiration = this.tokenService.calculateTokenExpirationInMills(
           accessTokenResponse.expires_in,
         );
+        this.logger.debug('Extracted user information from decoded token and created user object', { userDto });
 
         //Retrieve email and roles
         const orgResponse = await this.getUserEmail(userDto.userId, apiToken);
         userDto.email = orgResponse.email;
+        this.logger.debug('Retrieved user email', { email: userDto.email });
+
         userDto.roles = await this.permissionsService.retrieveAllUserRoles(
           userDto.userId,
           apiToken,
         );
+        this.logger.debug('Retrieved user roles', { roles: userDto.roles });
+        this.logger.debug(`Retrieved user roles, number of roles: ${userDto.roles ? userDto.roles.length : 0}`);
       }
 
       //Retrieve the list of facilities.
@@ -207,6 +240,8 @@ export class AuthService {
         clientIp,
       );
       userDto.facilities = facilities;
+      this.logger.debug('Retrieved user facilities', { facilities });
+      this.logger.debug(`Retrieved user facilities, number of facilities: ${userDto.facilities ? userDto.facilities.length : 0}`);
 
       session.securityToken = userDto.token;
       session.idToken = userDto.idToken;
@@ -217,6 +252,7 @@ export class AuthService {
 
       //Update the session with user and facility information
       await this.userSessionService.updateSession(session);
+      this.logger.debug('Updated user session with token, roles, facilities, etc. User and session creation completed.', { session });
 
       return userDto;
     } catch (error) {
@@ -229,6 +265,7 @@ export class AuthService {
     userId: string,
     token: string,
   ): Promise<OrganizationResponse> {
+    this.logger.debug('Starting getUserEmail', { userId });
     const registerApiUrl = getConfigValue('OIDC_REST_API_BASE');
     const apiUrl = `${registerApiUrl}/api/v1/registration/retrievePrimaryOrganization/${userId}`;
 
@@ -239,7 +276,7 @@ export class AuthService {
         null,
       );
     } catch (error) {
-      this.logger.error('Unable to get user email. ', apiUrl, error);
+      this.logger.error(`Unable to get user email. URL: ${apiUrl}, Error: ${error.message}, Stack: ${error.stack}`);
       throw new EaseyException(error, HttpStatus.BAD_REQUEST);
     }
   }

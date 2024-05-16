@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
@@ -11,6 +11,7 @@ import { OidcAuthValidationRequestDto } from '../dtos/oidc-auth-validation-reque
 import { OidcAuthValidationResponseDto } from '../dtos/oidc-auth-validation-response.dto';
 import { RetrieveUsersResponse } from '../dtos/oidc-auth-dtos';
 import { SignatureRequest } from '../dtos/certification-sign-param.dto';
+import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 
 @Injectable()
 export class OidcHelperService {
@@ -122,8 +123,7 @@ export class OidcHelperService {
       );
       return response.data;
     } catch (error) {
-      this.logger.error('Failed to make POST request:', url, body, error);
-      throw error;
+      this.handleError(error, url, body);
     }
   }
 
@@ -139,8 +139,7 @@ export class OidcHelperService {
         );
       return response.data;
     } catch (error) {
-      this.logger.error('Failed to make POST request:', tokenUrl, params.toString(), error);
-      throw error;
+      this.handleError(error, tokenUrl, params);
     }
   }
 
@@ -180,17 +179,13 @@ export class OidcHelperService {
 
       return response.data;
     } catch (error) {
-      this.logger.error('Failed to make POST request:', postUrl, error);
-      throw error;
+      this.handleError(error, postUrl, null);
     }
   }
 
 
   async makeGetRequest<T>(url: string, apiToken: string, params: Record<string, any> = {}): Promise<T> {
     try {
-      /*if (!apiToken) {
-        apiToken = await this.oidcTokenService.getCdxApiToken();
-      }*/
 
       const headers = {
         'Content-Type': 'application/json',
@@ -205,9 +200,39 @@ export class OidcHelperService {
       );
       return response.data;
     } catch (error) {
-      this.logger.error('Failed to make GET request:', url, params.toString(), error);
-      throw error;
+      this.handleError(error, url, params);
     }
+  }
+
+  private handleError(error: any, url: string, params?: Record<string, any>  | URLSearchParams): void {
+    const { message = 'Unknown error occurred', stack = 'No stack trace available', ...rest } = error;
+
+    this.logger.error(`Error making a request to ${url} with params ${params ? JSON.stringify(params) : 'n/a'}:`, {
+      message,
+      stack,
+      ...rest,
+    });
+
+    let errorMessage = message;
+    let errorCode = 'UNKNOWN_ERROR';
+    let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+
+    if (error.response) {
+      // Handle known error structure
+      const { data, status } = error.response;
+      statusCode = status;
+      if (data && data.message && data.code) {
+        errorMessage = data.message;
+        errorCode = data.code;
+      } else if (typeof data === 'string') {
+        errorMessage = data;
+      }
+    } else if (error.message) {
+      // Fallback for other errors
+      errorMessage = error.message;
+    }
+
+    throw new HttpException({ code: errorCode, message: errorMessage }, statusCode);
   }
 
   /*
@@ -279,6 +304,11 @@ export class OidcHelperService {
 
     //Does the OidcPost request itself has an error?
     if (oidcAuthValidationRequest.error) {
+      this.logger.debug('OIDC post request contains error', {
+        error: oidcAuthValidationRequest.error,
+        errorDescription: oidcAuthValidationRequest.error_description,
+      });
+
       oidcAuthValidationResponse.isValid = false;
       oidcAuthValidationResponse.code = oidcAuthValidationRequest.code;
       oidcAuthValidationResponse.message = oidcAuthValidationRequest.error_description;
@@ -286,7 +316,10 @@ export class OidcHelperService {
     }
 
     //Check and state values and return userId if they are valid.
+    this.logger.debug('Validating nonce and state...', {state: oidcAuthValidationRequest.state});
+
     const validationResult = await this.validateNonceAndState(oidcAuthValidationRequest.state);
+    this.logger.debug('Nonce and state validation result', {validationResult,});
     if (!validationResult.isValid) {
       oidcAuthValidationResponse.isValid = false;
       oidcAuthValidationResponse.code = encodeURIComponent('INVALID_NONCE_OR_STATE');
@@ -296,6 +329,9 @@ export class OidcHelperService {
 
     oidcAuthValidationResponse.userId = validationResult.userId;
     oidcAuthValidationResponse.policy = validationResult.policy;
+
+    this.logger.debug('OIDC post request validation successful', {oidcAuthValidationResponse,});
+
     return oidcAuthValidationResponse;
   }
 

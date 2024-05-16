@@ -104,6 +104,8 @@ describe('AuthService', () => {
           provide: Logger,
           useValue: {
             error: jest.fn(),
+            debug: jest.fn(),
+            warn: jest.fn(),
           },
         },
         ConfigService,
