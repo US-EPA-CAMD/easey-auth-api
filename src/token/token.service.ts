@@ -6,7 +6,6 @@ import { UserSessionService } from '../user-session/user-session.service';
 import { UserSession } from '../entities/user-session.entity';
 import { AccessTokenResponse, ApiTokenResponse, OidcJwtPayload } from '../dtos/oidc-auth-dtos';
 import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
-import { PermissionsService } from '../permissions/Permissions.service';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { Logger } from '@us-epa-camd/easey-common/logger';
@@ -31,14 +30,19 @@ export class TokenService {
 
   async refreshToken(userId: string, token: string, clientIp: string) {
 
+    this.logger.debug('Starting refreshToken process', { userId, clientIp });
+
     //Grab the current session data
     let session: UserSession = await this.userSessionService.findSessionByUserIdAndToken(
       userId,
       token,
     );
+    this.logger.debug('Retrieved user session', { sessionId: session.sessionId });
 
     //Retrieve fresh token from the token refresh endpoint and store it in the user session
     const accessTokenResponse = await this.updateUserSessionWithNewTokens(session);
+    this.logger.debug('Updated user session with newly retrieved tokens', { accessTokenResponse });
+
     session = await this.userSessionService.findSessionBySessionId(session.sessionId); //Get updated session
 
     const authToken = new TokenDTO();
@@ -63,7 +67,7 @@ export class TokenService {
   async getCdxApiToken(): Promise<string> {
     const clientId = this.configService.get('OIDC_CLIENT_ID');
     const clientSecret = this.configService.get('OIDC_CLIENT_SECRET');
-    const scope = `${this.configService.get('OIDC_CLIENT_CREDENTIAL_SCOPE').replace('%s', clientId)}`;
+    const scope = this.configService.get('OIDC_CLIENT_CREDENTIAL_SCOPE');
     const tokenUrl = this.configService.get('OIDC_CDX_API_TOKEN_URL');
 
     const params = new URLSearchParams();
@@ -149,13 +153,18 @@ export class TokenService {
 
   async isOidcTokenValid(authToken: string): Promise<any> {
 
+    this.logger.debug('Starting OIDC token validation process (isOidcTokenValid)');
     try {
       const oidcJwtPayload = jwt.decode(authToken, { complete: true }) as { header: any, payload: OidcJwtPayload, signature: string };
+      this.logger.debug('Decoded JWT payload...');
+
       if (!oidcJwtPayload || typeof oidcJwtPayload === 'string') {
+        this.logger.debug('Invalid JWT payload or JWT payload is a string');
         return false;
       }
       //Grab the user ID to validate against
       if (!oidcJwtPayload.payload.userId || !oidcJwtPayload.payload.acr) {
+        this.logger.debug('Missing userId or acr in JWT payload', { payload: oidcJwtPayload.payload });
         return false;
       }
 
@@ -163,6 +172,7 @@ export class TokenService {
       const jwksUri = `${this.configService.get('OIDC_CDX_JWKS_URI').replace('%s', policy)}`;
       const clientId = this.configService.get('OIDC_CLIENT_ID');
       const tokenIssuer = this.configService.get('OIDC_CDX_TOKEN_ISSUER');
+      this.logger.debug('Constructed JWKS URI', { jwksUri, clientId, tokenIssuer });
 
       const publicKey = await this.getKey(jwksUri, oidcJwtPayload.header);
       const verifiedToken = jwt.verify(authToken, publicKey, {
@@ -170,6 +180,7 @@ export class TokenService {
         issuer: tokenIssuer,
         audience: clientId
       });
+      this.logger.debug('Verified JWT for signature.');
 
       if (!this.areAdditionalClaimsValid(verifiedToken, tokenIssuer, clientId) ) {
         return false;
@@ -180,6 +191,7 @@ export class TokenService {
       return false;
     }
 
+    this.logger.debug('OIDC token validation successful');
     return true;
   }
 
@@ -190,14 +202,18 @@ export class TokenService {
     }
 
     if (token.nbf && token.nbf > now) {
+      this.logger.debug('Token has expired or the token cannot be used before its begin time');
       return false;
     }
 
+
     if (token.iss && token.iss !== expectedIssuer) {
+      this.logger.debug('Token is not issued by the expected issuer');
       return false;
     }
 
     if (token.aud && token.aud !== expectedAudience) {
+      this.logger.debug('Token is not issued to the correct audience');
       return false;
     }
 
@@ -205,6 +221,8 @@ export class TokenService {
   }
 
   async validateToken(token: string, clientIp: string): Promise<any> {
+
+    this.logger.debug('Starting token validation process', { clientIp });
 
     let user: CurrentUser = {
       userId: null,
@@ -216,10 +234,12 @@ export class TokenService {
     };
     let userId: string;
     if (this.bypassService.bypassEnabled()) {
+      this.logger.debug('Bypass service is enabled');
       user = await this.bypassService.extractUserFromValidatedBypassToken(token);
       userId = user.userId;
     } else {
       if (!await this.isOidcTokenValid(token)) {
+        this.logger.debug('OIDC token is invalid', { token });
         return false;
       }
 
@@ -228,17 +248,20 @@ export class TokenService {
         payload: OidcJwtPayload,
         signature: string
       };
+      this.logger.debug('Decoded JWT payload');
 
       userId = oidcJwtPayload.payload.userId;
     }
 
     // Look up facilities based on userId and token
+    this.logger.debug('Looking up user session', { userId, token });
     const userSession = await this.userSessionService.findSessionByUserIdAndToken(
       userId,
       token,
     );
 
     if (!userSession) {
+      this.logger.debug('No user session found', { userId, token });
       return false;
     }
 
@@ -249,7 +272,10 @@ export class TokenService {
     user.clientIp = userSession.clientIp;
     user.facilities = JSON.parse(userSession.facilities);
     user.roles = JSON.parse(userSession.roles);
+    this.logger.debug('Populated user values from session', { user });
+
     await this.validateClientIp(user, clientIp);
+    this.logger.debug('Validated client IP', { clientIp });
 
     if (
       await this.userSessionService.isValidSessionForToken(
@@ -258,6 +284,7 @@ export class TokenService {
         false,
       )
     ) {
+      this.logger.debug('Session is valid for token', { sessionId: user.sessionId });
       return user;
     }
 

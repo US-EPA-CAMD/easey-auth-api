@@ -47,16 +47,6 @@ export class SignController {
     return this.service.createCromerrActivity(user, credentials, idToken);
   }
 
-
-  @Post('send-mobile-code')
-  @ApiOkResponse({
-    description:
-      'Send the user a mobile phone code given a number and activity Id',
-  })
-  async sendMobileCode(@Body() payload: SendPhonePinParamDTO): Promise<void> {
-    await this.service.sendPhoneVerificationCode(payload);
-  }
-
   @Post()
   @ApiOkResponse({
     description: 'Signs a document and binds it to an activityId',

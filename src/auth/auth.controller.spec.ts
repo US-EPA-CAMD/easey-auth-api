@@ -9,6 +9,7 @@ import { OidcAuthValidationRequestDto } from '../dtos/oidc-auth-validation-reque
 import { UserDTO } from '../dtos/user.dto';
 import { OidcAuthValidationResponseDto } from '../dtos/oidc-auth-validation-response.dto';
 import { UserSession } from '../entities/user-session.entity';
+import { Logger } from '@us-epa-camd/easey-common/logger';
 
 // This is for getConfig value calls to get env variables
 jest.mock('@us-epa-camd/easey-common/utilities', () => ({
@@ -34,6 +35,7 @@ const mockService = () => ({
 describe('AuthController', () => {
   let controller: AuthController;
   let service: AuthService;
+  let logger: Logger;
   let configService: ConfigService;
 
   beforeAll(async () => {
@@ -41,12 +43,20 @@ describe('AuthController', () => {
       controllers: [AuthController],
       providers: [
         { provide: AuthService, useFactory: mockService },
+        {
+          provide: Logger,
+          useValue: {
+            error: jest.fn(),
+            debug: jest.fn(),
+          },
+        },
         ConfigService,
       ],
     }).compile();
 
     controller = module.get<AuthController>(AuthController);
     service = module.get<AuthService>(AuthService);
+    logger = module.get<Logger>(Logger);
     configService = module.get<ConfigService>(ConfigService);
   });
 
@@ -87,6 +97,7 @@ describe('AuthController', () => {
     it('should return a new or existing UserDTO', async () => {
       const userDto = new UserDTO();
       const signInDto = new SignInDTO();
+
       jest.spyOn(service, 'signIn').mockResolvedValue(userDto);
 
       expect(await controller.signIn(signInDto, '127.0.0.1')).toEqual(userDto);

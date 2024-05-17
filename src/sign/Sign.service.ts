@@ -25,65 +25,6 @@ export class SignService {
     private readonly oidcHelperService: OidcHelperService,
   ) {}
 
-  async getSignServiceToken(): Promise<string> {
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/RegisterSignService?wsdl`;
-
-    return createClientAsync(url)
-      .then(client => {
-        return client.AuthenticateAsync({
-          userId: this.configService.get<string>('app.naasAppId'),
-          credential: this.configService.get<string>('app.nassAppPwd'),
-        });
-      })
-      .then(res => {
-        return res[0].securityToken;
-      })
-      .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error(JSON.stringify(err.root.Envelope)),
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-
-        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
-      });
-  }
-
-  async sendPhoneVerification(
-    token: string,
-    activityId: string,
-    userId: string,
-    phone: string,
-  ): Promise<string> {
-    const url = `${this.configService.get<string>(
-      'app.cdxSvcs',
-    )}/RegisterSignService?wsdl`;
-
-    return createClientAsync(url)
-      .then(client => {
-        return client.GenerateAndSendSecretCodeAsync({
-          securityToken: token,
-          activityId: activityId,
-          userId: userId,
-          mobilePhone: phone,
-          secretCodeType: 'SMS',
-        });
-      })
-      .catch(err => {
-        if (err.root && err.root.Envelope) {
-          throw new EaseyException(
-            new Error(JSON.stringify(err.root.Envelope)),
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-
-        throw new EaseyException(err, HttpStatus.BAD_REQUEST);
-      });
-  }
-
   async signAllFiles(
     activityId: string,
     fileArray: Express.Multer.File[]
@@ -183,18 +124,4 @@ export class SignService {
       throw new Error(`Unable to create a CROMERR activity for user ${credentials.userId}.  ${error.message}`);
     }
   }
-
-  async sendPhoneVerificationCode(
-    payload: SendPhonePinParamDTO,
-  ): Promise<void> {
-    const token = await this.getSignServiceToken();
-
-    await this.sendPhoneVerification(
-      token,
-      payload.activityId,
-      payload.userId,
-      payload.number,
-    );
-  }
-
 }

@@ -52,15 +52,6 @@ describe('SignController', () => {
 
   it('should call the validate service method', async () => {
     const mockFunction = jest.fn();
-    service.sendPhoneVerificationCode = mockFunction;
-
-    await controller.sendMobileCode(new SendPhonePinParamDTO());
-
-    expect(mockFunction).toHaveBeenCalled();
-  });
-
-  it('should call the validate service method', async () => {
-    const mockFunction = jest.fn();
     service.signAllFiles = mockFunction;
 
     await controller.sign('',  []);
