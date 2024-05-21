@@ -128,7 +128,7 @@ export class TokenService {
 
   private async validateAndSaveTokenInUserSession(accessTokenResponse: AccessTokenResponse, userSession: UserSession) {
     //Validate the token
-    if (!await this.isOidcTokenValid(accessTokenResponse.access_token)) {
+    if (!await this.isOidcTokenValid(accessTokenResponse.access_token, userSession)) {
       throw new EaseyException(new Error('Unable to validate access token'), HttpStatus.UNAUTHORIZED);
     }
 
@@ -174,7 +174,7 @@ export class TokenService {
     return key.getPublicKey();
   }
 
-  async isOidcTokenValid(authToken: string): Promise<any> {
+  async isOidcTokenValid(authToken: string, userSession: UserSession): Promise<any> {
 
     this.logger.debug('Starting OIDC token validation process (isOidcTokenValid)');
     try {
@@ -186,12 +186,12 @@ export class TokenService {
         return false;
       }
       //Grab the user ID to validate against
-      if (!oidcJwtPayload.payload.userId || !oidcJwtPayload.payload.acr) {
+      if (!oidcJwtPayload.payload.userId) {
         this.logger.debug('Missing userId or acr in JWT payload', { payload: oidcJwtPayload.payload });
         return false;
       }
 
-      const policy: string = oidcJwtPayload.payload.acr;
+      const policy: string = userSession.oidcPolicy;
       const jwksUri = `${this.configService.get('OIDC_CDX_JWKS_URI').replace('%s', policy)}`;
       const clientId = this.configService.get('OIDC_CLIENT_ID');
       const tokenIssuer = this.configService.get('OIDC_CDX_TOKEN_ISSUER');
@@ -261,10 +261,6 @@ export class TokenService {
       user = await this.bypassService.extractUserFromValidatedBypassToken(token);
       userId = user.userId;
     } else {
-      if (!await this.isOidcTokenValid(token)) {
-        this.logger.debug('OIDC token is invalid', { token });
-        return false;
-      }
 
       const oidcJwtPayload = jwt.decode(token, { complete: true }) as {
         header: any,

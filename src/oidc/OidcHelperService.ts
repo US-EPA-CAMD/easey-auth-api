@@ -55,7 +55,7 @@ export class OidcHelperService {
         userId: userId,
       });
 
-      if (response.policy.endsWith("_SIGNIN")) {
+      if (response.policy.includes("_SIGNIN")) {
         policyResponse.userRoleId = await this.getUserRoleId(userId, apiToken);
         const { nonce, state } = await this.generateNonceAndState(userId, response.policy);
         policyResponse.nonce = nonce;
