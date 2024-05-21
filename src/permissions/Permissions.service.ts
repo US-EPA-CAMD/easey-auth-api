@@ -1,22 +1,20 @@
-import * as crypto from 'crypto';
-import * as https from 'https';
-import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
 import { HttpService } from '@nestjs/axios';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { FacilityAccessDTO } from '../dtos/permissions.dto';
-import { firstValueFrom } from 'rxjs';
-import { createClientAsync } from 'soap';
-import { OidcHelperService } from '../oidc/OidcHelperService';
-import { SignService } from '../sign/Sign.service';
-import { UserSessionService } from '../user-session/user-session.service';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
+import { Logger } from '@us-epa-camd/easey-common/logger';
 import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
+import * as crypto from 'crypto';
+import * as https from 'https';
+import { firstValueFrom } from 'rxjs';
+
 import {
   OrganizationResponse,
   UserRolesResponse,
 } from '../dtos/oidc-auth-dtos';
-import { Logger } from '@us-epa-camd/easey-common/logger';
+import { FacilityAccessDTO } from '../dtos/permissions.dto';
+import { OidcHelperService } from '../oidc/OidcHelperService';
+import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
 
 @Injectable()
 export class PermissionsService {
