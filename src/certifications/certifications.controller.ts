@@ -22,38 +22,6 @@ import { CertificationParamDTO } from '../dtos/certification-param.dto';
 export class CertificationsController {
   constructor(private service: CertificationsService) {}
 
-  @Post('/verify-credentials')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth('Token')
-  @ApiOkResponse({
-    type: CertificationVerificationResponseDTO,
-    description:
-      'Authenticates a user against the CROMERR sign service using EPA CDX Services',
-  })
-  async verifyCredentials(
-    @Body() credentials: CredentialsDTO,
-    @ClientIP() clientIp: string,
-  ): Promise<CertificationVerificationResponseDTO> {
-    const certVer = new CertificationVerificationResponseDTO();
-    certVer.activityId = 'Test';
-    certVer.question = 'Example Question?';
-    certVer.questionId = 'Test';
-    return certVer;
-  }
-
-  @Post('/verify-challenge')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth('Token')
-  @ApiOkResponse({
-    description: 'Verifies a users challenge question',
-  })
-  async verifyChallenge(
-    @Body() credentials: AnswerVerificationDTO,
-    @ClientIP() clientIp: string,
-  ): Promise<boolean> {
-    return true;
-  }
-
   @Get('/statements')
   @ApiOkResponse({
     description: 'Returns a list of certification statements',

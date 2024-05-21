@@ -20,6 +20,9 @@ export class TokenService {
 
   private jwksClients = new Map<string, JwksClient>();
 
+  //used to keep track of ongoing refreshToken executions keyed by session.sessionId.
+  private readonly sessionPromises = new Map<string, Promise<TokenDTO>>();
+
   constructor(
     private configService: ConfigService,
     private readonly userSessionService: UserSessionService,
@@ -39,15 +42,35 @@ export class TokenService {
     );
     this.logger.debug('Retrieved user session', { sessionId: session.sessionId });
 
-    //Retrieve fresh token from the token refresh endpoint and store it in the user session
-    const accessTokenResponse = await this.updateUserSessionWithNewTokens(session);
-    this.logger.debug('Updated user session with newly retrieved tokens', { accessTokenResponse });
+    //If a request comes in for a session that is already being processed, wait for promise to resolve.
+    const sessionId = session.sessionId;
+    if (this.sessionPromises.has(sessionId)) {
+      this.logger.debug('Waiting for existing refreshToken process to complete', { sessionId });
+      return this.sessionPromises.get(sessionId);
+    }
 
-    session = await this.userSessionService.findSessionBySessionId(session.sessionId); //Get updated session
+    const refreshPromise = (async () => {
+      try {
+        //Retrieve fresh token from the token refresh endpoint and store it in the user session
+        const accessTokenResponse = await this.updateUserSessionWithNewTokens(session);
+        this.logger.debug('Updated user session with newly retrieved tokens', { accessTokenResponse });
 
-    const authToken = new TokenDTO();
-    authToken.token = session.securityToken;
-    authToken.expiration = session.tokenExpiration;
+        session = await this.userSessionService.findSessionBySessionId(sessionId); // Get updated session
+
+        const authToken = new TokenDTO();
+        authToken.token = session.securityToken;
+        authToken.expiration = session.tokenExpiration;
+
+        return authToken;
+      } catch (error) {
+        this.sessionPromises.delete(sessionId);
+        throw error;
+      }
+    })();
+
+    this.sessionPromises.set(sessionId, refreshPromise);
+    const authToken = await refreshPromise;
+    this.sessionPromises.delete(sessionId); //promise resolved, removes from the map.
 
     return authToken;
   }

@@ -32,20 +32,20 @@ import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
 export class SignController {
   constructor(private readonly service: SignService) {}
 
-  @Post('create-activity')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth('Token')
-  @ApiOkResponse({
-    type: SignAuthResponseDTO,
-    description: 'Creates a CROMERR activity for the logged in user',
-  })
-  createCromerrActivity(
-    @Body() credentials: CredentialsSignDTO,
-    @User() user: CurrentUser,
-    @Headers('Id-Token') idToken?: string,
-  ): Promise<SignAuthResponseDTO> {
-    return this.service.createCromerrActivity(user, credentials, idToken);
-  }
+    @Post('create-activity')
+    @UseGuards(AuthGuard)
+    @ApiBearerAuth('Token')
+    @ApiOkResponse({
+      type: SignAuthResponseDTO,
+      description: 'Creates a CROMERR activity for the logged in user',
+    })
+    createCromerrActivity(
+      @Body() credentials: CredentialsSignDTO,
+      @User() user: CurrentUser,
+      @Headers('Id-Token') idToken?: string,
+    ): Promise<SignAuthResponseDTO> {
+      return this.service.createCromerrActivity(user, credentials, idToken);
+    }
 
   @Post()
   @ApiOkResponse({

@@ -60,31 +60,21 @@ export class SignService {
     credentials: CredentialsSignDTO, idToken?: string
   ): Promise<SignAuthResponseDTO> {
 
-    //If bypass is enabled AND a valid idToken is not given, then we cannot make
-    // a call to create an activity as the CROMERR POST call requires a valid idToken
-    if (!idToken && this.bypassService.bypassEnabled()) {
+    //If bypass is enabled, return as a dummy activity as we do not have a valid ID token
+    if (this.bypassService.bypassEnabled()) {
       const signAuthResponseDTO = new SignAuthResponseDTO();
       signAuthResponseDTO.activityId = '1';
       return signAuthResponseDTO;
     }
 
-    //If an idToken is not passed in, see if the user has a valid session
+    //If an idToken is not passed in, assume ECMPS and try to get the token from the session
     if (!idToken) {
-      const userSession = await this.userSessionService.findSessionByUserId(user.userId);
+      const userId = user?.userId ?? '';
+      const userSession = await this.userSessionService.findSessionByUserId(userId);
       if (!userSession) {
-        throw new EaseyException(new Error('Unable to create activity. There is no ID token provided or the user does not have a valid session.'), HttpStatus.BAD_REQUEST);
+        throw new EaseyException(new Error('Unable to create activity. No valid id-token found for the user.'), HttpStatus.BAD_REQUEST);
       }
       idToken = userSession.idToken;
-    }
-
-    if (!(user.roles.includes('Submitter') || user.roles.includes('Sponsor') || user.roles.includes('Initial Authorizer')) ) {
-      throw new EaseyException(
-        new Error('This requires the Sponsor, Submitter, or Initial Authorizer role'),
-        HttpStatus.BAD_REQUEST,
-        {
-          responseObject: 'This requires the Sponsor, Submitter, or Initial Authorizer role',
-        },
-      );
     }
 
     //create the activity
