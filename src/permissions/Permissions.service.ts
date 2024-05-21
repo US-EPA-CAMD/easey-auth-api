@@ -12,7 +12,10 @@ import { SignService } from '../sign/Sign.service';
 import { UserSessionService } from '../user-session/user-session.service';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
-import { OrganizationResponse, UserRolesResponse } from '../dtos/oidc-auth-dtos';
+import {
+  OrganizationResponse,
+  UserRolesResponse,
+} from '../dtos/oidc-auth-dtos';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 
 @Injectable()
@@ -24,8 +27,10 @@ export class PermissionsService {
     private readonly logger: Logger,
   ) {}
 
-
-  async retrieveAllUserRoles(userId: string, apiToken: string): Promise<Array<string>> {
+  async retrieveAllUserRoles(
+    userId: string,
+    apiToken: string,
+  ): Promise<Array<string>> {
     const orgs = await this.getAllUserOrganizations(userId, apiToken);
     const roleSet = new Set<string>();
     for (const o of orgs) {
@@ -43,32 +48,43 @@ export class PermissionsService {
     return Array.from(roleSet.values());
   }
 
-  async getUserRoles(userId: string, orgId: number, token: string): Promise<string[]> {
+  async getUserRoles(
+    userId: string,
+    orgId: number,
+    token: string,
+  ): Promise<string[]> {
     const registerApiUrl = getConfigValue('OIDC_REST_API_BASE', '');
     const apiUrl = `${registerApiUrl}/api/v1/registration/retrieveRoles/${userId}/${orgId}`;
 
     try {
-      const res = await this.oidcHelperService.makeGetRequest<UserRolesResponse>(apiUrl, token, null);
+      const res = await this.oidcHelperService.makeGetRequest<
+        UserRolesResponse
+      >(apiUrl, token, null);
 
       if (res && res.length > 0) {
-        const activeDescriptions = res.filter(role => role.status.code === 'Active')
+        const activeDescriptions = res
+          .filter(role => role.status.code === 'Active')
           .map(role => role.type.description);
         return activeDescriptions;
       }
       return [];
-
     } catch (error) {
       this.logger.error('Failed to make GET request to ', apiUrl, error);
       throw new EaseyException(error, HttpStatus.BAD_REQUEST);
     }
   }
 
-  async getAllUserOrganizations(userId: string, token: string): Promise<OrganizationResponse[]> {
+  async getAllUserOrganizations(
+    userId: string,
+    token: string,
+  ): Promise<OrganizationResponse[]> {
     const registerApiUrl = getConfigValue('OIDC_REST_API_BASE', '');
     const apiUrl = `${registerApiUrl}/api/v1/registration/retrieveOrganizations/${userId}`;
 
     try {
-      const orgs = await this.oidcHelperService.makeGetRequest<OrganizationResponse[]>(apiUrl, token, null);
+      const orgs = await this.oidcHelperService.makeGetRequest<
+        OrganizationResponse[]
+      >(apiUrl, token, null);
       return orgs;
     } catch (error) {
       this.logger.error('Failed to make GET request to ', apiUrl, error);
@@ -91,7 +107,10 @@ export class PermissionsService {
       this.configService.get<boolean>('app.mockPermissionsEnabled') ||
       roles.includes(this.configService.get<string>('app.sponsorRole')) ||
       roles.includes(this.configService.get<string>('app.preparerRole')) ||
-      roles.includes(this.configService.get<string>('app.submitterRole'))
+      roles.includes(this.configService.get<string>('app.submitterRole')) ||
+      roles.includes(
+        this.configService.get<string>('app.initialAuthorizerRole'),
+      )
     ) {
       let url;
       if (
@@ -173,10 +192,16 @@ export class PermissionsService {
       return null;
     } catch (e) {
       // throwing error, when CBS API returns error.
-      if(!this.configService.get<boolean>('app.mockPermissionsEnabled') && !e.response){
-        throw new EaseyException(new Error(
-          'Unable to obtain user responsibilities from CBS. Please try again later.',
-        ), HttpStatus.INTERNAL_SERVER_ERROR);
+      if (
+        !this.configService.get<boolean>('app.mockPermissionsEnabled') &&
+        !e.response
+      ) {
+        throw new EaseyException(
+          new Error(
+            'Unable to obtain user responsibilities from CBS. Please try again later.',
+          ),
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
       throw new EaseyException(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }

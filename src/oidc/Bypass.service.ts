@@ -17,7 +17,6 @@ import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
 
 @Injectable()
 export class BypassService {
-
   private bypass = false;
 
   constructor(
@@ -67,11 +66,10 @@ export class BypassService {
     clientIp: string,
     roles: string[],
   ): Promise<TokenDTO> {
-
     const expiration = dateToEstString(
       Date.now() +
-      this.configService.get<number>('app.tokenExpirationDurationMinutes') *
-      60000,
+        this.configService.get<number>('app.tokenExpirationDurationMinutes') *
+          60000,
     );
 
     const token = encode(
@@ -87,7 +85,9 @@ export class BypassService {
     return authToken;
   }
 
-  async extractUserFromValidatedBypassToken(token: string): Promise<CurrentUser> {
+  async extractUserFromValidatedBypassToken(
+    token: string,
+  ): Promise<CurrentUser> {
     const user: CurrentUser = {
       userId: null,
       sessionId: null,
@@ -112,6 +112,4 @@ export class BypassService {
 
     return user;
   }
-
-
 }

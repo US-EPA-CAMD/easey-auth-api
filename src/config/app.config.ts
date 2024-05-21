@@ -96,6 +96,10 @@ export default registerAs('app', () => ({
   preparerRole: getConfigValue('EASEY_AUTH_API_PREPARER_ROLE', 'Preparer'),
   analystRole: getConfigValue('EASEY_AUTH_API_ANALYST_ROLE', 'ECMPS Analyst'),
   adminRole: getConfigValue('EASEY_AUTH_API_ADMIN_ROLE', 'ECMPS Admin'),
+  initialAuthorizerRole: getConfigValue(
+    'EASEY_AUTH_API_INITIAL_AUTHORIZER_ROLE',
+    'Initial Authorizer',
+  ),
   dataFlow: getConfigValue('EASEY_AUTH_API_DATA_FLOW', 'EASEY'),
   mockPermissionsEnabled: getConfigValueBoolean(
     'EASEY_AUTH_API_MOCK_PERMISSIONS_ENABLED',
@@ -112,7 +116,4 @@ export default registerAs('app', () => ({
   authApi: {
     uri: getConfigValue('EASEY_AUTH_API', `https://${apiHost}/auth-mgmt`),
   },
-
-
-
 }));

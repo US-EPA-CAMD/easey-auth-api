@@ -54,7 +54,7 @@ describe('SignController', () => {
     const mockFunction = jest.fn();
     service.signAllFiles = mockFunction;
 
-    await controller.sign('',  []);
+    await controller.sign('', []);
 
     expect(mockFunction).toHaveBeenCalled();
   });
