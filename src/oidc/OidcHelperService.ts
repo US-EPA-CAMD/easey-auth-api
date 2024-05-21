@@ -4,14 +4,13 @@ import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
 import { Logger } from '@us-epa-camd/easey-common/logger';
-import FormData from 'form-data';
+import * as FormData from 'form-data';
 import { PolicyResponse } from '../dtos/policy-response';
 import * as crypto from 'crypto';
 import { OidcAuthValidationRequestDto } from '../dtos/oidc-auth-validation-request.dto';
 import { OidcAuthValidationResponseDto } from '../dtos/oidc-auth-validation-response.dto';
 import { RetrieveUsersResponse } from '../dtos/oidc-auth-dtos';
 import { SignatureRequest } from '../dtos/certification-sign-param.dto';
-import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 
 @Injectable()
 export class OidcHelperService {
