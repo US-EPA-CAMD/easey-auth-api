@@ -15,4 +15,5 @@ cdxSvcs: https://devngn.epacdxnode.net/cdx-register-II/services
 naasSvcs: https://naasdev.epacdxnode.net/xml/securitytoken_v30.wsdl
 permissionsUrl: https://cbsstagei.epa.gov/CBSD/api/auth-mgmt/responsibilities
 dataFlow: EASEY
+mockPermissionsEnabled: false
 enableAllFacilities: true
