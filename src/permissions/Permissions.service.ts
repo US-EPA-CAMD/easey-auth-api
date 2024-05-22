@@ -1,9 +1,9 @@
 import { HttpService } from '@nestjs/axios';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { UserRole } from '@us-epa-camd/easey-common/enums';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { Logger } from '@us-epa-camd/easey-common/logger';
-import { UserRole } from '@us-epa-camd/easey-common/enums';
 import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
 import * as crypto from 'crypto';
 import * as https from 'https';
@@ -78,7 +78,8 @@ export class PermissionsService {
     token: string,
   ): Promise<OrganizationResponse[]> {
     const registerApiUrl = getConfigValue('OIDC_REST_API_BASE', '');
-    const apiUrl = `${registerApiUrl}/api/v1/registration/retrieveOrganizations/${userId}`;
+    const dataflow = this.configService.get<string>('app.dataFlow');
+    const apiUrl = `${registerApiUrl}/api/v1/registration/retrieveOrganizationsByDataflow/${userId}/${dataflow}`;
 
     try {
       const orgs = await this.oidcHelperService.makeGetRequest<
