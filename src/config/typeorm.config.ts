@@ -11,15 +11,17 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
 
   constructor(private readonly configService: ConfigService) {
     const host = configService.get<string>('database.host');
-    this.tlsOptions.rejectUnauthorized = (host !== 'localhost');
-    this.tlsOptions.ca = (host !== 'localhost')
-      ? readFileSync("./us-gov-west-1-bundle.pem").toString()
-      : null;
+    this.tlsOptions.rejectUnauthorized = host !== 'localhost';
+    this.tlsOptions.ca =
+      host !== 'localhost'
+        ? readFileSync('./us-gov-west-1-bundle.pem').toString()
+        : null;
     console.log('TLS/SSL Config:', {
       ...this.tlsOptions,
-      ca: (this.tlsOptions.ca !== null)
-        ? `${this.tlsOptions.ca.slice(0, 30)}...(truncated for display only)`
-        : null
+      ca:
+        this.tlsOptions.ca !== null
+          ? `${this.tlsOptions.ca.slice(0, 30)}...(truncated for display only)`
+          : null,
     });
   }
 

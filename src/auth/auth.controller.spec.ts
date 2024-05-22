@@ -13,15 +13,15 @@ import { Logger } from '@us-epa-camd/easey-common/logger';
 
 // This is for getConfig value calls to get env variables
 jest.mock('@us-epa-camd/easey-common/utilities', () => ({
-  getConfigValue: jest.fn().mockReturnValue('http://redirect-url.com')
+  getConfigValue: jest.fn().mockReturnValue('http://redirect-url.com'),
 }));
 
 jest.mock('./auth.service');
 jest.mock('../guards/auth.guard');
 jest.mock('express', () => ({
   Response: jest.fn(() => ({
-    redirect: jest.fn()
-  }))
+    redirect: jest.fn(),
+  })),
 }));
 
 const mockService = () => ({
@@ -29,7 +29,7 @@ const mockService = () => ({
   signOut: jest.fn(),
   updateLastActivity: jest.fn(),
   determinePolicy: jest.fn(),
-  validateAndCreateSession: jest.fn()
+  validateAndCreateSession: jest.fn(),
 });
 
 describe('AuthController', () => {
@@ -70,7 +70,9 @@ describe('AuthController', () => {
       const credentials = new CredentialsDTO();
       credentials.userId = '123';
       jest.spyOn(service, 'determinePolicy').mockResolvedValue(policyResponse);
-      expect(await controller.determinePolicy(credentials)).toEqual(policyResponse);
+      expect(await controller.determinePolicy(credentials)).toEqual(
+        policyResponse,
+      );
     });
   });
 
@@ -78,18 +80,28 @@ describe('AuthController', () => {
     it('should handle OIDC redirect correctly given a equest', async () => {
       const oidcPostRequest = new OidcAuthValidationRequestDto();
       const mockResponse = {
-        redirect: jest.fn()
+        redirect: jest.fn(),
       };
-      jest.spyOn(configService, 'get').mockReturnValue('http://redirect-url.com');
+      jest
+        .spyOn(configService, 'get')
+        .mockReturnValue('http://redirect-url.com');
       const validationResponse: OidcAuthValidationResponseDto = new OidcAuthValidationResponseDto();
       validationResponse.isValid = true;
       validationResponse.userSession = new UserSession();
       validationResponse.userSession.sessionId = 'abc123';
       validationResponse.userSession.userId = 'user001';
 
-      jest.spyOn(service, 'validateAndCreateSession').mockResolvedValue(validationResponse);
-      await controller.processOidcRedirect(oidcPostRequest, '192.168.1.1', mockResponse as any);
-      expect(mockResponse.redirect).toHaveBeenCalledWith('http://redirect-url.com?sessionId=abc123');
+      jest
+        .spyOn(service, 'validateAndCreateSession')
+        .mockResolvedValue(validationResponse);
+      await controller.processOidcRedirect(
+        oidcPostRequest,
+        '192.168.1.1',
+        mockResponse as any,
+      );
+      expect(mockResponse.redirect).toHaveBeenCalledWith(
+        'http://redirect-url.com?sessionId=abc123',
+      );
     });
   });
 

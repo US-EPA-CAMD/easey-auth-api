@@ -24,7 +24,7 @@ jest.mock('soap', () => ({
 const client = {
   RetrieveRolesAsync: jest.fn(),
   RetrieveOrganizationsAsync: jest.fn().mockResolvedValue({
-    email: 'user@example.com'
+    email: 'user@example.com',
   }),
 };
 
@@ -67,7 +67,7 @@ describe('PermissionsService', () => {
             validateOidcPostRequest: jest.fn(),
             determinePolicy: jest.fn(),
             makeGetRequest: jest.fn().mockResolvedValue({
-              email: 'user@example.com'
+              email: 'user@example.com',
             }),
           },
         },
@@ -122,9 +122,9 @@ describe('PermissionsService', () => {
     it('should return organizations for the user', async () => {
       client.RetrieveOrganizationsAsync = jest
         .fn()
-        .mockResolvedValue({email: 'user@example.com' });
+        .mockResolvedValue({ email: 'user@example.com' });
       const orgs = await service.getAllUserOrganizations('', '');
-      expect(orgs).toEqual({email: 'user@example.com' }); //OidcHelper is mocked to return this at the top
+      expect(orgs).toEqual({ email: 'user@example.com' }); //OidcHelper is mocked to return this at the top
     });
   });
 
@@ -144,9 +144,9 @@ describe('PermissionsService', () => {
     it('should return organizations for the user', async () => {
       client.RetrieveOrganizationsAsync = jest
         .fn()
-        .mockResolvedValue({email: 'user@example.com' });
+        .mockResolvedValue({ email: 'user@example.com' });
       const orgs = await service.getAllUserOrganizations('', '');
-      expect(orgs).toEqual({email: 'user@example.com' }); //OidcHelper is mocked to return this value
+      expect(orgs).toEqual({ email: 'user@example.com' }); //OidcHelper is mocked to return this value
     });
   });
 

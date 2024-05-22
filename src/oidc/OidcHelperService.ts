@@ -14,14 +14,16 @@ import { SignatureRequest } from '../dtos/certification-sign-param.dto';
 
 @Injectable()
 export class OidcHelperService {
-
   constructor(
     private httpService: HttpService,
     private configService: ConfigService,
     private readonly logger: Logger,
   ) {}
 
-  async determinePolicy(userId: string, apiToken: string) : Promise<PolicyResponse> {
+  async determinePolicy(
+    userId: string,
+    apiToken: string,
+  ): Promise<PolicyResponse> {
     //Prepare request body, ai url etc.
     const requestBody = {
       userId: userId,
@@ -34,18 +36,25 @@ export class OidcHelperService {
       this.httpService.post(apiUrl, requestBody, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiToken}`,
+          Authorization: `Bearer ${apiToken}`,
         },
       }),
     );
 
-    this.logger.debug('/oidcEnrichment/determinePolicy response data:\n', response.data);
+    this.logger.debug(
+      '/oidcEnrichment/determinePolicy response data:\n',
+      response.data,
+    );
 
     //Prepare data to be returned to the frontend as a PolicyResponse object
     return await this.createPolicyResponse(response.data, userId, apiToken);
   }
 
-  private async createPolicyResponse(response: any, userId: string, apiToken: string): Promise<PolicyResponse> {
+  private async createPolicyResponse(
+    response: any,
+    userId: string,
+    apiToken: string,
+  ): Promise<PolicyResponse> {
     let policyResponse: PolicyResponse;
 
     if ('policy' in response) {
@@ -55,16 +64,18 @@ export class OidcHelperService {
         userId: userId,
       });
 
-      if (response.policy.includes("_SIGNIN")) {
+      if (response.policy.includes('_SIGNIN')) {
         policyResponse.userRoleId = await this.getUserRoleId(userId, apiToken);
-        const { nonce, state } = await this.generateNonceAndState(userId, response.policy);
+        const { nonce, state } = await this.generateNonceAndState(
+          userId,
+          response.policy,
+        );
         policyResponse.nonce = nonce;
         policyResponse.state = state;
       }
 
       // Set the redirectUri part of the response here directly
       policyResponse.redirectUri = getConfigValue('OIDC_AUTH_API_REDIRECT_URI');
-
     } else if ('code' in response) {
       // Case with error code and message
       policyResponse = new PolicyResponse({
@@ -74,14 +85,18 @@ export class OidcHelperService {
       });
     } else {
       // Handle unexpected structure or throw an error
-      policyResponse = new PolicyResponse({ message: 'Unexpected response structure received.' });
+      policyResponse = new PolicyResponse({
+        message: 'Unexpected response structure received.',
+      });
     }
 
     return policyResponse;
   }
 
-
-  async getUserRoleId(userIdToLookup: string, apiToken: string): Promise<number> {
+  async getUserRoleId(
+    userIdToLookup: string,
+    apiToken: string,
+  ): Promise<number> {
     const dataflowName = getConfigValue('ECMPS_DATA_FLOW_NAME', '');
     const requestBody = {
       userId: userIdToLookup,
@@ -92,24 +107,34 @@ export class OidcHelperService {
     const apiUrl = `${registerApiUrl}/api/v1/streamlined/retrieveUsersByCriteria`;
 
     try {
-      const response = await this.makePostRequestJson<RetrieveUsersResponse>(apiUrl, requestBody, apiToken);
+      const response = await this.makePostRequestJson<RetrieveUsersResponse>(
+        apiUrl,
+        requestBody,
+        apiToken,
+      );
       if (!response || response.length === 0) {
-        throw new Error(`No ${dataflowName} roles found for user ${userIdToLookup}`);
+        throw new Error(
+          `No ${dataflowName} roles found for user ${userIdToLookup}`,
+        );
       }
 
       return response[0].role.userRoleId;
-
     } catch (error) {
       this.logger.error(`Error obtaining user role id: `, error);
       throw new Error(`Error obtaining user role id: ${error.message}`);
     }
   }
 
-  async makePostRequestJson<T>(url: string, body: any, apiToken: string, customHeaders?: Record<string, string>): Promise<T> {
+  async makePostRequestJson<T>(
+    url: string,
+    body: any,
+    apiToken: string,
+    customHeaders?: Record<string, string>,
+  ): Promise<T> {
     try {
       let headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiToken}`,
+        Authorization: `Bearer ${apiToken}`,
       };
 
       // If custom headers are provided, merge them with the default headers
@@ -126,8 +151,10 @@ export class OidcHelperService {
     }
   }
 
-  async makePostRequestForToken<T>(tokenUrl: string, params: URLSearchParams): Promise<T> {
-
+  async makePostRequestForToken<T>(
+    tokenUrl: string,
+    params: URLSearchParams,
+  ): Promise<T> {
     try {
       const headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -135,17 +162,20 @@ export class OidcHelperService {
 
       const response = await firstValueFrom(
         this.httpService.post<T>(tokenUrl, params, { headers }),
-        );
+      );
       return response.data;
     } catch (error) {
       this.handleError(error, tokenUrl, params);
     }
   }
 
-  async makePostRequestForFile<T>(postUrl: string, apiToken: string, files: Express.Multer.File[], signatureRequest: SignatureRequest): Promise<T> {
-
+  async makePostRequestForFile<T>(
+    postUrl: string,
+    apiToken: string,
+    files: Express.Multer.File[],
+    signatureRequest: SignatureRequest,
+  ): Promise<T> {
     try {
-
       const formData = new FormData();
       signatureRequest.documents = signatureRequest.documents || [];
 
@@ -158,7 +188,7 @@ export class OidcHelperService {
         // Populate the documents array in the SignatureRequest DTO
         signatureRequest.documents[index] = {
           name: file.originalname,
-          format: file.mimetype.split('/')[1] // Extracts the file extension from MIME type
+          format: file.mimetype.split('/')[1], // Extracts the file extension from MIME type
         };
       });
 
@@ -169,11 +199,11 @@ export class OidcHelperService {
 
       const headers = {
         ...formData.getHeaders(),
-        'Authorization': `Bearer ${apiToken}`,
+        Authorization: `Bearer ${apiToken}`,
       };
 
       const response = await firstValueFrom(
-        this.httpService.post<T>(postUrl, formData, { headers })
+        this.httpService.post<T>(postUrl, formData, { headers }),
       );
 
       return response.data;
@@ -182,13 +212,15 @@ export class OidcHelperService {
     }
   }
 
-
-  async makeGetRequest<T>(url: string, apiToken: string, params: Record<string, any> = {}): Promise<T> {
+  async makeGetRequest<T>(
+    url: string,
+    apiToken: string,
+    params: Record<string, any> = {},
+  ): Promise<T> {
     try {
-
       const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiToken}`,
+        Authorization: `Bearer ${apiToken}`,
       };
 
       const response = await firstValueFrom(
@@ -203,14 +235,27 @@ export class OidcHelperService {
     }
   }
 
-  private handleError(error: any, url: string, params?: Record<string, any>  | URLSearchParams): void {
-    const { message = 'Unknown error occurred', stack = 'No stack trace available', ...rest } = error;
+  private handleError(
+    error: any,
+    url: string,
+    params?: Record<string, any> | URLSearchParams,
+  ): void {
+    const {
+      message = 'Unknown error occurred',
+      stack = 'No stack trace available',
+      ...rest
+    } = error;
 
-    this.logger.error(`Error making a request to ${url} with params ${params ? JSON.stringify(params) : 'n/a'}:`, {
-      message,
-      stack,
-      ...rest,
-    });
+    this.logger.error(
+      `Error making a request to ${url} with params ${
+        params ? JSON.stringify(params) : 'n/a'
+      }:`,
+      {
+        message,
+        stack,
+        ...rest,
+      },
+    );
 
     let errorMessage = message;
     let errorCode = 'UNKNOWN_ERROR';
@@ -231,7 +276,10 @@ export class OidcHelperService {
       errorMessage = error.message;
     }
 
-    throw new HttpException({ code: errorCode, message: errorMessage }, statusCode);
+    throw new HttpException(
+      { code: errorCode, message: errorMessage },
+      statusCode,
+    );
   }
 
   /*
@@ -240,7 +288,10 @@ export class OidcHelperService {
   on the auth flow. Upon redirect, we can decrypt the state value and make sure it is intact by checking its signature.
   Then extract the nonce value and then compare that against the nonce value included in the id token.
    */
-  async generateNonceAndState(userId: string, policy: string): Promise<{ nonce: string, state: string }> {
+  async generateNonceAndState(
+    userId: string,
+    policy: string,
+  ): Promise<{ nonce: string; state: string }> {
     const nonce = this.generateNonce(32);
     const timestamp = Date.now().toString();
     const state = await this.generateState(nonce, timestamp, userId, policy);
@@ -253,7 +304,10 @@ export class OidcHelperService {
    request and not a replay of a previous request.
    */
   generateNonce(length = 32): string {
-    return crypto.randomBytes(length).toString('hex').slice(0, length);
+    return crypto
+      .randomBytes(length)
+      .toString('hex')
+      .slice(0, length);
   }
 
   /*
@@ -263,7 +317,12 @@ export class OidcHelperService {
    and sending it with the auth request, and we will validate it again when the redirect bring the user back to
    our page.
    */
-  async generateState(nonce: string, timestamp: string, userId: string, policy: string): Promise<string> {
+  async generateState(
+    nonce: string,
+    timestamp: string,
+    userId: string,
+    policy: string,
+  ): Promise<string> {
     const secretKey = getConfigValue('OIDC_HMAC_SECRET_KEY');
     const hmac = crypto.createHmac('sha256', secretKey);
     const dataToSign = `${nonce}|${timestamp}|${userId}|${policy}`;
@@ -272,7 +331,9 @@ export class OidcHelperService {
     return `${nonce}.${timestamp}.${userId}.${policy}.${signature}`;
   }
 
-  async validateNonceAndState(state: string): Promise<{ isValid: boolean, userId?: string, policy?: string }> {
+  async validateNonceAndState(
+    state: string,
+  ): Promise<{ isValid: boolean; userId?: string; policy?: string }> {
     if (!state) {
       return { isValid: false };
     }
@@ -280,13 +341,13 @@ export class OidcHelperService {
     const [nonce, timestamp, userId, policy, signature] = state.split('.');
     const secretKey = getConfigValue('OIDC_HMAC_SECRET_KEY');
     const hmac = crypto.createHmac('sha256', secretKey);
-    const dataToSign = `${nonce}|${timestamp}|${userId}|${policy}`;  // Include userId in the data to sign
+    const dataToSign = `${nonce}|${timestamp}|${userId}|${policy}`; // Include userId in the data to sign
     hmac.update(dataToSign);
     const computedSignature = hmac.digest('hex');
 
     // Check if the computed signature matches the one in the state
     if (signature === computedSignature) {
-      return { isValid: true, userId, policy };  // Return userId if valid
+      return { isValid: true, userId, policy }; // Return userId if valid
     } else {
       return { isValid: false };
     }
@@ -295,11 +356,14 @@ export class OidcHelperService {
   /*
   Checks if the OIDC post coming from the auth-flow redirect has errors
    */
-  async validateOidcPostRequest(oidcAuthValidationRequest: OidcAuthValidationRequestDto) {
-
-    const oidcAuthValidationResponse: OidcAuthValidationResponseDto = new OidcAuthValidationResponseDto({
-      isValid: true
-    });
+  async validateOidcPostRequest(
+    oidcAuthValidationRequest: OidcAuthValidationRequestDto,
+  ) {
+    const oidcAuthValidationResponse: OidcAuthValidationResponseDto = new OidcAuthValidationResponseDto(
+      {
+        isValid: true,
+      },
+    );
 
     //Does the OidcPost request itself has an error?
     if (oidcAuthValidationRequest.error) {
@@ -310,34 +374,40 @@ export class OidcHelperService {
 
       oidcAuthValidationResponse.isValid = false;
       oidcAuthValidationResponse.code = oidcAuthValidationRequest.code;
-      oidcAuthValidationResponse.message = oidcAuthValidationRequest.error_description;
+      oidcAuthValidationResponse.message =
+        oidcAuthValidationRequest.error_description;
       return oidcAuthValidationResponse;
     }
 
     //Check and state values and return userId if they are valid.
-    this.logger.debug('Validating nonce and state...', {state: oidcAuthValidationRequest.state});
+    this.logger.debug('Validating nonce and state...', {
+      state: oidcAuthValidationRequest.state,
+    });
 
-    const validationResult = await this.validateNonceAndState(oidcAuthValidationRequest.state);
-    this.logger.debug('Nonce and state validation result', {validationResult,});
+    const validationResult = await this.validateNonceAndState(
+      oidcAuthValidationRequest.state,
+    );
+    this.logger.debug('Nonce and state validation result', {
+      validationResult,
+    });
     if (!validationResult.isValid) {
       oidcAuthValidationResponse.isValid = false;
-      oidcAuthValidationResponse.code = encodeURIComponent('INVALID_NONCE_OR_STATE');
-      oidcAuthValidationResponse.message = encodeURIComponent('Invalid state or nonce');
+      oidcAuthValidationResponse.code = encodeURIComponent(
+        'INVALID_NONCE_OR_STATE',
+      );
+      oidcAuthValidationResponse.message = encodeURIComponent(
+        'Invalid state or nonce',
+      );
       return oidcAuthValidationResponse;
     }
 
     oidcAuthValidationResponse.userId = validationResult.userId;
     oidcAuthValidationResponse.policy = validationResult.policy;
 
-    this.logger.debug('OIDC post request validation successful', {oidcAuthValidationResponse,});
+    this.logger.debug('OIDC post request validation successful', {
+      oidcAuthValidationResponse,
+    });
 
     return oidcAuthValidationResponse;
   }
-
 }
-
-
-
-
-
-

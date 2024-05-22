@@ -4,7 +4,11 @@ import { Cacheable } from 'nestjs-cacheable';
 
 import { UserSessionService } from '../user-session/user-session.service';
 import { UserSession } from '../entities/user-session.entity';
-import { AccessTokenResponse, ApiTokenResponse, OidcJwtPayload } from '../dtos/oidc-auth-dtos';
+import {
+  AccessTokenResponse,
+  ApiTokenResponse,
+  OidcJwtPayload,
+} from '../dtos/oidc-auth-dtos';
 import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
@@ -17,7 +21,6 @@ import { BypassService } from '../oidc/Bypass.service';
 
 @Injectable()
 export class TokenService {
-
   private jwksClients = new Map<string, JwksClient>();
 
   //used to keep track of ongoing refreshToken executions keyed by session.sessionId.
@@ -32,7 +35,6 @@ export class TokenService {
   ) {}
 
   async refreshToken(userId: string, token: string, clientIp: string) {
-
     this.logger.debug('Starting refreshToken process', { userId, clientIp });
 
     //Grab the current session data
@@ -40,22 +42,33 @@ export class TokenService {
       userId,
       token,
     );
-    this.logger.debug('Retrieved user session', { sessionId: session.sessionId });
+    this.logger.debug('Retrieved user session', {
+      sessionId: session.sessionId,
+    });
 
     //If a request comes in for a session that is already being processed, wait for promise to resolve.
     const sessionId = session.sessionId;
     if (this.sessionPromises.has(sessionId)) {
-      this.logger.debug('Waiting for existing refreshToken process to complete', { sessionId });
+      this.logger.debug(
+        'Waiting for existing refreshToken process to complete',
+        { sessionId },
+      );
       return this.sessionPromises.get(sessionId);
     }
 
     const refreshPromise = (async () => {
       try {
         //Retrieve fresh token from the token refresh endpoint and store it in the user session
-        const accessTokenResponse = await this.updateUserSessionWithNewTokens(session);
-        this.logger.debug('Updated user session with newly retrieved tokens', { accessTokenResponse });
+        const accessTokenResponse = await this.updateUserSessionWithNewTokens(
+          session,
+        );
+        this.logger.debug('Updated user session with newly retrieved tokens', {
+          accessTokenResponse,
+        });
 
-        session = await this.userSessionService.findSessionBySessionId(sessionId); // Get updated session
+        session = await this.userSessionService.findSessionBySessionId(
+          sessionId,
+        ); // Get updated session
 
         const authToken = new TokenDTO();
         authToken.token = session.securityToken;
@@ -99,40 +112,70 @@ export class TokenService {
     params.append('client_id', clientId);
     params.append('client_secret', clientSecret);
 
-    const apiTokenResponse = await this.oidcHelperService.makePostRequestForToken<ApiTokenResponse>(tokenUrl, params);
+    const apiTokenResponse = await this.oidcHelperService.makePostRequestForToken<
+      ApiTokenResponse
+    >(tokenUrl, params);
     return apiTokenResponse.access_token;
   }
 
-  async exchangeAuthCodeForToken(userSession: UserSession): Promise<AccessTokenResponse> {
-
+  async exchangeAuthCodeForToken(
+    userSession: UserSession,
+  ): Promise<AccessTokenResponse> {
     const params = new URLSearchParams();
     params.append('grant_type', 'authorization_code');
-    params.append('code', userSession.securityToken);  //The securityToken at this point has the authorization code
+    params.append('code', userSession.securityToken); //The securityToken at this point has the authorization code
 
-    const accessTokenResponse = await this.makeAccessTokenRequestRestCall(userSession, params);
-    await this.validateAndSaveTokenInUserSession(accessTokenResponse, userSession);
+    const accessTokenResponse = await this.makeAccessTokenRequestRestCall(
+      userSession,
+      params,
+    );
+    await this.validateAndSaveTokenInUserSession(
+      accessTokenResponse,
+      userSession,
+    );
 
     return accessTokenResponse;
   }
 
-  async updateUserSessionWithNewTokens(userSession: UserSession): Promise<AccessTokenResponse> {
+  async updateUserSessionWithNewTokens(
+    userSession: UserSession,
+  ): Promise<AccessTokenResponse> {
     const params = new URLSearchParams();
     params.append('grant_type', 'refresh_token');
     params.append('refresh_token', userSession.refreshToken);
 
-    const accessTokenResponse = await this.makeAccessTokenRequestRestCall(userSession, params);
-    await this.validateAndSaveTokenInUserSession(accessTokenResponse, userSession);
+    const accessTokenResponse = await this.makeAccessTokenRequestRestCall(
+      userSession,
+      params,
+    );
+    await this.validateAndSaveTokenInUserSession(
+      accessTokenResponse,
+      userSession,
+    );
 
     return accessTokenResponse;
   }
 
-  private async validateAndSaveTokenInUserSession(accessTokenResponse: AccessTokenResponse, userSession: UserSession) {
+  private async validateAndSaveTokenInUserSession(
+    accessTokenResponse: AccessTokenResponse,
+    userSession: UserSession,
+  ) {
     //Validate the token
-    if (!await this.isOidcTokenValid(accessTokenResponse.access_token, userSession)) {
-      throw new EaseyException(new Error('Unable to validate access token'), HttpStatus.UNAUTHORIZED);
+    if (
+      !(await this.isOidcTokenValid(
+        accessTokenResponse.access_token,
+        userSession,
+      ))
+    ) {
+      throw new EaseyException(
+        new Error('Unable to validate access token'),
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
-    const expiration = this.calculateTokenExpirationInMills(accessTokenResponse.expires_in);
+    const expiration = this.calculateTokenExpirationInMills(
+      accessTokenResponse.expires_in,
+    );
     await this.userSessionService.updateUserSessionToken(
       userSession.sessionId,
       accessTokenResponse,
@@ -140,8 +183,13 @@ export class TokenService {
     );
   }
 
-  private async makeAccessTokenRequestRestCall(userSession: UserSession, params: URLSearchParams) {
-    const tokenEndpoint = `${this.configService.get('OIDC_CDX_TOKEN_ENDPOINT').replace('%s', userSession.oidcPolicy)}`;
+  private async makeAccessTokenRequestRestCall(
+    userSession: UserSession,
+    params: URLSearchParams,
+  ) {
+    const tokenEndpoint = `${this.configService
+      .get('OIDC_CDX_TOKEN_ENDPOINT')
+      .replace('%s', userSession.oidcPolicy)}`;
     const clientId = this.configService.get('OIDC_CLIENT_ID');
     const clientSecret = this.configService.get('OIDC_CLIENT_SECRET');
 
@@ -153,10 +201,12 @@ export class TokenService {
     params.append('client_id', clientId);
     params.append('client_secret', clientSecret);
 
-    return await this.oidcHelperService.makePostRequestForToken<AccessTokenResponse>(tokenEndpoint, params);
+    return await this.oidcHelperService.makePostRequestForToken<
+      AccessTokenResponse
+    >(tokenEndpoint, params);
   }
 
-  calculateTokenExpirationInMills(seconds : number ) {
+  calculateTokenExpirationInMills(seconds: number) {
     return dateToEstString(Date.now() + seconds * 1000);
   }
 
@@ -168,17 +218,28 @@ export class TokenService {
     return this.jwksClients.get(jwksUri);
   }
 
-  private async getKey(jwksUri: string, header: { kid: string; }): Promise<string> {
+  private async getKey(
+    jwksUri: string,
+    header: { kid: string },
+  ): Promise<string> {
     const client = this.getJwksClient(jwksUri);
     const key = await client.getSigningKey(header.kid);
     return key.getPublicKey();
   }
 
-  async isOidcTokenValid(authToken: string, userSession: UserSession): Promise<any> {
-
-    this.logger.debug('Starting OIDC token validation process (isOidcTokenValid)');
+  async isOidcTokenValid(
+    authToken: string,
+    userSession: UserSession,
+  ): Promise<any> {
+    this.logger.debug(
+      'Starting OIDC token validation process (isOidcTokenValid)',
+    );
     try {
-      const oidcJwtPayload = jwt.decode(authToken, { complete: true }) as { header: any, payload: OidcJwtPayload, signature: string };
+      const oidcJwtPayload = jwt.decode(authToken, { complete: true }) as {
+        header: any;
+        payload: OidcJwtPayload;
+        signature: string;
+      };
       this.logger.debug('Decoded JWT payload...');
 
       if (!oidcJwtPayload || typeof oidcJwtPayload === 'string') {
@@ -187,28 +248,37 @@ export class TokenService {
       }
       //Grab the user ID to validate against
       if (!oidcJwtPayload.payload.userId) {
-        this.logger.debug('Missing userId or acr in JWT payload', { payload: oidcJwtPayload.payload });
+        this.logger.debug('Missing userId or acr in JWT payload', {
+          payload: oidcJwtPayload.payload,
+        });
         return false;
       }
 
       const policy: string = userSession.oidcPolicy;
-      const jwksUri = `${this.configService.get('OIDC_CDX_JWKS_URI').replace('%s', policy)}`;
+      const jwksUri = `${this.configService
+        .get('OIDC_CDX_JWKS_URI')
+        .replace('%s', policy)}`;
       const clientId = this.configService.get('OIDC_CLIENT_ID');
       const tokenIssuer = this.configService.get('OIDC_CDX_TOKEN_ISSUER');
-      this.logger.debug('Constructed JWKS URI', { jwksUri, clientId, tokenIssuer });
+      this.logger.debug('Constructed JWKS URI', {
+        jwksUri,
+        clientId,
+        tokenIssuer,
+      });
 
       const publicKey = await this.getKey(jwksUri, oidcJwtPayload.header);
       const verifiedToken = jwt.verify(authToken, publicKey, {
         algorithms: ['RS256'],
         issuer: tokenIssuer,
-        audience: clientId
+        audience: clientId,
       });
       this.logger.debug('Verified JWT for signature.');
 
-      if (!this.areAdditionalClaimsValid(verifiedToken, tokenIssuer, clientId) ) {
+      if (
+        !this.areAdditionalClaimsValid(verifiedToken, tokenIssuer, clientId)
+      ) {
         return false;
       }
-
     } catch (error) {
       this.logger.error('JWT validation failed:', error);
       return false;
@@ -218,17 +288,22 @@ export class TokenService {
     return true;
   }
 
-  private areAdditionalClaimsValid(token: any, expectedIssuer: string, expectedAudience: string): any {
+  private areAdditionalClaimsValid(
+    token: any,
+    expectedIssuer: string,
+    expectedAudience: string,
+  ): any {
     const now = Math.floor(Date.now() / 1000);
     if (token.exp && token.exp < now) {
       return false;
     }
 
     if (token.nbf && token.nbf > now) {
-      this.logger.debug('Token has expired or the token cannot be used before its begin time');
+      this.logger.debug(
+        'Token has expired or the token cannot be used before its begin time',
+      );
       return false;
     }
-
 
     if (token.iss && token.iss !== expectedIssuer) {
       this.logger.debug('Token is not issued by the expected issuer');
@@ -244,7 +319,6 @@ export class TokenService {
   }
 
   async validateToken(token: string, clientIp: string): Promise<any> {
-
     this.logger.debug('Starting token validation process', { clientIp });
 
     let user: CurrentUser = {
@@ -258,14 +332,15 @@ export class TokenService {
     let userId: string;
     if (this.bypassService.bypassEnabled()) {
       this.logger.debug('Bypass service is enabled');
-      user = await this.bypassService.extractUserFromValidatedBypassToken(token);
+      user = await this.bypassService.extractUserFromValidatedBypassToken(
+        token,
+      );
       userId = user.userId;
     } else {
-
       const oidcJwtPayload = jwt.decode(token, { complete: true }) as {
-        header: any,
-        payload: OidcJwtPayload,
-        signature: string
+        header: any;
+        payload: OidcJwtPayload;
+        signature: string;
       };
       this.logger.debug('Decoded JWT payload');
 
@@ -287,7 +362,7 @@ export class TokenService {
     //populate user values
     user.userId = userSession.userId;
     user.sessionId = userSession.sessionId;
-    user.expiration = userSession.tokenExpiration
+    user.expiration = userSession.tokenExpiration;
     user.clientIp = userSession.clientIp;
     user.facilities = JSON.parse(userSession.facilities);
     user.roles = JSON.parse(userSession.roles);
@@ -303,7 +378,9 @@ export class TokenService {
         false,
       )
     ) {
-      this.logger.debug('Session is valid for token', { sessionId: user.sessionId });
+      this.logger.debug('Session is valid for token', {
+        sessionId: user.sessionId,
+      });
       return user;
     }
 

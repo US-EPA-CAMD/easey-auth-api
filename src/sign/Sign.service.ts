@@ -10,7 +10,10 @@ import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
 import { UserSessionService } from '../user-session/user-session.service';
 import { TokenService } from '../token/token.service';
 import { OidcHelperService } from '../oidc/OidcHelperService';
-import { CredentialsSignDTO, SignatureRequest } from '../dtos/certification-sign-param.dto';
+import {
+  CredentialsSignDTO,
+  SignatureRequest,
+} from '../dtos/certification-sign-param.dto';
 import { BypassService } from '../oidc/Bypass.service';
 import { PolicyResponse } from '../dtos/policy-response';
 
@@ -27,9 +30,8 @@ export class SignService {
 
   async signAllFiles(
     activityId: string,
-    fileArray: Express.Multer.File[]
+    fileArray: Express.Multer.File[],
   ): Promise<void> {
-
     //If bypass is enabled, skip the call to sign
     if (this.bypassService.bypassEnabled()) {
       return;
@@ -42,24 +44,29 @@ export class SignService {
     try {
       const signatureRequest = new SignatureRequest();
       signatureRequest.activityId = activityId;
-      const signAuthResponseDTO =
-        await this.oidcHelperService.makePostRequestForFile<SignAuthResponseDTO>(apiUrl, apiToken, fileArray, signatureRequest);
+      const signAuthResponseDTO = await this.oidcHelperService.makePostRequestForFile<
+        SignAuthResponseDTO
+      >(apiUrl, apiToken, fileArray, signatureRequest);
 
       if (!signAuthResponseDTO) {
-        throw new Error(`Unable to sign document with activity id ${activityId}`);
+        throw new Error(
+          `Unable to sign document with activity id ${activityId}`,
+        );
       }
-
     } catch (error) {
-      this.logger.error(`Unable to sign document with activity id ${activityId}`, error);
+      this.logger.error(
+        `Unable to sign document with activity id ${activityId}`,
+        error,
+      );
       throw new EaseyException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   async createCromerrActivity(
     user: CurrentUser,
-    credentials: CredentialsSignDTO, idToken?: string
+    credentials: CredentialsSignDTO,
+    idToken?: string,
   ): Promise<SignAuthResponseDTO> {
-
     //If bypass is enabled, return as a dummy activity as we do not have a valid ID token
     if (this.bypassService.bypassEnabled()) {
       const signAuthResponseDTO = new SignAuthResponseDTO();
@@ -70,9 +77,16 @@ export class SignService {
     //If an idToken is not passed in, assume ECMPS and try to get the token from the session
     if (!idToken) {
       const userId = user?.userId ?? '';
-      const userSession = await this.userSessionService.findSessionByUserId(userId);
+      const userSession = await this.userSessionService.findSessionByUserId(
+        userId,
+      );
       if (!userSession) {
-        throw new EaseyException(new Error('Unable to create activity. No valid id-token found for the user.'), HttpStatus.BAD_REQUEST);
+        throw new EaseyException(
+          new Error(
+            'Unable to create activity. No valid id-token found for the user.',
+          ),
+          HttpStatus.BAD_REQUEST,
+        );
       }
       idToken = userSession.idToken;
     }
@@ -82,7 +96,11 @@ export class SignService {
     return await this.sendToCromerr(apiToken, credentials, idToken);
   }
 
-  async sendToCromerr(apiToken: string, credentials: CredentialsSignDTO, idToken: string): Promise<SignAuthResponseDTO> {
+  async sendToCromerr(
+    apiToken: string,
+    credentials: CredentialsSignDTO,
+    idToken: string,
+  ): Promise<SignAuthResponseDTO> {
     const dataflowName = getConfigValue('ECMPS_DATA_FLOW_NAME', '');
     const requestBody = {
       user: {
@@ -102,16 +120,24 @@ export class SignService {
     const apiUrl = `${registerApiUrl}/api/v1/cromerr/createActivity`;
 
     try {
-      const signAuthResponseDTO = await this.oidcHelperService.makePostRequestJson<SignAuthResponseDTO>(apiUrl, requestBody, apiToken, customHeaders);
+      const signAuthResponseDTO = await this.oidcHelperService.makePostRequestJson<
+        SignAuthResponseDTO
+      >(apiUrl, requestBody, apiToken, customHeaders);
       if (!signAuthResponseDTO) {
-        throw new Error(`Unable to create a CROMERR activity for user ${credentials.userId}`);
+        throw new Error(
+          `Unable to create a CROMERR activity for user ${credentials.userId}`,
+        );
       }
 
       return signAuthResponseDTO;
-
     } catch (error) {
-      this.logger.error(`Unable to create a CROMERR activity for user ${credentials.userId}`, error);
-      throw new Error(`Unable to create a CROMERR activity for user ${credentials.userId}.  ${error.message}`);
+      this.logger.error(
+        `Unable to create a CROMERR activity for user ${credentials.userId}`,
+        error,
+      );
+      throw new Error(
+        `Unable to create a CROMERR activity for user ${credentials.userId}.  ${error.message}`,
+      );
     }
   }
 }

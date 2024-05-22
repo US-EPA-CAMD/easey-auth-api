@@ -1,4 +1,3 @@
-
 import { JwtPayload } from 'jsonwebtoken';
 
 // Minimal interface for API response that contains only the necessary role description

@@ -1,19 +1,21 @@
-import * as crypto from 'crypto';
-import * as https from 'https';
-import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
 import { HttpService } from '@nestjs/axios';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { FacilityAccessDTO } from '../dtos/permissions.dto';
-import { firstValueFrom } from 'rxjs';
-import { OidcHelperService } from '../oidc/OidcHelperService';
+import { UserRole } from '@us-epa-camd/easey-common/enums';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
+import { Logger } from '@us-epa-camd/easey-common/logger';
 import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
+import * as crypto from 'crypto';
+import * as https from 'https';
+import { firstValueFrom } from 'rxjs';
+
 import {
   OrganizationResponse,
   UserRolesResponse,
 } from '../dtos/oidc-auth-dtos';
-import { Logger } from '@us-epa-camd/easey-common/logger';
+import { FacilityAccessDTO } from '../dtos/permissions.dto';
+import { OidcHelperService } from '../oidc/OidcHelperService';
+import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
 
 @Injectable()
 export class PermissionsService {
@@ -103,9 +105,14 @@ export class PermissionsService {
     if (
       bypassEnabled ||
       this.configService.get<boolean>('app.mockPermissionsEnabled') ||
-      roles.includes(this.configService.get<string>('app.sponsorRole')) ||
-      roles.includes(this.configService.get<string>('app.preparerRole')) ||
-      roles.includes(this.configService.get<string>('app.submitterRole'))
+      roles.some((role: UserRole) =>
+        [
+          UserRole.SPONSOR,
+          UserRole.PREPARER,
+          UserRole.SUBMITTER,
+          UserRole.INITIAL_AUTHORIZER,
+        ].includes(role),
+      )
     ) {
       let url;
       if (
