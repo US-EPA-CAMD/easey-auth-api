@@ -2,7 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
-import { EntityManager } from 'typeorm';
+import { EntityManager, ILike } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 
 import { UserCheckOut } from '../entities/user-check-out.entity';
@@ -43,7 +43,7 @@ export class UserSessionService {
     await this.repository.save(sessionRecord);
 
     const checkOutRecord = await this.returnManager().findOne(UserCheckOut, {
-      where: { checkedOutBy: sessionRecord.userId },
+      where: { checkedOutBy: ILike(sessionRecord.userId) },
     });
 
     if (checkOutRecord) {
@@ -118,7 +118,7 @@ export class UserSessionService {
   }
 
   async removeUserSessionByUserId(userId: string) {
-    const existingSession = await this.repository.findOneBy({ userId });
+    const existingSession = await this.repository.findOneBy({ userId: ILike(userId) });
     if (existingSession) {
       await this.repository.remove(existingSession);
     }
@@ -133,7 +133,7 @@ export class UserSessionService {
     token: string,
   ): Promise<UserSession> {
     const session = await this.repository.findOneBy({
-      userId,
+      userId: ILike(userId),
       securityToken: token,
     });
 
@@ -150,7 +150,7 @@ export class UserSessionService {
 
   async findSessionByUserId(userId: string): Promise<UserSession> {
     const session = await this.repository.findOneBy({
-      userId,
+      userId: ILike(userId),
     });
 
     if (session) {
