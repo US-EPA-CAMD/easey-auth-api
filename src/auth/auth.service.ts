@@ -45,7 +45,10 @@ export class AuthService {
         userId: userId,
       });
 
-      this.logger.debug('Bypass service is enabled, returning bypass policy response', { policyResponse });
+      this.logger.debug(
+        'Bypass service is enabled, returning bypass policy response',
+        { policyResponse },
+      );
       return policyResponse;
     }
 
@@ -55,7 +58,10 @@ export class AuthService {
       this.logger.debug('Retrieved API token for policy calls ');
 
       //Make the determinePolicyCall
-      const policyResponse = await this.oidcHelperService.determinePolicy(userId, apiToken);
+      const policyResponse = await this.oidcHelperService.determinePolicy(
+        userId,
+        apiToken,
+      );
       this.logger.debug('Received policy response', { policyResponse });
 
       return policyResponse;
@@ -68,7 +74,10 @@ export class AuthService {
         error.response.data &&
         error.response.data.code === 'E_WRONG_USER_ID'
       ) {
-        this.logger.warn('Invalid user ID provided', { userId, code: error.response.data.code });
+        this.logger.warn('Invalid user ID provided', {
+          userId,
+          code: error.response.data.code,
+        });
 
         // This is an expected use case. Instead of throwing, return a new PolicyResponse with code and message
         return new PolicyResponse({
@@ -91,14 +100,18 @@ export class AuthService {
     });
 
     try {
-      this.logger.debug('Starting OIDC (/oauth2/code) validation process', { oidcAuthValidationRequest, clientIp });
+      this.logger.debug('Starting OIDC (/oauth2/code) validation process', {
+        oidcAuthValidationRequest,
+        clientIp,
+      });
 
       oidcAuthValidationResponse = await this.oidcHelperService.validateOidcPostRequest(
         oidcAuthValidationRequest,
       );
       this.logger.debug('OIDC post request validation result', {
         code: oidcAuthValidationResponse.isValid,
-        policy: oidcAuthValidationResponse.policy, });
+        policy: oidcAuthValidationResponse.policy,
+      });
 
       if (!oidcAuthValidationResponse.isValid) {
         return oidcAuthValidationResponse;
@@ -123,7 +136,9 @@ export class AuthService {
         clientIp,
       );
       oidcAuthValidationResponse.userSession = userSession;
-      this.logger.debug('Created new user session. Validation successful.', { userSession });
+      this.logger.debug('Created new user session. Validation successful.', {
+        userSession,
+      });
     } catch (error) {
       this.logger.error('Error exchanging code for tokens:', error);
       oidcAuthValidationResponse = new OidcAuthValidationResponseDto({
@@ -140,8 +155,10 @@ export class AuthService {
     let userDto: UserDTO;
     let session: UserSession;
     try {
-
-      this.logger.debug('service: starting signIn process', { signInDto, clientIp });
+      this.logger.debug('service: starting signIn process', {
+        signInDto,
+        clientIp,
+      });
       const apiToken = await this.tokenService.getCdxApiToken(); //For api calls
       if (this.bypassService.bypassEnabled()) {
         this.logger.debug('Bypass is enabled');
@@ -157,10 +174,17 @@ export class AuthService {
         );
         signInDto.sessionId = session.sessionId;
 
-        this.logger.debug('Created new user session for bypass user', { session });
+        this.logger.debug('Created new user session for bypass user', {
+          session,
+        });
 
         //Bypass Tokens
-        const tokenDto = await this.bypassService.generateToken(session.userId, session.sessionId, clientIp, userDto.roles);
+        const tokenDto = await this.bypassService.generateToken(
+          session.userId,
+          session.sessionId,
+          clientIp,
+          userDto.roles,
+        );
         userDto.token = tokenDto.token;
         userDto.tokenExpiration = tokenDto.expiration;
         //No corresponding idToken and refreshToken for bypass tokens
@@ -168,7 +192,9 @@ export class AuthService {
         userDto.refreshToken = '';
       } else {
         //Check for a valid session that should have been created with validateAndCreateSession() call
-        session = await this.userSessionService.findSessionBySessionId(signInDto.sessionId,);
+        session = await this.userSessionService.findSessionBySessionId(
+          signInDto.sessionId,
+        );
         if (!session) {
           throw new EaseyException(
             new Error(
@@ -182,8 +208,11 @@ export class AuthService {
         //Exchange the code for a valid token from Azure AD
         const accessTokenResponse = await this.tokenService.exchangeAuthCodeForToken(
           session,
-        )
-        this.logger.debug(`Exchanged auth code for token, access token expires in ${accessTokenResponse.expires_in / 60} minutes`, );
+        );
+        this.logger.debug(
+          `Exchanged auth code for token, access token expires in ${accessTokenResponse.expires_in /
+            60} minutes`,
+        );
 
         //Get the updated session information here (after code is exchanged for token)
         session = await this.userSessionService.findSessionBySessionId(
@@ -217,7 +246,10 @@ export class AuthService {
         userDto.tokenExpiration = this.tokenService.calculateTokenExpirationInMills(
           accessTokenResponse.expires_in,
         );
-        this.logger.debug('Extracted user information from decoded token and created user object', { userDto });
+        this.logger.debug(
+          'Extracted user information from decoded token and created user object',
+          { userDto },
+        );
 
         //Retrieve email and roles
         const orgResponse = await this.getUserEmail(userDto.userId, apiToken);
@@ -229,7 +261,11 @@ export class AuthService {
           apiToken,
         );
         this.logger.debug('Retrieved user roles', { roles: userDto.roles });
-        this.logger.debug(`Retrieved user roles, number of roles: ${userDto.roles ? userDto.roles.length : 0}`);
+        this.logger.debug(
+          `Retrieved user roles, number of roles: ${
+            userDto.roles ? userDto.roles.length : 0
+          }`,
+        );
       }
 
       //Retrieve the list of facilities.
@@ -241,7 +277,11 @@ export class AuthService {
       );
       userDto.facilities = facilities;
       this.logger.debug('Retrieved user facilities', { facilities });
-      this.logger.debug(`Retrieved user facilities, number of facilities: ${userDto.facilities ? userDto.facilities.length : 0}`);
+      this.logger.debug(
+        `Retrieved user facilities, number of facilities: ${
+          userDto.facilities ? userDto.facilities.length : 0
+        }`,
+      );
 
       session.securityToken = userDto.token;
       session.idToken = userDto.idToken;
@@ -252,12 +292,18 @@ export class AuthService {
 
       //Update the session with user and facility information
       await this.userSessionService.updateSession(session);
-      this.logger.debug('Updated user session with token, roles, facilities, etc. User and session creation completed.', { session });
+      this.logger.debug(
+        'Updated user session with token, roles, facilities, etc. User and session creation completed.',
+        { session },
+      );
 
       return userDto;
     } catch (error) {
       this.logger.error('Unable to get log user in. ', error);
-      throw new EaseyException(new Error(`Unable to sign in user: ${error.message}`), HttpStatus.BAD_REQUEST);
+      throw new EaseyException(
+        new Error(`Unable to sign in user: ${error.message}`),
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
@@ -276,7 +322,9 @@ export class AuthService {
         null,
       );
     } catch (error) {
-      this.logger.error(`Unable to get user email. URL: ${apiUrl}, Error: ${error.message}, Stack: ${error.stack}`);
+      this.logger.error(
+        `Unable to get user email. URL: ${apiUrl}, Error: ${error.message}, Stack: ${error.stack}`,
+      );
       throw new EaseyException(error, HttpStatus.BAD_REQUEST);
     }
   }

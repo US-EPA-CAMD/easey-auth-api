@@ -1,4 +1,4 @@
-import { IsString, ValidateNested, IsArray} from 'class-validator';
+import { IsString, ValidateNested, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CredentialsDTO } from './credentials.dto';
 

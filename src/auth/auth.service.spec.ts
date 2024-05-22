@@ -28,10 +28,10 @@ jest.mock('jsonwebtoken', () => ({
     payload: {
       userId: 'user1',
       given_name: 'John',
-      family_name: 'Doe'
+      family_name: 'Doe',
     },
-    signature: 'signature'
-  })
+    signature: 'signature',
+  }),
 }));
 
 describe('AuthService', () => {
@@ -73,14 +73,15 @@ describe('AuthService', () => {
               userId: 'user1',
               token: 'token',
             }),
-
           },
         },
         {
           provide: PermissionsService,
           useValue: {
             retrieveAllUserRoles: jest.fn().mockResolvedValue(['role1']),
-            retrieveAllUserFacilities: jest.fn().mockResolvedValue(['facility1']),
+            retrieveAllUserFacilities: jest
+              .fn()
+              .mockResolvedValue(['facility1']),
           },
         },
         {
@@ -89,7 +90,7 @@ describe('AuthService', () => {
             validateOidcPostRequest: jest.fn(),
             determinePolicy: jest.fn(),
             makeGetRequest: jest.fn().mockResolvedValue({
-              email: 'user@example.com'
+              email: 'user@example.com',
             }),
           },
         },
@@ -128,7 +129,9 @@ describe('AuthService', () => {
   describe('determinePolicy', () => {
     it('should return a PolicyResponse based on userId', async () => {
       const response = { policy: 'Standard' };
-      jest.spyOn(oidcHelperService, 'determinePolicy').mockResolvedValue(response);
+      jest
+        .spyOn(oidcHelperService, 'determinePolicy')
+        .mockResolvedValue(response);
       const result = await service.determinePolicy('user1');
       expect(result).toEqual(response);
     });
@@ -136,26 +139,40 @@ describe('AuthService', () => {
 
   describe('validateAndCreateSession', () => {
     it('should create and return a session', async () => {
-      const oidcResponse = { isValid: true, userId: 'user1', policy: 'policy1' };
-      jest.spyOn(oidcHelperService, 'validateOidcPostRequest').mockResolvedValue(oidcResponse);
+      const oidcResponse = {
+        isValid: true,
+        userId: 'user1',
+        policy: 'policy1',
+      };
+      jest
+        .spyOn(oidcHelperService, 'validateOidcPostRequest')
+        .mockResolvedValue(oidcResponse);
       const userSession = new UserSession();
       userSession.sessionId = 'session123';
       userSession.tokenExpiration = 'expiration';
-      jest.spyOn(userSessionService, 'createUserSession').mockResolvedValue(userSession);
+      jest
+        .spyOn(userSessionService, 'createUserSession')
+        .mockResolvedValue(userSession);
 
       const requestDto = new OidcAuthValidationRequestDto();
-      const result = await service.validateAndCreateSession(requestDto, '127.0.0.1');
+      const result = await service.validateAndCreateSession(
+        requestDto,
+        '127.0.0.1',
+      );
       expect(result.userSession).toBeDefined();
     });
   });
 
   describe('signIn', () => {
     it('should sign in a user and return UserDTO', async () => {
-      const token = jwt.sign({
-        userId: 'user1',
-        given_name: 'John',
-        family_name: 'Doe'
-      }, 'your_secret_key');
+      const token = jwt.sign(
+        {
+          userId: 'user1',
+          given_name: 'John',
+          family_name: 'Doe',
+        },
+        'your_secret_key',
+      );
       const accessTokenResponse: AccessTokenResponse = {
         access_token: 'dummy_access_token',
         token_type: 'Bearer',
@@ -166,12 +183,19 @@ describe('AuthService', () => {
         profile_info: 'dummy_profile_info',
         scope: 'openid email profile',
         refresh_token: 'dummy_refresh_token',
-        refresh_token_expires_in: '7200'
+        refresh_token_expires_in: '7200',
       };
-      jest.spyOn(tokenService, 'exchangeAuthCodeForToken').mockResolvedValue(accessTokenResponse);
-      jest.spyOn(tokenService, 'calculateTokenExpirationInMills').mockReturnValue('3600000');
+      jest
+        .spyOn(tokenService, 'exchangeAuthCodeForToken')
+        .mockResolvedValue(accessTokenResponse);
+      jest
+        .spyOn(tokenService, 'calculateTokenExpirationInMills')
+        .mockReturnValue('3600000');
 
-      const result = await service.signIn({ sessionId: 'session123' }, '127.0.0.1');
+      const result = await service.signIn(
+        { sessionId: 'session123' },
+        '127.0.0.1',
+      );
       expect(result.token).toEqual('dummy_access_token');
       expect(result.tokenExpiration).toEqual('3600000');
     });
@@ -179,14 +203,18 @@ describe('AuthService', () => {
 
   describe('updateLastActivity', () => {
     it('should update last activity without throwing an error', async () => {
-      await expect(service.updateLastActivity('some-token')).resolves.not.toThrow();
+      await expect(
+        service.updateLastActivity('some-token'),
+      ).resolves.not.toThrow();
     });
   });
 
   describe('signOut', () => {
     it('should remove user session successfully', async () => {
       await service.signOut('user1', 'some-token');
-      expect(userSessionService.removeUserSessionByUserId).toHaveBeenCalledWith('user1');
+      expect(userSessionService.removeUserSessionByUserId).toHaveBeenCalledWith(
+        'user1',
+      );
     });
   });
 });

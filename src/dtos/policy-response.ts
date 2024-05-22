@@ -19,4 +19,3 @@ export class PolicyResponse {
     Object.assign(this, init);
   }
 }
-

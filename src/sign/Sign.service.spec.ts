@@ -37,12 +37,14 @@ jest.mock('soap', () => ({
 }));
 
 const mockUserSessionService = () => ({
-  findSessionByUserId: jest.fn().mockResolvedValue(new UserSession() ),
+  findSessionByUserId: jest.fn().mockResolvedValue(new UserSession()),
 });
 
 const mockOidcHelperService = () => ({
-  makePostRequestForFile: jest.fn().mockResolvedValue(new SignAuthResponseDTO() ),
-  makePostRequestJson: jest.fn().mockResolvedValue(new SignAuthResponseDTO() ),
+  makePostRequestForFile: jest
+    .fn()
+    .mockResolvedValue(new SignAuthResponseDTO()),
+  makePostRequestJson: jest.fn().mockResolvedValue(new SignAuthResponseDTO()),
 });
 
 const mockTokenService = () => ({
@@ -59,7 +61,9 @@ describe('SignService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [LoggerModule],
-      providers: [SignService, ConfigService,
+      providers: [
+        SignService,
+        ConfigService,
         {
           provide: UserSessionService,
           useValue: mockUserSessionService,

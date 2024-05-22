@@ -76,7 +76,7 @@ describe('Token Service', () => {
             validateOidcPostRequest: jest.fn(),
             determinePolicy: jest.fn(),
             makeGetRequest: jest.fn().mockResolvedValue({
-              email: 'user@example.com'
+              email: 'user@example.com',
             }),
           },
         },

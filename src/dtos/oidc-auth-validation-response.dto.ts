@@ -6,7 +6,6 @@ import { UserDTO } from './user.dto';
 import { UserSession } from '../entities/user-session.entity';
 
 export class OidcAuthValidationResponseDto {
-
   isValid?: boolean;
   code?: string;
   message?: string;
@@ -19,4 +18,3 @@ export class OidcAuthValidationResponseDto {
     Object.assign(this, init);
   }
 }
-
