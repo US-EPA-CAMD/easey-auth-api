@@ -91,15 +91,6 @@ export default registerAs('app', () => ({
     'EASEY_AUTH_CONTENT_API',
     'https://api.epa.gov/easey/dev/content-mgmt',
   ),
-  sponsorRole: getConfigValue('EASEY_AUTH_API_SPONSOR_ROLE', 'Sponsor'),
-  submitterRole: getConfigValue('EASEY_AUTH_API_SUBMITTER_ROLE', 'Submitter'),
-  preparerRole: getConfigValue('EASEY_AUTH_API_PREPARER_ROLE', 'Preparer'),
-  analystRole: getConfigValue('EASEY_AUTH_API_ANALYST_ROLE', 'ECMPS Analyst'),
-  adminRole: getConfigValue('EASEY_AUTH_API_ADMIN_ROLE', 'ECMPS Admin'),
-  initialAuthorizerRole: getConfigValue(
-    'EASEY_AUTH_API_INITIAL_AUTHORIZER_ROLE',
-    'Initial Authorizer',
-  ),
   dataFlow: getConfigValue('EASEY_AUTH_API_DATA_FLOW', 'EASEY'),
   mockPermissionsEnabled: getConfigValueBoolean(
     'EASEY_AUTH_API_MOCK_PERMISSIONS_ENABLED',

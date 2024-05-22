@@ -3,6 +3,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { Logger } from '@us-epa-camd/easey-common/logger';
+import { UserRole } from '@us-epa-camd/easey-common/enums';
 import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
 import * as crypto from 'crypto';
 import * as https from 'https';
@@ -103,11 +104,13 @@ export class PermissionsService {
     if (
       bypassEnabled ||
       this.configService.get<boolean>('app.mockPermissionsEnabled') ||
-      roles.includes(this.configService.get<string>('app.sponsorRole')) ||
-      roles.includes(this.configService.get<string>('app.preparerRole')) ||
-      roles.includes(this.configService.get<string>('app.submitterRole')) ||
-      roles.includes(
-        this.configService.get<string>('app.initialAuthorizerRole'),
+      roles.some((role: UserRole) =>
+        [
+          UserRole.SPONSOR,
+          UserRole.PREPARER,
+          UserRole.SUBMITTER,
+          UserRole.INITIAL_AUTHORIZER,
+        ].includes(role),
       )
     ) {
       let url;
