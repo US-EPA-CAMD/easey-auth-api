@@ -37,21 +37,35 @@ export class SignService {
       return;
     }
 
+    const signFilesIndividually = this.configService.get<boolean>('app.signFilesIndividually');
     const apiToken = await this.tokenService.getCdxApiToken();
     const registerApiUrl = getConfigValue('OIDC_REST_API_BASE', '');
-    const apiUrl = `${registerApiUrl}/api/v1/cromerr/sign`;
+    const apiUrl = signFilesIndividually
+      ? `${registerApiUrl}/api/v1/cromerr/sign`
+      : `${registerApiUrl}/api/v1/cromerr/signMultiple`;
 
     try {
       const signatureRequest = new SignatureRequest();
       signatureRequest.activityId = activityId;
-      const signAuthResponseDTO = await this.oidcHelperService.makePostRequestForFile<
-        SignAuthResponseDTO
-      >(apiUrl, apiToken, fileArray, signatureRequest);
+
+      let signAuthResponseDTO : SignAuthResponseDTO;
+      if (signFilesIndividually) {
+
+        for (const file of fileArray) {
+          // Add your processing logic here
+          signAuthResponseDTO = await this.oidcHelperService.signSingleFile<
+            SignAuthResponseDTO
+          >(apiUrl, apiToken, file, signatureRequest);
+        }
+
+      } else {
+        signAuthResponseDTO = await this.oidcHelperService.signMultipleFiles<
+          SignAuthResponseDTO
+        >(apiUrl, apiToken, fileArray, signatureRequest);
+      }
 
       if (!signAuthResponseDTO) {
-        throw new Error(
-          `Unable to sign document with activity id ${activityId}`,
-        );
+        throw new Error(`Unable to sign document with activity id ${activityId}`,);
       }
     } catch (error) {
       this.logger.error(

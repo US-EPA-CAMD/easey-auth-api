@@ -64,6 +64,12 @@ export class AuthService {
       );
       this.logger.debug('Received policy response', { policyResponse });
 
+      //If this is a sign-in flow, log the user out of B2C to avoid any
+      //session conflict during the sign-in process.
+      if (policyResponse.policy.includes('_SIGNIN')) {
+        await this.oidcHelperService.terminateB2CSession(policyResponse.policy, apiToken);
+      }
+
       return policyResponse;
     } catch (error) {
       this.logger.error('error determining user policy: ', error.message);
