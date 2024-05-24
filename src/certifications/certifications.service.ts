@@ -1,6 +1,6 @@
 import { Injectable, HttpStatus } from '@nestjs/common';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
-import { EntityManager } from 'typeorm';
+import { EntityManager, IsNull } from 'typeorm';
 
 import { CertificationFacilitiesDTO } from '../dtos/cert-facilities.dto';
 import { CertificationStatementRepository } from './certifications.repository';
@@ -50,7 +50,9 @@ export class CertificationsService {
         let statementData;
 
         if (key === 'null') {
-          statementData = await this.repository.findOneBy({ prgCode: null });
+          statementData = await this.repository.findOneBy({
+            prgCode: IsNull(),
+          });
         } else {
           statementData = await this.repository.findOneBy({ prgCode: key });
         }
