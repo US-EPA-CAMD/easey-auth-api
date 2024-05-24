@@ -107,4 +107,8 @@ export default registerAs('app', () => ({
   authApi: {
     uri: getConfigValue('EASEY_AUTH_API', `https://${apiHost}/auth-mgmt`),
   },
+  signFilesIndividually: getConfigValueBoolean(
+    'EASEY_AUTH_API_SIGN_FILES_INDIVIDUALLY',
+    false,
+  ),
 }));
