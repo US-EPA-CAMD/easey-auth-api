@@ -97,7 +97,7 @@ export class OidcHelperService {
     userIdToLookup: string,
     apiToken: string,
   ): Promise<number> {
-    const dataflowName = getConfigValue('ECMPS_DATA_FLOW_NAME', '');
+    const dataflowName = this.configService.get<string>('app.dataFlow');
     const requestBody = {
       userId: userIdToLookup,
       dataflow: dataflowName,
