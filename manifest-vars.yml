@@ -20,12 +20,12 @@ enableAllFacilities: true
 
 # ICAM
 signFilesIndividually: false
-oidcClientId: cd31fee7-59a0-49aa-a15f-d14cd1bd8acc
+oidcClientId: 46a635fe-cf19-4e0c-9dc9-b17e3d6544b9
 oidcClientCredentialScope: https://icamauthdev.epacdx.net/3ec1e61a-0d14-452e-9e7c-9aa6b011dd72/.default
 oidcCdxApiTokenUrl: https://icamauthdev.epacdx.net/cdxidbridgedev.onmicrosoft.com/B2C_1A_EIAM_ORGANIZATIONAL_SIGNIN/oauth2/v2.0/token
 oidcRestApiBase: https://devngn.epacdxnode.net/cdx-register-II-rest
-ecmpsUiRedirectUrl: http://localhost:3000
-oidcAuthApiRedirectUri: http://localhost:8000/auth-mgmt/authentication/oauth2/code
+ecmpsUiRedirectUrl: https://ecmps-dev.app.cloud.gov
+oidcAuthApiRedirectUri: https://ecmps-dev.app.cloud.gov/auth-mgmt/authentication/oauth2/code
 oidcCdxTokenEndpoint: https://icamauthdev.epacdx.net/cdxidbridgedev.onmicrosoft.com/%s/oauth2/v2.0/token
 oidcCdxLogoutEndpoint: https://icamauthdev.epacdx.net/cdxidbridgedev.onmicrosoft.com/%s/oauth2/v2.0/logout
 oidcCdxJwksUri: https://icamauthdev.epacdx.net/cdxidbridgedev.onmicrosoft.com/%s/discovery/v2.0/keys
