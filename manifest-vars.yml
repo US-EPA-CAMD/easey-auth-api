@@ -25,7 +25,7 @@ oidcClientCredentialScope: https://icamauthdev.epacdx.net/3ec1e61a-0d14-452e-9e7
 oidcCdxApiTokenUrl: https://icamauthdev.epacdx.net/cdxidbridgedev.onmicrosoft.com/B2C_1A_EIAM_ORGANIZATIONAL_SIGNIN/oauth2/v2.0/token
 oidcRestApiBase: https://devngn.epacdxnode.net/cdx-register-II-rest
 ecmpsUiRedirectUrl: https://ecmps-dev.app.cloud.gov
-oidcAuthApiRedirectUri: https://ecmps-dev.app.cloud.gov/auth-mgmt/authentication/oauth2/code
+oidcAuthApiRedirectUri: https://api.epa.gov/easey/dev/auth-mgmt/authentication/oauth2/code
 oidcCdxTokenEndpoint: https://icamauthdev.epacdx.net/cdxidbridgedev.onmicrosoft.com/%s/oauth2/v2.0/token
 oidcCdxLogoutEndpoint: https://icamauthdev.epacdx.net/cdxidbridgedev.onmicrosoft.com/%s/oauth2/v2.0/logout
 oidcCdxJwksUri: https://icamauthdev.epacdx.net/cdxidbridgedev.onmicrosoft.com/%s/discovery/v2.0/keys
