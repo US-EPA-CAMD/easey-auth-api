@@ -83,7 +83,7 @@ export class UserSessionService {
 
     const session = new UserSession();
     session.sessionId = sessionId;
-    session.userId = userId.toLowerCase();
+    session.userId = userId.toUpperCase();
     session.oidcPolicy = oidcPolicy;
     session.securityToken = authCode;
     session.clientIp = clientIp;

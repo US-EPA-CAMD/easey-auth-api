@@ -84,7 +84,6 @@ The Auth API uses a number of environment variables to properly configure the ap
 |  | OIDC_CDX_API_TOKEN_URL | *** | Configurable |
 |  | OIDC_HMAC_SECRET_KEY | *** | Configurable               |
 |  | OIDC_REST_API_BASE | *** | Configurable |
-|  | ECMPS_DATA_FLOW_NAME | *** | Configurable |
 |  | ECMPS_UI_REDIRECT_URL | *** | Configurable               |
 |  | OIDC_AUTH_API_REDIRECT_URI | *** | Configurable |
 |  | OIDC_CDX_TOKEN_ENDPOINT | *** | Configurable |
