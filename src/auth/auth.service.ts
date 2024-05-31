@@ -64,6 +64,12 @@ export class AuthService {
       );
       this.logger.debug('Received policy response', { policyResponse });
 
+      //If this is a sign-in flow, log the user out of B2C to avoid any
+      //session conflict during the sign-in process.
+      if (policyResponse.policy.includes('_SIGNIN')) {
+        await this.oidcHelperService.terminateB2CSession(policyResponse.policy, apiToken);
+      }
+
       return policyResponse;
     } catch (error) {
       this.logger.error('error determining user policy: ', error.message);
@@ -117,7 +123,7 @@ export class AuthService {
         return oidcAuthValidationResponse;
       }
 
-      oidcAuthValidationResponse.userId = oidcAuthValidationResponse.userId.toLowerCase();
+      oidcAuthValidationResponse.userId = oidcAuthValidationResponse.userId.toUpperCase();
       const userId = oidcAuthValidationResponse.userId;
       let userSession = await this.userSessionService.findSessionByUserId(
         userId,
@@ -334,7 +340,14 @@ export class AuthService {
   }
 
   async signOut(userId: string, token: string): Promise<void> {
-    await this.userSessionService.findSessionByUserIdAndToken(userId, token);
+    const session: UserSession = await this.userSessionService.findSessionByUserIdAndToken(userId, token);
+
+    //sign the user out with the OIDC provider
+    if (session && session.oidcPolicy) {
+      const apiToken = await this.tokenService.getCdxApiToken();
+      await this.oidcHelperService.terminateB2CSession(session.oidcPolicy, apiToken);
+    }
+
     await this.userSessionService.removeUserSessionByUserId(userId);
   }
 }

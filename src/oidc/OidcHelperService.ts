@@ -9,7 +9,7 @@ import { PolicyResponse } from '../dtos/policy-response';
 import * as crypto from 'crypto';
 import { OidcAuthValidationRequestDto } from '../dtos/oidc-auth-validation-request.dto';
 import { OidcAuthValidationResponseDto } from '../dtos/oidc-auth-validation-response.dto';
-import { RetrieveUsersResponse } from '../dtos/oidc-auth-dtos';
+import { OrganizationResponse, RetrieveUsersResponse } from '../dtos/oidc-auth-dtos';
 import { SignatureRequest } from '../dtos/certification-sign-param.dto';
 
 @Injectable()
@@ -97,7 +97,7 @@ export class OidcHelperService {
     userIdToLookup: string,
     apiToken: string,
   ): Promise<number> {
-    const dataflowName = getConfigValue('ECMPS_DATA_FLOW_NAME', '');
+    const dataflowName = this.configService.get<string>('app.dataFlow');
     const requestBody = {
       userId: userIdToLookup,
       dataflow: dataflowName,
@@ -123,6 +123,22 @@ export class OidcHelperService {
       this.logger.error(`Error obtaining user role id: `, error);
       throw new Error(`Error obtaining user role id: ${error.message}`);
     }
+  }
+
+  async terminateB2CSession(oidcPolicy: string, apiToken: string) {
+
+    this.logger.debug('Terminating any existing user session with B2C for policy ', {
+      oidcPolicy,
+    });
+    const logoutEndpoint = `${this.configService.get('OIDC_CDX_LOGOUT_ENDPOINT')
+      .replace('%s', oidcPolicy)}`;
+
+    //sign the user out
+    await this.makeGetRequest<OrganizationResponse>(
+      logoutEndpoint,
+      apiToken,
+      null,
+    );
   }
 
   async makePostRequestJson<T>(
@@ -169,7 +185,7 @@ export class OidcHelperService {
     }
   }
 
-  async makePostRequestForFile<T>(
+  async signMultipleFiles<T>(
     postUrl: string,
     apiToken: string,
     files: Express.Multer.File[],
@@ -191,6 +207,48 @@ export class OidcHelperService {
           format: file.mimetype.split('/')[1], // Extracts the file extension from MIME type
         };
       });
+
+      // Append the metadata (SignatureRequest) as JSON string
+      formData.append('meta', JSON.stringify(signatureRequest), {
+        contentType: 'application/json',
+      });
+
+      const headers = {
+        ...formData.getHeaders(),
+        Authorization: `Bearer ${apiToken}`,
+      };
+
+      const response = await firstValueFrom(
+        this.httpService.post<T>(postUrl, formData, { headers }),
+      );
+
+      return response.data;
+    } catch (error) {
+      this.handleError(error, postUrl, null);
+    }
+  }
+
+  async signSingleFile<T>(
+    postUrl: string,
+    apiToken: string,
+    file: Express.Multer.File,
+    signatureRequest: SignatureRequest,
+  ): Promise<T> {
+    try {
+      const formData = new FormData();
+      signatureRequest.documents = signatureRequest.documents || [];
+
+      // Append the single file to formData and construct the documents array in DTO
+      formData.append('file', file.buffer, {
+        filename: file.originalname,
+        contentType: file.mimetype,
+      });
+
+      // Populate the documents array in the SignatureRequest DTO with the single file
+      signatureRequest.documents[0] = {
+        name: file.originalname,
+        format: file.mimetype.split('/')[1], // Extracts the file extension from MIME type
+      };
 
       // Append the metadata (SignatureRequest) as JSON string
       formData.append('meta', JSON.stringify(signatureRequest), {
