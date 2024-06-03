@@ -98,7 +98,7 @@ The Auth API uses a number of environment variables to properly configure the ap
 | enabled | EASEY_CDX_BYPASS_ENABLED | false | Configurable |
 | users | EASEY_CDX_BYPASS_USERS | *** | Configurable |
 | mockPermissionsEnabled | EASEY_CDX_MOCK_PERMISSIONS_ENABLED | false | Configurable |
-| userEmail | EASEY_CDX_BYPASS_USER_EMAIL | '' | Configurable |
+| userEmail | EASEY_CDX_BYPASS_USER_EMAIL | CAMD_BP_3.1_CBS_Rearch_Mail_Test@easternresearchgroup.onmicrosoft.com | Configurable |
 
 
 ## Environment Variables File
@@ -113,6 +113,7 @@ Database credentials are injected into the cloud.gov environments as part of the
     - EASEY_AUTH_API_SECRET_TOKEN={ask project dev/tech lead}
 - EASEY_CDX_BYPASS_ENABLED=true|false
   - IF ABOVE IS TRUE THEN SET
+    - EASEY_CDX_BYPASS_USERS={ask project dev/tech lead}
     - EASEY_CDX_BYPASS_USER_EMAIL={your email address for evaluation and submission emails}
 
 Please note that in a non-local shared environment (such as dev, test, etc), EASEY_CDX_BYPASS_USER_EMAIL is shared. All evaluation/submission emails go to this email address. 
