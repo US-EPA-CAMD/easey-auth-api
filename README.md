@@ -87,8 +87,10 @@ The Auth API uses a number of environment variables to properly configure the ap
 |  | ECMPS_UI_REDIRECT_URL | *** | Configurable               |
 |  | OIDC_AUTH_API_REDIRECT_URI | *** | Configurable |
 |  | OIDC_CDX_TOKEN_ENDPOINT | *** | Configurable |
+|  | OIDC_CDX_LOGOUT_ENDPOINT | *** | Configurable |
 |  | OIDC_CDX_JWKS_URI | *** | Configurable |
 |  | OIDC_CDX_TOKEN_ISSUER | *** | Configurable |
+
 
 ### CDX BYPASS VARIABLES
 | Typescript Var Name | Environment Var Name | Default Value | Comment |
@@ -96,6 +98,8 @@ The Auth API uses a number of environment variables to properly configure the ap
 | enabled | EASEY_CDX_BYPASS_ENABLED | false | Configurable |
 | users | EASEY_CDX_BYPASS_USERS | *** | Configurable |
 | mockPermissionsEnabled | EASEY_CDX_MOCK_PERMISSIONS_ENABLED | false | Configurable |
+| userEmail | EASEY_CDX_BYPASS_USER_EMAIL | '' | Configurable |
+
 
 ## Environment Variables File
 Database credentials are injected into the cloud.gov environments as part of the CI/CD deployment process therefore they do not need to be configured. However, when running locally for local development the following environment variables are required to be configured using a local .env file in the root of the project. **PLEASE DO NOT commit the .env file to source control.**
@@ -109,7 +113,9 @@ Database credentials are injected into the cloud.gov environments as part of the
     - EASEY_AUTH_API_SECRET_TOKEN={ask project dev/tech lead}
 - EASEY_CDX_BYPASS_ENABLED=true|false
   - IF ABOVE IS TRUE THEN SET
-    - EASEY_CDX_BYPASS_USERS={ask project dev/tech lead}
+    - EASEY_CDX_BYPASS_USER_EMAIL={your email address for evaluation and submission emails}
+
+Please note that in a non-local shared environment (such as dev, test, etc), EASEY_CDX_BYPASS_USER_EMAIL is shared. All evaluation/submission emails go to this email address. 
 
 **Please refer to our [Getting Started](https://github.com/US-EPA-CAMD/devops/blob/master/GETTING-STARTED.md) instructions on how to configure the following environment variables & connect to the database.**
 - EASEY_DB_HOST

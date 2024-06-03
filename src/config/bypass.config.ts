@@ -9,5 +9,5 @@ require('dotenv').config();
 export default registerAs('cdxBypass', () => ({
   enabled: getConfigValueBoolean('EASEY_CDX_BYPASS_ENABLED'),
   users: getConfigValue('EASEY_CDX_BYPASS_USERS'),
-  // pass: getConfigValue('EASEY_CDX_BYPASS_PASSWORD'),  bypass does not need a password anymore
+  userEmail: getConfigValue('EASEY_CDX_BYPASS_USER_EMAIL', ''),
 }));
