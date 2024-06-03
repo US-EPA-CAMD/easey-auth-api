@@ -104,6 +104,10 @@ export default registerAs('app', () => ({
     'EASEY_AUTH_API_ENABLE_ALL_FACILITIES',
     false,
   ),
+  disableLogin: getConfigValueBoolean(
+    'EASEY_AUTH_API_DISABLE_LOGIN',
+    false,
+  ),
   authApi: {
     uri: getConfigValue('EASEY_AUTH_API', `https://${apiHost}/auth-mgmt`),
   },
