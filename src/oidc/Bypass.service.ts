@@ -43,6 +43,7 @@ export class BypassService {
     const user = new UserDTO();
     user.userId = userId;
     user.firstName = userId;
+    user.email = this.configService.get<string>('cdxBypass.userEmail');
     user.lastName = '';
     user.roles = [
       UserRole.SPONSOR,

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query, Res, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOkResponse,
@@ -20,6 +20,7 @@ import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
 import { SignInDTO } from '../dtos/signin.dto';
 import { CredentialsDTO } from '../dtos/credentials.dto';
 import { Logger } from '@us-epa-camd/easey-common/logger';
+import { FacilityAccessDTO } from '../dtos/permissions.dto';
 
 @Controller()
 @ApiSecurity('APIKey')
