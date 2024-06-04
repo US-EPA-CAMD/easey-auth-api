@@ -275,7 +275,7 @@ export class AuthService {
 
         userDto.roles = await this.permissionsService.retrieveAllUserRoles(
           userDto.userId,
-          userDto.token,
+          apiToken,
         );
         this.logger.debug('Retrieved user roles', { roles: userDto.roles });
         this.logger.debug(
