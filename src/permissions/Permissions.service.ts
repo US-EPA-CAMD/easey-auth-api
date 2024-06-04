@@ -28,15 +28,15 @@ export class PermissionsService {
 
   async retrieveAllUserRoles(
     userId: string,
-    accessToken: string,
+    apiToken: string,
   ): Promise<Array<string>> {
-    const orgs = await this.getAllUserOrganizations(userId, accessToken);
+    const orgs = await this.getAllUserOrganizations(userId, apiToken);
     const roleSet = new Set<string>();
     for (const o of orgs) {
       const rolesForOrg = await this.getUserRoles(
         userId,
         o.userOrganizationId,
-        accessToken,
+        apiToken,
       );
 
       rolesForOrg.forEach(r => {
@@ -50,7 +50,7 @@ export class PermissionsService {
   async getUserRoles(
     userId: string,
     orgId: number,
-    token: string,
+    apiToken: string,
   ): Promise<string[]> {
     const registerApiUrl = getConfigValue('OIDC_REST_API_BASE', '');
     const apiUrl = `${registerApiUrl}/api/v1/registration/retrieveRoles/${userId}/${orgId}`;
@@ -58,7 +58,7 @@ export class PermissionsService {
     try {
       const res = await this.oidcHelperService.makeGetRequest<
         UserRolesResponse
-      >(apiUrl, token, null);
+      >(apiUrl, apiToken, null);
 
       if (res && res.length > 0) {
         const activeDescriptions = res
