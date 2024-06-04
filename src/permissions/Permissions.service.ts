@@ -28,15 +28,15 @@ export class PermissionsService {
 
   async retrieveAllUserRoles(
     userId: string,
-    apiToken: string,
+    accessToken: string,
   ): Promise<Array<string>> {
-    const orgs = await this.getAllUserOrganizations(userId, apiToken);
+    const orgs = await this.getAllUserOrganizations(userId, accessToken);
     const roleSet = new Set<string>();
     for (const o of orgs) {
       const rolesForOrg = await this.getUserRoles(
         userId,
         o.userOrganizationId,
-        apiToken,
+        accessToken,
       );
 
       rolesForOrg.forEach(r => {
@@ -95,7 +95,7 @@ export class PermissionsService {
   async retrieveAllUserFacilities(
     userId: string,
     roles: Array<string>,
-    token: string,
+    accessToken: string,
     clientIp: string,
   ) {
     const bypassEnabled =
@@ -127,7 +127,7 @@ export class PermissionsService {
           'app.permissionsUrl',
         )}?userId=${userId.toUpperCase()}`;
       }
-      return await this.getUserPermissions(clientIp, token, url);
+      return await this.getUserPermissions(clientIp, accessToken, url);
     } else {
       return [];
     }

@@ -264,9 +264,18 @@ export class AuthService {
         userDto.email = orgResponse.email;
         this.logger.debug('Retrieved user email', { email: userDto.email });
 
+        // At this point, it is important to save the session in the database. Otherwise,
+        // the subsequent calls that go to other APIs (CBS) will call back here to auth API to validate the token.
+        // If session information is not in the database with valid token info, the validation will fail.
+        session.securityToken = userDto.token;
+        session.idToken = userDto.idToken;
+        session.refreshToken = userDto.refreshToken;
+        session.tokenExpiration = userDto.tokenExpiration;
+        await this.userSessionService.updateSession(session);
+
         userDto.roles = await this.permissionsService.retrieveAllUserRoles(
           userDto.userId,
-          apiToken,
+          userDto.token,
         );
         this.logger.debug('Retrieved user roles', { roles: userDto.roles });
         this.logger.debug(
@@ -280,7 +289,7 @@ export class AuthService {
       const facilities = await this.permissionsService.retrieveAllUserFacilities(
         userDto.userId,
         userDto.roles,
-        apiToken,
+        userDto.token,
         clientIp,
       );
       userDto.facilities = facilities;
@@ -291,10 +300,6 @@ export class AuthService {
         }`,
       );
 
-      session.securityToken = userDto.token;
-      session.idToken = userDto.idToken;
-      session.refreshToken = userDto.refreshToken;
-      session.tokenExpiration = userDto.tokenExpiration;
       session.roles = JSON.stringify(userDto.roles);
       session.facilities = JSON.stringify(facilities);
 
