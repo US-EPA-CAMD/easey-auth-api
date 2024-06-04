@@ -20,7 +20,7 @@ import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
 import { SignInDTO } from '../dtos/signin.dto';
 import { CredentialsDTO } from '../dtos/credentials.dto';
 import { Logger } from '@us-epa-camd/easey-common/logger';
-import { FacilityAccessDTO } from '../dtos/permissions.dto';
+import { LoginStateDTO } from '../dtos/login.state.dto';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -101,4 +101,14 @@ export class AuthController {
   ): Promise<void> {
     await this.service.signOut(user.userId, authToken);
   }
+
+  @Get('login-state')
+  @ApiOkResponse({
+    type: LoginStateDTO,
+    description: 'Gets the login state of the api',
+  })
+  async getLoginState(): Promise<LoginStateDTO> {
+    return this.service.getLoginState();
+  }
+
 }

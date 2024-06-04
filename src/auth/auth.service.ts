@@ -19,6 +19,7 @@ import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
 import { OidcHelperService } from '../oidc/OidcHelperService';
 import { BypassService } from '../oidc/Bypass.service';
 import { UserSession } from '../entities/user-session.entity';
+import { LoginStateDTO } from '../dtos/login.state.dto';
 
 interface OrgEmailAndId {
   email: string;
@@ -34,6 +35,7 @@ export class AuthService {
     private readonly userSessionService: UserSessionService,
     private readonly oidcHelperService: OidcHelperService,
     private readonly bypassService: BypassService,
+    private configService: ConfigService,
   ) {}
 
   async determinePolicy(userId: string): Promise<PolicyResponse> {
@@ -350,4 +352,11 @@ export class AuthService {
 
     await this.userSessionService.removeUserSessionByUserId(userId);
   }
+
+  async getLoginState(): Promise<LoginStateDTO> {
+    const loginState= new LoginStateDTO();
+    loginState.isDisabled = this.configService.get<boolean>('app.disableLogin');
+    return loginState;
+  }
+
 }
