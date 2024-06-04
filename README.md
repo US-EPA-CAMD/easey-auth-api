@@ -179,6 +179,8 @@ The customized authentication process starts with a call to determinePolicy endp
 
 For making any REST api calls against the OIDC provider, you need to first obtain an api token. This token, provided against a given client id and secret, will authorize Auth API to make most API calls. However, endpoints that require the user be specifically identified or authenticated (such as createActivity) will require a token to be available in the header with the request. 
 
+Please note that in non-local environments (dev, test, prod, etc.), when the OIDC provider posts the result of the authentication at the /oauth2/code endpoint, the post request goes through the API gateway to get to Auth API. However, this Post request from the OIDC provider does not contain an API_KEY header value. Therfore, the API_KEY check must be removed for this path in all environments. Otherwise, the post request will not succeed and the authentication flow will fail.
+
 #### 2. **Token Exchange**
 After successful authentication, the OIDC provider redirects back to Auth API with an authorization code. Exchange this code for an ID token and access token at the token endpoint.
 ```
