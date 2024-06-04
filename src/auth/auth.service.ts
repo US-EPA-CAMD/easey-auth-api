@@ -275,7 +275,7 @@ export class AuthService {
 
         userDto.roles = await this.permissionsService.retrieveAllUserRoles(
           userDto.userId,
-          apiToken,
+          userDto.token,
         );
         this.logger.debug('Retrieved user roles', { roles: userDto.roles });
         this.logger.debug(
@@ -289,7 +289,7 @@ export class AuthService {
       const facilities = await this.permissionsService.retrieveAllUserFacilities(
         userDto.userId,
         userDto.roles,
-        apiToken,
+        userDto.token,
         clientIp,
       );
       userDto.facilities = facilities;
