@@ -9,12 +9,12 @@ dataFlow: EASEY Test
 
 # ICAM
 signFilesIndividually: false
-oidcClientId: 46a635fe-cf19-4e0c-9dc9-b17e3d6544b9
-oidcClientCredentialScope: https://icamauthtest.epacdx.net/3ec1e61a-0d14-452e-9e7c-9aa6b011dd72/.default
+oidcClientId: 2ad3e2b8-60d2-4988-b817-c90c60373a68
+oidcClientCredentialScope: https://icamauthtest.epacdx.net/cdxCoreServices/.default
 oidcCdxApiTokenUrl: https://icamauthtest.epacdx.net/cdxidbridgedev.onmicrosoft.com/B2C_1A_EIAM_ORGANIZATIONAL_SIGNIN/oauth2/v2.0/token
 oidcRestApiBase: https://testngn.epacdxnode.net/cdx-register-II-rest
-ecmpsUiRedirectUrl: http://localhost:3000
-oidcAuthApiRedirectUri: http://localhost:8000/auth-mgmt/authentication/oauth2/code
+ecmpsUiRedirectUrl: https://ecmps-tst.app.cloud.gov
+oidcAuthApiRedirectUri: https://api.epa.gov/easey/test/auth-mgmt/authentication/oauth2/code
 oidcCdxTokenEndpoint: https://icamauthtest.epacdx.net/cdxidbridgedev.onmicrosoft.com/%s/oauth2/v2.0/token
 oidcCdxLogoutEndpoint: https://icamauthtest.epacdx.net/cdxidbridgedev.onmicrosoft.com/%s/oauth2/v2.0/logout
 oidcCdxJwksUri: https://icamauthtest.epacdx.net/cdxidbridgedev.onmicrosoft.com/%s/discovery/v2.0/keys
