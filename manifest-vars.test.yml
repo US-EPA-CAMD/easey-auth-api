@@ -6,3 +6,16 @@ cdxSvcs: https://testngn.epacdxnode.net/cdx-register-II/services
 naasSvcs: https://naas.epacdxnode.net/xml/securitytoken_v30.wsdl
 permissionsUrl: https://cbsstagei.epa.gov/CBS/api/auth-mgmt/responsibilities
 dataFlow: EASEY Test
+
+# ICAM
+signFilesIndividually: false
+oidcClientId: 2ad3e2b8-60d2-4988-b817-c90c60373a68
+oidcClientCredentialScope: https://icamauthtest.epacdx.net/cdxCoreServices/.default
+oidcCdxApiTokenUrl: https://icamauthtest.epacdx.net/cdxidbridgetest.onmicrosoft.com/B2C_1A_EIAM_ORGANIZATIONAL_SIGNIN/oauth2/v2.0/token
+oidcRestApiBase: https://testngn.epacdxnode.net/cdx-register-II-rest
+ecmpsUiRedirectUrl: https://ecmps-tst.app.cloud.gov
+oidcAuthApiRedirectUri: https://api.epa.gov/easey/test/auth-mgmt/authentication/oauth2/code
+oidcCdxTokenEndpoint: https://icamauthtest.epacdx.net/cdxidbridgetest.onmicrosoft.com/%s/oauth2/v2.0/token
+oidcCdxLogoutEndpoint: https://icamauthtest.epacdx.net/cdxidbridgetest.onmicrosoft.com/%s/oauth2/v2.0/logout
+oidcCdxJwksUri: https://icamauthtest.epacdx.net/cdxidbridgetest.onmicrosoft.com/%s/discovery/v2.0/keys
+oidcCdxTokenIssuer: https://icamauthtest.epacdx.net/ebb0f696-0af0-431f-9327-b6a5c27946ae/v2.0/

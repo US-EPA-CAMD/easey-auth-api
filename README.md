@@ -39,51 +39,68 @@ Follow these [instructions](https://github.com/US-EPA-CAMD/devops/blob/master/GE
 The Auth API uses a number of environment variables to properly configure the api. The following is the list of configureble values and their default setting.
 
 ### APP VARIABLES
-| Typescript Var Name | Environment Var Name | Default Value | Comment |
-| :------------------ | :------------------- | :------------ | :------ |
-| name | N/A | auth-api | Fixed value |
-| host | EASEY_AUTH_API_HOST | localhost | Configurable
-| port | EASEY_AUTH_API_PORT | 8000 | Configurable |
-| path | EASEY_AUTH_API_PATH | auth-mgmt | Configurable |
-| title | EASEY_AUTH_API_TITLE | Authentication & Authorization | Configurable |
-| description | EASEY_AUTH_API_DESCRIPTION | Provides authentication, authorization, & security token services for CAMD applications | Configurable |
-| env | EASEY_AUTH_API_ENV | local-dev | Configurable |
-| enableApiKey | EASEY_AUTH_API_ENABLE_API_KEY | false | Configurable |
-| enableClientToken | EASEY_AUTH_API_ENABLE_CLIENT_TOKEN | false | Configurable |
-| clientTokenDurationMinutes | EASEY_AUTH_API_CLIENT_TOKEN_DURATION_MINUTES | 5 | Configurable |
-| secretToken | EASEY_AUTH_API_SECRET_TOKEN | *** | Dynamically set by CI/CD workflow |
-| enableSecretToken | EASEY_AUTH_API_ENABLE_SECRET_TOKEN | false | Configurable |
-| enableAuthToken | EASEY_AUTH_API_ENABLE_AUTH_TOKEN | false | Configurable |
-| tokenExpirationDurationMinutes | EASEY_AUTH_API_AUTH_TOKEN_DURATION_MINUTES | 20 | Configurable |
-| enableCors | EASEY_AUTH_API_ENABLE_CORS | true | Configurable |
-| enableGlobalValidationPipes | EASEY_AUTH_API_ENABLE_GLOBAL_VALIDATION_PIPE | true | Configurable |
-| version | EASEY_AUTH_API_VERSION | v0.0.0 | Dynamically set by CI/CD workflow |
-| published | EASEY_AUTH_API_PUBLISHED | local | Dynamically set by CI/CD workflow |
-| cdxSvcs | EASEY_CDX_SERVICES | https://devngn.epacdxnode.net/cdx-register-II/services | Configurable |
-| naasSvcs | EASEY_NAAS_SERVICES | https://naasdev.epacdxnode.net/xml/securitytoken_v30.wsdl | Configurable |
-| nassAppId | EASEY_NAAS_SERVICES_APP_ID | *** | Dynamically set by CI/CD workflow |
-| nassAppPwd | EASEY_NAAS_SERVICES_APP_PASSWORD | *** | Dynamically set by CI/CD workflow |
-| enableDebug | EASEY_AUTH_API_ENABLE_DEBUG | false | Configurable |
-| mockPermissionsUrl | EASEY_AUTH_API_MOCK_PERMISSIONS_URL | https://api.epa.gov/easey/dev/auth-mgmt/permissions | Dynamically set by CI/CD workflow |
-| permissionsUrl | EASEY_AUTH_API_PERMISSIONS_URL | https://cbsstagei.rtpnc.epa.gov/CBSD/api/auth-mgmt/responsibilities | Dynamically set by CI/CD workflow |
-| contentUri | EASEY_AUTH_CONTENT_API | https://api.epa.gov/easey/dev/content-mgmt | Dynamically set by CI/CD workflow | 
-| sponsorRole | EASEY_AUTH_API_SPONSOR_ROLE | 'Sponsor' | Fixed | 
-| submitterRole | EASEY_AUTH_API_SUBMITTER_ROLE | 'Submitter' | Fixed | 
-| preparerRole | EASEY_AUTH_API_PREPARER_ROLE | 'Preparer' | Fixed | 
-| analystRole | EASEY_AUTH_API_ANALYST_ROLE | 'ECMPS Analyst' | Fixed | 
-| adminRole | EASEY_AUTH_API_ADMIN_ROLE | 'ECMPS Admin' | Fixed | 
-| dataFlow | EASEY_AUTH_API_DATA_FLOW | 'EASEY' | Dynamically set by CI/CD workflow | 
-| refreshTokenThresholdSeconds | EASEY_AUTH_API_REFRESH_TOKEN_THRESHOLD_SECONDS | 60 | Configurable | 
-| enableAllFacilities | EASEY_AUTH_API_ENABLE_ALL_FACILITIES | false | Configurable | 
-| authApi | EASEY_AUTH_API | https://${apiHost}/auth-mgmt | Dynamically set by CI/CD workflow |
+| Typescript Var Name                       | Environment Var Name                                                      | Default Value                                                                           | Comment |
+|:------------------------------------------|:--------------------------------------------------------------------------|:----------------------------------------------------------------------------------------| :------ |
+| name                                      | N/A                                                                       | auth-api                                                                                | Fixed value |
+| host                                      | EASEY_AUTH_API_HOST                                                       | localhost                                                                               | Configurable
+| port                                      | EASEY_AUTH_API_PORT                                                       | 8000                                                                                    | Configurable |
+| path                                      | EASEY_AUTH_API_PATH                                                       | auth-mgmt                                                                               | Configurable |
+| title                                     | EASEY_AUTH_API_TITLE                                                      | Authentication & Authorization                                                          | Configurable |
+| description                               | EASEY_AUTH_API_DESCRIPTION                                                | Provides authentication, authorization, & security token services for CAMD applications | Configurable |
+| env                                       | EASEY_AUTH_API_ENV                                                        | local-dev                                                                               | Configurable |
+| disableLogin                              | EASEY_AUTH_API_DISABLE_LOGIN                                              | false                                                                                   | Configurable |
+| enableApiKey                              | EASEY_AUTH_API_ENABLE_API_KEY                                             | false                                                                                   | Configurable |
+| enableClientToken                         | EASEY_AUTH_API_ENABLE_CLIENT_TOKEN                                        | false                                                                                   | Configurable |
+| clientTokenDurationMinutes                | EASEY_AUTH_API_CLIENT_TOKEN_DURATION_MINUTES                              | 5                                                                                       | Configurable |
+| secretToken                               | EASEY_AUTH_API_SECRET_TOKEN                                               | ***                                                                                     | Dynamically set by CI/CD workflow |
+| enableSecretToken                         | EASEY_AUTH_API_ENABLE_SECRET_TOKEN                                        | false                                                                                   | Configurable |
+| enableAuthToken                           | EASEY_AUTH_API_ENABLE_AUTH_TOKEN                                          | false                                                                                   | Configurable |
+| tokenExpirationDurationMinutes            | EASEY_AUTH_API_AUTH_TOKEN_DURATION_MINUTES                                | 20                                                                                      | Configurable |
+| enableCors                                | EASEY_AUTH_API_ENABLE_CORS                                                | true                                                                                    | Configurable |
+| enableGlobalValidationPipes               | EASEY_AUTH_API_ENABLE_GLOBAL_VALIDATION_PIPE                              | true                                                                                    | Configurable |
+| version                                   | EASEY_AUTH_API_VERSION                                                    | v0.0.0                                                                                  | Dynamically set by CI/CD workflow |
+| published                                 | EASEY_AUTH_API_PUBLISHED                                                  | local                                                                                   | Dynamically set by CI/CD workflow |
+| cdxSvcs                                   | EASEY_CDX_SERVICES                                                        | https://devngn.epacdxnode.net/cdx-register-II/services                                  | Configurable |
+| naasSvcs                                  | EASEY_NAAS_SERVICES                                                       | https://naasdev.epacdxnode.net/xml/securitytoken_v30.wsdl                               | Configurable |
+| nassAppId                                 | EASEY_NAAS_SERVICES_APP_ID                                                | ***                                                                                     | Dynamically set by CI/CD workflow |
+| nassAppPwd                                | EASEY_NAAS_SERVICES_APP_PASSWORD                                          | ***                                                                                     | Dynamically set by CI/CD workflow |
+| enableDebug                               | EASEY_AUTH_API_ENABLE_DEBUG                                               | false                                                                                   | Configurable |
+| mockPermissionsUrl                        | EASEY_AUTH_API_MOCK_PERMISSIONS_URL                                       | https://api.epa.gov/easey/dev/auth-mgmt/permissions                                     | Dynamically set by CI/CD workflow |
+| permissionsUrl                            | EASEY_AUTH_API_PERMISSIONS_URL                                            | https://cbsstagei.rtpnc.epa.gov/CBSD/api/auth-mgmt/responsibilities                     | Dynamically set by CI/CD workflow |
+| contentUri                                | EASEY_AUTH_CONTENT_API                                                    | https://api.epa.gov/easey/dev/content-mgmt                                              | Dynamically set by CI/CD workflow | 
+| dataFlow                                  | EASEY_AUTH_API_DATA_FLOW                                                  | 'EASEY'                                                                                 | Dynamically set by CI/CD workflow | 
+| refreshTokenThresholdSeconds              | EASEY_AUTH_API_REFRESH_TOKEN_THRESHOLD_SECONDS                            | 60                                                                                      | Configurable | 
+| enableAllFacilities                       | EASEY_AUTH_API_ENABLE_ALL_FACILITIES                                      | false                                                                                   | Configurable | 
+| authApi                                   | EASEY_AUTH_API                                                            | https://${apiHost}/auth-mgmt                                                            | Dynamically set by CI/CD workflow |
+| signFilesIndividually                     | EASEY_AUTH_API_SIGN_FILES_INDIVIDUALLY                                    | false                                                                                   | Configurable |
+
+
+
+### OIDC Authentication/Authorization Variables
+| Typescript Var Name | Environment Var Name | Default Value | Comment                    |
+| :-------- | :------------------- | :------------ |:---------------------------|
+|  | OIDC_CLIENT_ID | *** | Configurable |
+|  | OIDC_CLIENT_SECRET | *** | Configurable |
+|  | OIDC_CLIENT_CREDENTIAL_SCOPE | *** | Configurable |
+|  | OIDC_CDX_API_TOKEN_URL | *** | Configurable |
+|  | OIDC_HMAC_SECRET_KEY | *** | Configurable               |
+|  | OIDC_REST_API_BASE | *** | Configurable |
+|  | ECMPS_UI_REDIRECT_URL | *** | Configurable               |
+|  | OIDC_AUTH_API_REDIRECT_URI | *** | Configurable |
+|  | OIDC_CDX_TOKEN_ENDPOINT | *** | Configurable |
+|  | OIDC_CDX_LOGOUT_ENDPOINT | *** | Configurable |
+|  | OIDC_CDX_JWKS_URI | *** | Configurable |
+|  | OIDC_CDX_TOKEN_ISSUER | *** | Configurable |
+
 
 ### CDX BYPASS VARIABLES
 | Typescript Var Name | Environment Var Name | Default Value | Comment |
 | :------------------ | :------------------- | :------------ | :------ |
 | enabled | EASEY_CDX_BYPASS_ENABLED | false | Configurable |
 | users | EASEY_CDX_BYPASS_USERS | *** | Configurable |
-| password | EASEY_CDX_BYPASS_PASSWORD | *** | Configurable |
 | mockPermissionsEnabled | EASEY_CDX_MOCK_PERMISSIONS_ENABLED | false | Configurable |
+| userEmail | EASEY_CDX_BYPASS_USER_EMAIL | CAMD_BP_3.1_CBS_Rearch_Mail_Test@easternresearchgroup.onmicrosoft.com | Configurable |
+
 
 ## Environment Variables File
 Database credentials are injected into the cloud.gov environments as part of the CI/CD deployment process therefore they do not need to be configured. However, when running locally for local development the following environment variables are required to be configured using a local .env file in the root of the project. **PLEASE DO NOT commit the .env file to source control.**
@@ -98,9 +115,9 @@ Database credentials are injected into the cloud.gov environments as part of the
 - EASEY_CDX_BYPASS_ENABLED=true|false
   - IF ABOVE IS TRUE THEN SET
     - EASEY_CDX_BYPASS_USERS={ask project dev/tech lead}
-    - EASEY_CDX_BYPASS_PASSWORD={ask project dev/tech lead}
-- EASEY_NAAS_SERVICES_APP_ID={ask project dev/tech lead}
-- EASEY_NAAS_SERVICES_APP_PASSWORD={ask project dev/tech lead}
+    - EASEY_CDX_BYPASS_USER_EMAIL={your email address for evaluation and submission emails}
+
+Please note that in a non-local shared environment (such as dev, test, etc), EASEY_CDX_BYPASS_USER_EMAIL is shared. All evaluation/submission emails go to this email address. 
 
 **Please refer to our [Getting Started](https://github.com/US-EPA-CAMD/devops/blob/master/GETTING-STARTED.md) instructions on how to configure the following environment variables & connect to the database.**
 - EASEY_DB_HOST
@@ -142,52 +159,71 @@ Please refer to the auth Management API Swagger Documentation for descriptions o
 [Dev Environment](https://api.epa.gov/easey/dev/auth-mgmt/swagger/) | [Test Environment](https://api.epa.gov/easey/test/auth-mgmt/swagger/) | [Performance Environment](https://api.epa.gov/easey/perf/auth-mgmt/swagger/) | [Beta Environment](https://api.epa.gov/easey/beta/auth-mgmt/swagger/) | [Staging Environment](https://api.epa.gov/easey/staging/auth-mgmt/swagger/)
 
 ## CDX Services
-​The Auth Api makes use of the government provided [cdx soap](https://testngn.epacdxnode.net/cdx-register-II/documentation) services. By importing`createClientAsync from "soap"` a user created service can make a connection to any soap api, provided they have the correct security token. A call to `createClientAsync` will return a client object, and that client object can reference any of the api endpoints within that service category, while passing in the required authentication token. Here is an example of the Authenticate endpoint being called asynchronously. 
+​The Auth Api makes use of the government provided [cdx REST](https://devngn.epacdxnode.net/cdx-register-II-rest/apidocs/index.html#/) services. These new REST endpoints replaced the old [cdx soap](https://testngn.epacdxnode.net/cdx-register-II/documentation) services. 
+
+With the shift from SOAP to OIDC (OpenID Connect), we transition from a service-specific token-based authentication to a more standardized and secure OAuth 2.0 based authentication framework. OIDC allows clients to verify the identity of the user and to obtain their profile information.
+
+### Getting Started with OIDC Authentication
+
+#### 1. **Client Registration**
+Register your application with the ICAM team (OIDC team) to obtain the `client_id` and `client_secret`. These are necessary for the OAuth 2.0 flow to authenticate and communicate securely with the OIDC provider.
+
+#### 2. **Authorization Request**
+The customized authentication process starts with a call to determinePolicy endpoint.  Here is the complete auth flow
+- The client makes a determine policy call to Auth API
+- Auth API makes a determine policy call to the OIDC provider
+- OIDC provider and thus Auth API responds with one of _SIGNIN, _MIGRATE, or _SIGNUP policy. 
+- The client forwards the user to the Auth endpoint of the OIDC provider. 
+- User completes authentication flow at the OIDC provider
+- When the user authentication process finishes, OIDC provider sends a POST request with an authorization code back to the AUTH Api (/oauth2/code endpoint)
+- Auth API validates the authentication result (nonce and state values), exchanges the auth code for an access token, retrieve the user's CDX roles, and retrieve the user's CBS facilities and permissions, creates a user session and finally redirects the user back to the home page as a logged-in user
+
+For making any REST api calls against the OIDC provider, you need to first obtain an api token. This token, provided against a given client id and secret, will authorize Auth API to make most API calls. However, endpoints that require the user be specifically identified or authenticated (such as createActivity) will require a token to be available in the header with the request. 
+
+Please note that in non-local environments (dev, test, prod, etc.), when the OIDC provider posts the result of the authentication at the /oauth2/code endpoint, the post request goes through the API gateway to get to Auth API. However, this Post request from the OIDC provider does not contain an API_KEY header value. Therfore, the API_KEY check must be removed for this path in all environments. Otherwise, the post request will not succeed and the authentication flow will fail.
+
+#### 2. **Token Exchange**
+After successful authentication, the OIDC provider redirects back to Auth API with an authorization code. Exchange this code for an ID token and access token at the token endpoint.
+```
+const params = new URLSearchParams();
+    params.append('grant_type', 'authorization_code');
+    params.append('code', authorizationCode);  
+    const tokenEndpoint = `${this.configService.get('OIDC_CDX_TOKEN_ENDPOINT').replace('%s', userSession.oidcPolicy)}`;
+    params.append('p', userSession.oidcPolicy);
+    params.append('client_id', clientId);
+    params.append('client_secret', clientSecret);
+    const response = await firstValueFrom(
+        this.httpService.post<T>(tokenEndpoint, params, { headers }),
+        );
+      return response.data;
+```
+
+Note that once the token is received from the OIDC provider, Auth API will validate the token: verifies the signature and issuer at the JWKS URI endpoint, ensures the token has not expired, that it was issued by the expected issuer for the right audience, etc.
+
+Here are the three types of tokens returned by the token exchange
+- **ID Token**: Contains the user identity information in a JWT (JSON Web Token) format.
+- **Access Token**: Used to make authenticated API requests (should be transmitted only over HTTPS).
+- **Refresh Token**: Used by Auth API to obtain new access tokens without requiring the user to authenticate again (such as from a refresh token call).
+
+#### 2. **Obtaining an API Token**
+
+Before making any API calls to the CDX REST endpoints, you must first obtain an api token. Example below (see TokenService.getCdxApiToken() )
 
 ```
-const  url = `${this.configService.get<string>('app.cdxSvcs',)}/RegisterAuthService?wsdl`;
-createClientAsync(url).then(client  => {
-	return  client.AuthenticateAsync({
-		userId,
-		password,
-	});
-}).then(result => {})
-```
+const params = new URLSearchParams();
+    params.append('grant_type', 'client_credentials');
+    params.append('scope', scope);
+    params.append('client_id', clientId);
+    params.append('client_secret', clientSecret);
 
-Before using most endpoints that are part of the majority of soap services, authentication to that particular service must be performed, and the token returned from authenticating to that service must be passed with each request. 
-
-For example, to receive a user's primary organization, first you must authenticate against the StreamlinedRegistrationService. In this example a `naasAppId` and  `naasAppPwd` are required to make this authentication.  
-
-```
-const  url = `${this.configService.get<string>('app.cdxSvcs',)}/StreamlinedRegistrationService?wsdl`;
-
-return createClientAsync(url).then(client  => {
-	return  client.AuthenticateAsync({
-		userId:  this.configService.get<string>('app.naasAppId'),
-		credential:  this.configService.get<string>('app.nassAppPwd'),
-	});
-})
-.then(res  => {
-	return  res[0].securityToken;
-})
-```
-
-Once the token has been stored / returned, any request in the StreamlinedRegistrationService can be executed. For instance, retrieving a users primary organization: 
-
-```
-const  url = `${this.configService.get<string>(
-'app.cdxSvcs',
-)}/StreamlinedRegistrationService?wsdl`;
-
-return  createClientAsync(url).then(client  => {
-	return  client.RetrievePrimaryOrganizationAsync({
-		securityToken:  RETRIEVED_TOKEN_ABOVE,
-		user: { userId:  userId },
-	});
-})
-.then(res  => {
-return  res[0].result.email;
-})
+    const headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      };
+    
+      const response = await firstValueFrom(
+        this.httpService.post<T>(tokenUrl, params, { headers }),
+        );
+      return response.data;
 ```
 
 ## License & Contributing

@@ -91,11 +91,6 @@ export default registerAs('app', () => ({
     'EASEY_AUTH_CONTENT_API',
     'https://api.epa.gov/easey/dev/content-mgmt',
   ),
-  sponsorRole: getConfigValue('EASEY_AUTH_API_SPONSOR_ROLE', 'Sponsor'),
-  submitterRole: getConfigValue('EASEY_AUTH_API_SUBMITTER_ROLE', 'Submitter'),
-  preparerRole: getConfigValue('EASEY_AUTH_API_PREPARER_ROLE', 'Preparer'),
-  analystRole: getConfigValue('EASEY_AUTH_API_ANALYST_ROLE', 'ECMPS Analyst'),
-  adminRole: getConfigValue('EASEY_AUTH_API_ADMIN_ROLE', 'ECMPS Admin'),
   dataFlow: getConfigValue('EASEY_AUTH_API_DATA_FLOW', 'EASEY'),
   mockPermissionsEnabled: getConfigValueBoolean(
     'EASEY_AUTH_API_MOCK_PERMISSIONS_ENABLED',
@@ -109,7 +104,15 @@ export default registerAs('app', () => ({
     'EASEY_AUTH_API_ENABLE_ALL_FACILITIES',
     false,
   ),
+  disableLogin: getConfigValueBoolean(
+    'EASEY_AUTH_API_DISABLE_LOGIN',
+    false,
+  ),
   authApi: {
     uri: getConfigValue('EASEY_AUTH_API', `https://${apiHost}/auth-mgmt`),
   },
+  signFilesIndividually: getConfigValueBoolean(
+    'EASEY_AUTH_API_SIGN_FILES_INDIVIDUALLY',
+    false,
+  ),
 }));

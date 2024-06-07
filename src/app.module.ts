@@ -6,6 +6,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { dbConfig } from '@us-epa-camd/easey-common/config';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { CorsOptionsModule } from '@us-epa-camd/easey-common/cors-options';
+import {
+  DbLookupValidator,
+  IsValidCodesValidator,
+} from '@us-epa-camd/easey-common/validators';
 
 import routes from './routes';
 import appConfig from './config/app.config';
@@ -16,6 +20,7 @@ import { TokenModule } from './token/token.module';
 import { CertificationsModule } from './certifications/certifications.module';
 import { SignModule } from './sign/Sign.module';
 import { PermissionsModule } from './permissions/Permissions.module';
+import { OidcHelperModule } from './oidc/OidcHelper.module';
 
 @Module({
   imports: [
@@ -34,6 +39,8 @@ import { PermissionsModule } from './permissions/Permissions.module';
     CertificationsModule,
     SignModule,
     PermissionsModule,
+    OidcHelperModule,
   ],
+  providers: [DbLookupValidator, IsValidCodesValidator],
 })
 export class AppModule {}

@@ -19,26 +19,6 @@ describe('Certification Controller', () => {
     expect(controller).toBeDefined();
   });
 
-  it('verifyCredentials', () => {
-    expect(async () => {
-      await controller.verifyCredentials({ userId: '', password: '' }, '');
-    }).not.toThrowError();
-  });
-
-  it('verifyChallenge', () => {
-    expect(async () => {
-      await controller.verifyChallenge(
-        {
-          userId: '',
-          questionId: '',
-          activityId: '',
-          answer: '',
-        },
-        '',
-      );
-    }).not.toThrowError();
-  });
-
   it('statements', () => {
     expect(async () => {
       await controller.statements({ monitorPlanIds: [] });

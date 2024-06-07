@@ -1,12 +1,9 @@
-import { IsString } from 'class-validator';
-
 export class SignAuthResponseDTO {
-  @IsString()
-  activityId: string;
-  @IsString()
-  question: string;
-  @IsString()
-  questionId: string;
-  @IsString()
-  mobileNumbers: string[];
+  activityId?: string; //For /createActivity response
+
+  documentIds?: string[]; //For /sign response
+
+  //In case of errors
+  code?: string;
+  message?: string;
 }

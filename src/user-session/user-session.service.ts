@@ -1,29 +1,28 @@
-import { v4 as uuid } from 'uuid';
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
-import { InjectRepository } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
+import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
+import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
+import { EntityManager, ILike } from 'typeorm';
+import { v4 as uuid } from 'uuid';
 
+import { UserCheckOut } from '../entities/user-check-out.entity';
 import { UserSession } from '../entities/user-session.entity';
 import { UserSessionRepository } from '../user-session/user-session.repository';
-import { ConfigService } from '@nestjs/config';
 import { FacilityAccessDTO } from '../dtos/permissions.dto';
 import { firstValueFrom } from 'rxjs';
 import { getManager } from 'typeorm';
-import { UserCheckOut } from '../entities/user-check-out.entity';
-import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
-import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
+import { AccessTokenResponse } from '../dtos/oidc-auth-dtos';
 
 @Injectable()
 export class UserSessionService {
   constructor(
-    @InjectRepository(UserSessionRepository)
+    private readonly entityManager: EntityManager,
     private readonly repository: UserSessionRepository,
-    private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {}
 
-  returnManager(): any {
-    return getManager();
+  returnManager() {
+    return this.entityManager;
   }
 
   async refreshLastActivity(token: string): Promise<void> {
@@ -44,7 +43,7 @@ export class UserSessionService {
     await this.repository.save(sessionRecord);
 
     const checkOutRecord = await this.returnManager().findOne(UserCheckOut, {
-      where: { checkedOutBy: sessionRecord.userId },
+      where: { checkedOutBy: ILike(sessionRecord.userId) },
     });
 
     if (checkOutRecord) {
@@ -73,13 +72,21 @@ export class UserSessionService {
     return true;
   }
 
-  async createUserSession(userId: string): Promise<UserSession> {
+  async createUserSession(
+    userId: string,
+    authCode: string,
+    oidcPolicy: string,
+    clientIp: string,
+  ): Promise<UserSession> {
     const sessionId = uuid();
     await this.removeUserSessionByUserId(userId);
 
     const session = new UserSession();
     session.sessionId = sessionId;
-    session.userId = userId.toLowerCase();
+    session.userId = userId.toUpperCase();
+    session.oidcPolicy = oidcPolicy;
+    session.securityToken = authCode;
+    session.clientIp = clientIp;
     session.lastLoginDate = dateToEstString();
     session.lastActivity = dateToEstString();
     await this.repository.insert(session);
@@ -91,8 +98,8 @@ export class UserSessionService {
     token: string,
     applyThreshold: boolean = true,
   ): Promise<UserSession> {
-    const sessionRecord = await this.repository.findOne({
-      sessionId: sessionId,
+    const sessionRecord = await this.repository.findOneBy({
+      sessionId,
       securityToken: token,
     });
 
@@ -116,7 +123,7 @@ export class UserSessionService {
   }
 
   async removeUserSessionByUserId(userId: string) {
-    const existingSession = await this.repository.findOne({ userId: userId });
+    const existingSession = await this.repository.findOneBy({ userId: ILike(userId) });
     if (existingSession) {
       await this.repository.remove(existingSession);
     }
@@ -130,8 +137,8 @@ export class UserSessionService {
     userId: string,
     token: string,
   ): Promise<UserSession> {
-    const session = await this.repository.findOne({
-      userId: userId,
+    const session = await this.repository.findOneBy({
+      userId: ILike(userId),
       securityToken: token,
     });
 
@@ -147,8 +154,20 @@ export class UserSessionService {
   }
 
   async findSessionByUserId(userId: string): Promise<UserSession> {
-    const session = await this.repository.findOne({
-      userId: userId,
+    const session = await this.repository.findOneBy({
+      userId: ILike(userId),
+    });
+
+    if (session) {
+      return session;
+    }
+
+    return null;
+  }
+
+  async findSessionBySessionId(sessionId: string): Promise<UserSession> {
+    const session = await this.repository.findOneBy({
+      sessionId: sessionId,
     });
 
     if (session) {
@@ -160,12 +179,17 @@ export class UserSessionService {
 
   async updateUserSessionToken(
     sessionId: string,
-    token: string,
+    accessTokenResponse: AccessTokenResponse,
     expiration: string,
   ) {
     await this.repository.update(
       { sessionId: sessionId },
-      { tokenExpiration: expiration, securityToken: token },
+      {
+        tokenExpiration: expiration,
+        idToken: accessTokenResponse.id_token,
+        securityToken: accessTokenResponse.access_token,
+        refreshToken: accessTokenResponse.refresh_token,
+      },
     );
   }
 

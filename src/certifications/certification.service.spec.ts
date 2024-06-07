@@ -1,12 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { ConfigService } from '@nestjs/config';
+import { EntityManager } from 'typeorm';
+
 import { CertificationsService } from './certifications.service';
 import { CertificationStatementRepository } from './certifications.repository';
-import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { CertificationStatement } from '../entities/certification-statement.entity';
 
 const mockRepository = () => ({
-  findOne: jest.fn().mockResolvedValue(new CertificationStatement()),
+  findOneBy: jest.fn().mockResolvedValue(new CertificationStatement()),
 });
 describe('Certification Controller', () => {
   let service: CertificationsService;
@@ -18,6 +20,10 @@ describe('Certification Controller', () => {
         {
           provide: CertificationStatementRepository,
           useFactory: mockRepository,
+        },
+        {
+          provide: EntityManager,
+          useValue: { query: jest.fn() },
         },
         CertificationsService,
         ConfigService,
@@ -45,7 +51,7 @@ describe('Certification Controller', () => {
           unit_info: '5',
         },
       ]),
-    });
+    } as any);
 
     const result = await service.getStatements(['']);
 

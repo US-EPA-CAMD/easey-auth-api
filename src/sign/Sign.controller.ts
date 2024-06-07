@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Post,
+  Headers,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -19,7 +20,6 @@ import {
 import { SignAuthResponseDTO } from '../dtos/sign-auth-response.dto';
 import { SignService } from './Sign.service';
 import { CredentialsSignDTO } from '../dtos/certification-sign-param.dto';
-import { CertificationVerifyParamDTO } from '../dtos/certification-verify-param.dto';
 import { SendPhonePinParamDTO } from '../dtos/send-phone-pin-param.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@us-epa-camd/easey-common/guards';
@@ -32,36 +32,19 @@ import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
 export class SignController {
   constructor(private readonly service: SignService) {}
 
-  @Post('authenticate')
+  @Post('create-activity')
   @UseGuards(AuthGuard)
   @ApiBearerAuth('Token')
   @ApiOkResponse({
     type: SignAuthResponseDTO,
-    description: 'Authenticates a user using EPA CDX Sign Services',
+    description: 'Creates a CROMERR activity for the logged in user',
   })
-  authenticate(
+  createCromerrActivity(
     @Body() credentials: CredentialsSignDTO,
     @User() user: CurrentUser,
+    @Headers('Id-Token') idToken?: string,
   ): Promise<SignAuthResponseDTO> {
-    return this.service.authenticate(credentials, user);
-  }
-
-  @Post('send-mobile-code')
-  @ApiOkResponse({
-    description:
-      'Send the user a mobile phone code given a number and activity Id',
-  })
-  async sendMobileCode(@Body() payload: SendPhonePinParamDTO): Promise<void> {
-    await this.service.sendPhoneVerificationCode(payload);
-  }
-
-  @Post('validate')
-  @ApiOkResponse({
-    type: SignAuthResponseDTO,
-    description: 'Verifies a user question using the EPA CDX Sign Services',
-  })
-  validate(@Body() payload: CertificationVerifyParamDTO): Promise<boolean> {
-    return this.service.validate(payload);
+    return this.service.createCromerrActivity(user, credentials, idToken);
   }
 
   @Post()
