@@ -130,8 +130,8 @@ export class OidcHelperService {
     this.logger.debug('Terminating any existing user session with B2C for policy ', {
       oidcPolicy,
     });
-    const logoutEndpoint = `${this.configService.get('OIDC_CDX_LOGOUT_ENDPOINT')
-      .replace('%s', oidcPolicy)}`;
+
+    const logoutEndpoint = `${this.configService.get('OIDC_CDX_LOGOUT_ENDPOINT').replace('%s', oidcPolicy)}`;
 
     //sign the user out
     await this.makeGetRequest<OrganizationResponse>(
@@ -386,7 +386,7 @@ export class OidcHelperService {
     const dataToSign = `${nonce}|${timestamp}|${userId}|${policy}`;
     hmac.update(dataToSign);
     const signature = hmac.digest('hex');
-    return `${nonce}.${timestamp}.${userId}.${policy}.${signature}`;
+    return `${nonce}::${timestamp}::${userId}::${policy}::${signature}`;
   }
 
   async validateNonceAndState(
@@ -396,7 +396,7 @@ export class OidcHelperService {
       return { isValid: false };
     }
 
-    const [nonce, timestamp, userId, policy, signature] = state.split('.');
+    const [nonce, timestamp, userId, policy, signature] = state.split('::');
     const secretKey = getConfigValue('OIDC_HMAC_SECRET_KEY');
     const hmac = crypto.createHmac('sha256', secretKey);
     const dataToSign = `${nonce}|${timestamp}|${userId}|${policy}`; // Include userId in the data to sign
@@ -468,4 +468,21 @@ export class OidcHelperService {
 
     return oidcAuthValidationResponse;
   }
+
+  /*encodeRecordParams(params: Record<string, string | null | undefined>): string {
+    return Object.keys(params)
+      .map(key => {
+        const value = params[key];
+        if (value === null || value === undefined) {
+          return `${encodeURIComponent(key)}=`;
+        }
+        return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+      })
+      .join('&');
+  }*/
+
+  safeEncodeURIComponent(value: string | null | undefined): string {
+    return value ? encodeURIComponent(value) : '';
+  }
+
 }

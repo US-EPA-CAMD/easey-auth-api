@@ -88,6 +88,9 @@ describe('AuthService', () => {
           provide: OidcHelperService,
           useValue: {
             validateOidcPostRequest: jest.fn(),
+            encodeRecordParams: jest.fn(),
+            encodeSearchParams: jest.fn(),
+            safeEncodeURIComponent: jest.fn(),
             determinePolicy: jest.fn(),
             makeGetRequest: jest.fn().mockResolvedValue({
               email: 'user@example.com',
