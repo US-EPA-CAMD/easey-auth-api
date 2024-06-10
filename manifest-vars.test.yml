@@ -18,4 +18,4 @@ oidcAuthApiRedirectUri: https://api.epa.gov/easey/test/auth-mgmt/authentication/
 oidcCdxTokenEndpoint: https://icamauthtest.epacdx.net/cdxidbridgetest.onmicrosoft.com/%s/oauth2/v2.0/token
 oidcCdxLogoutEndpoint: https://icamauthtest.epacdx.net/cdxidbridgetest.onmicrosoft.com/%s/oauth2/v2.0/logout
 oidcCdxJwksUri: https://icamauthtest.epacdx.net/cdxidbridgetest.onmicrosoft.com/%s/discovery/v2.0/keys
-oidcCdxTokenIssuer: https://icamauthtest.epacdx.net/ebb0f696-0af0-431f-9327-b6a5c27946ae/v2.0/
+oidcCdxTokenIssuer: https://icamauthtest.epacdx.net/5a10b81f-ebf8-4a09-a9d8-5df54d203422/v2.0/

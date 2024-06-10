@@ -198,6 +198,13 @@ export class AuthService {
         //No corresponding idToken and refreshToken for bypass tokens
         userDto.idToken = '';
         userDto.refreshToken = '';
+
+        //Save this in the session
+        session.securityToken = userDto.token;
+        session.idToken = userDto.idToken;
+        session.refreshToken = userDto.refreshToken;
+        session.tokenExpiration = userDto.tokenExpiration;
+        await this.userSessionService.updateSession(session);
       } else {
         //Check for a valid session that should have been created with validateAndCreateSession() call
         session = await this.userSessionService.findSessionBySessionId(
