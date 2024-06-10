@@ -115,16 +115,16 @@ export class SignService {
     credentials: CredentialsSignDTO,
     idToken: string,
   ): Promise<SignAuthResponseDTO> {
-    const dataflowName = this.configService.get<string>('app.dataFlow');
+    const dataflowName = this.configService.get<string>('app.dataFlow' ) ;
     const requestBody = {
       user: {
         userId: credentials.userId,
-        firstName: credentials.firstName,
-        lastName: credentials.lastName,
-        middleInitial: credentials.middleInitial,
+        firstName: this.oidcHelperService.safeEncodeURIComponent( credentials.firstName),
+        lastName: this.oidcHelperService.safeEncodeURIComponent( credentials.lastName),
+        middleInitial: this.oidcHelperService.safeEncodeURIComponent( credentials.middleInitial),
       },
-      dataflow: dataflowName,
-      activityDescription: credentials.activityDescription,
+      dataflow: this.oidcHelperService.safeEncodeURIComponent( dataflowName),
+      activityDescription: this.oidcHelperService.safeEncodeURIComponent( credentials.activityDescription),
     };
 
     const customHeaders = {

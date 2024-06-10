@@ -53,7 +53,7 @@ export class PermissionsService {
     apiToken: string,
   ): Promise<string[]> {
     const registerApiUrl = getConfigValue('OIDC_REST_API_BASE', '');
-    const apiUrl = `${registerApiUrl}/api/v1/registration/retrieveRoles/${userId}/${orgId}`;
+    const apiUrl = `${registerApiUrl}/api/v1/registration/retrieveRoles/${this.oidcHelperService.safeEncodeURIComponent(userId)}/${this.oidcHelperService.safeEncodeURIComponent(orgId.toString())}`;
 
     try {
       const res = await this.oidcHelperService.makeGetRequest<
@@ -79,7 +79,7 @@ export class PermissionsService {
   ): Promise<OrganizationResponse[]> {
     const registerApiUrl = getConfigValue('OIDC_REST_API_BASE', '');
     const dataflow = this.configService.get<string>('app.dataFlow');
-    const apiUrl = `${registerApiUrl}/api/v1/registration/retrieveOrganizationsByDataflow/${userId}/${dataflow}`;
+    const apiUrl = `${registerApiUrl}/api/v1/registration/retrieveOrganizationsByDataflow/${this.oidcHelperService.safeEncodeURIComponent(userId)}/${this.oidcHelperService.safeEncodeURIComponent(dataflow)}`;
 
     try {
       const orgs = await this.oidcHelperService.makeGetRequest<
