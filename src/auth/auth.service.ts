@@ -333,7 +333,7 @@ export class AuthService {
   ): Promise<OrganizationResponse> {
     this.logger.debug('Starting getUserEmail', { userId });
     const registerApiUrl = getConfigValue('OIDC_REST_API_BASE');
-    const apiUrl = `${registerApiUrl}/api/v1/registration/retrievePrimaryOrganization/${userId}`;
+    const apiUrl = `${registerApiUrl}/api/v1/registration/retrievePrimaryOrganization/${this.oidcHelperService.safeEncodeURIComponent(userId)}`;
 
     try {
       return await this.oidcHelperService.makeGetRequest<OrganizationResponse>(
