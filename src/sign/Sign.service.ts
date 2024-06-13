@@ -119,12 +119,12 @@ export class SignService {
     const requestBody = {
       user: {
         userId: credentials.userId,
-        firstName: this.oidcHelperService.safeEncodeURIComponent( credentials.firstName),
-        lastName: this.oidcHelperService.safeEncodeURIComponent( credentials.lastName),
-        middleInitial: this.oidcHelperService.safeEncodeURIComponent( credentials.middleInitial),
+        firstName: credentials.firstName,
+        lastName: credentials.lastName,
+        middleInitial: credentials.middleInitial,
       },
-      dataflow: this.oidcHelperService.safeEncodeURIComponent( dataflowName),
-      activityDescription: this.oidcHelperService.safeEncodeURIComponent( credentials.activityDescription),
+      dataflow: dataflowName,
+      activityDescription: credentials.activityDescription,
     };
 
     const customHeaders = {
