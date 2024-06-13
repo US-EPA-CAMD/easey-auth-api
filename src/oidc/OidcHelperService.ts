@@ -26,7 +26,7 @@ export class OidcHelperService {
   ): Promise<PolicyResponse> {
     //Prepare request body, ai url etc.
     const requestBody = {
-      userId: this.safeEncodeURIComponent( userId),
+      userId: userId,
     };
     const registerApiUrl = getConfigValue('OIDC_REST_API_BASE', '');
     const apiUrl = `${registerApiUrl}/api/v1/oidcEnrichment/determinePolicy`;
@@ -99,8 +99,8 @@ export class OidcHelperService {
   ): Promise<number> {
     const dataflowName = this.configService.get<string>('app.dataFlow');
     const requestBody = {
-      userId: this.safeEncodeURIComponent( userIdToLookup),
-      dataflow: this.safeEncodeURIComponent( dataflowName),
+      userId: userIdToLookup,
+      dataflow: dataflowName,
     };
 
     const registerApiUrl = getConfigValue('OIDC_REST_API_BASE', '');
@@ -468,18 +468,6 @@ export class OidcHelperService {
 
     return oidcAuthValidationResponse;
   }
-
-  /*encodeRecordParams(params: Record<string, string | null | undefined>): string {
-    return Object.keys(params)
-      .map(key => {
-        const value = params[key];
-        if (value === null || value === undefined) {
-          return `${encodeURIComponent(key)}=`;
-        }
-        return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
-      })
-      .join('&');
-  }*/
 
   safeEncodeURIComponent(value: string | null | undefined): string {
     return value ? encodeURIComponent(value) : '';
