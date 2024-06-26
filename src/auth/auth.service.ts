@@ -41,6 +41,7 @@ export class AuthService {
   async determinePolicy(userId: string): Promise<PolicyResponse> {
     this.logger.debug('Starting determinePolicy', { userId });
 
+    userId = userId ? userId.toUpperCase() : userId;
     if (this.bypassService.bypassEnabled()) {
       const policyResponse = new PolicyResponse({
         policy: '_BYPASS',
