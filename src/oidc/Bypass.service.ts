@@ -33,7 +33,9 @@ export class BypassService {
       this.configService.get<string>('cdxBypass.users'),
     );
 
-    if (!acceptedUsers.find(x => x === userId)) {
+    userId = userId ? userId.toUpperCase() : userId;
+
+    if (!acceptedUsers.find(x => x.toUpperCase() === userId )) {
       throw new EaseyException(
         new Error('Incorrect Bypass userId'),
         HttpStatus.BAD_REQUEST,
@@ -70,7 +72,7 @@ export class BypassService {
     );
 
     const token = encode(
-      `userId=${userId}&sessionId=${sessionId}&expiration=${expiration}&clientIp=${clientIp}&roles=${JSON.stringify(
+      `userId=${userId.toUpperCase()}&sessionId=${sessionId}&expiration=${expiration}&clientIp=${clientIp}&roles=${JSON.stringify(
         roles,
       )}`,
     );
