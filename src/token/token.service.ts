@@ -294,13 +294,22 @@ export class TokenService {
     expectedAudience: string,
   ): any {
     const now = Math.floor(Date.now() / 1000);
-    if (token.exp && token.exp < now) {
+
+    const clockTolerance = {
+      nbf: 300,  // 5 minutes for not-before
+      exp: 60    // 1 minute for expiration
+    };
+
+    if (token.exp && token.exp < (now - clockTolerance.exp)) {
+      this.logger.debug(
+        `Token has expired. exp: ${token.exp}, now: ${now}, exp with tolerance: ${token.exp + clockTolerance.exp}`
+      );
       return false;
     }
 
-    if (token.nbf && token.nbf > now) {
+    if (token.nbf && token.nbf > (now + clockTolerance.nbf)) {
       this.logger.debug(
-        'Token has expired or the token cannot be used before its begin time',
+        `Token cannot be used before its begin time. nbf: ${token.nbf}, now: ${now}, nbf with tolerance: ${token.nbf - clockTolerance.nbf}`
       );
       return false;
     }
