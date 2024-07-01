@@ -320,10 +320,8 @@ export class AuthService {
 
       return userDto;
     } catch (error) {
-      this.logger.error('Unable to get log user in. ', error);
-      throw new EaseyException(
-        new Error(`Unable to sign in user: ${error.message}`),
-        HttpStatus.BAD_REQUEST,
+      this.logger.error('Login Error: ', error);
+      throw new EaseyException( new Error(`Login Error: ${error.message}`), HttpStatus.BAD_REQUEST,
       );
     }
   }
