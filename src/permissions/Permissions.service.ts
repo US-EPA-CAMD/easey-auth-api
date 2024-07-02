@@ -16,6 +16,7 @@ import {
 import { FacilityAccessDTO } from '../dtos/permissions.dto';
 import { OidcHelperService } from '../oidc/OidcHelperService';
 import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
+import { BypassService } from '../oidc/Bypass.service';
 
 @Injectable()
 export class PermissionsService {
@@ -23,6 +24,7 @@ export class PermissionsService {
     private readonly configService: ConfigService,
     private httpService: HttpService,
     private readonly oidcHelperService: OidcHelperService,
+    private readonly bypassService: BypassService,
     private readonly logger: Logger,
   ) {}
 
@@ -98,38 +100,41 @@ export class PermissionsService {
     accessToken: string,
     clientIp: string,
   ) {
-    const bypassEnabled =
-      this.configService.get<string>('app.env') !== 'production' &&
-      this.configService.get<boolean>('cdxBypass.enabled');
 
-    if (
-      bypassEnabled ||
-      this.configService.get<boolean>('app.mockPermissionsEnabled') ||
-      roles.some((role: UserRole) =>
-        [
-          UserRole.SPONSOR,
-          UserRole.PREPARER,
-          UserRole.SUBMITTER,
-          UserRole.INITIAL_AUTHORIZER,
-        ].includes(role),
-      )
-    ) {
-      let url;
-      if (
-        bypassEnabled ||
-        this.configService.get<boolean>('app.mockPermissionsEnabled')
-      ) {
-        url = `${this.configService.get<string>(
-          'app.mockPermissionsUrl',
-        )}?userId=${userId.toUpperCase()}`;
-      } else {
-        url = `${this.configService.get<string>(
-          'app.permissionsUrl',
-        )}?userId=${userId.toUpperCase()}`;
-      }
-      return await this.getUserPermissions(clientIp, accessToken, url);
-    } else {
+    const bypassEnabled = this.bypassService.bypassEnabled();
+    const mockPermissionsEnabled = this.configService.get<boolean>('app.mockPermissionsEnabled');
+    const hasRequiredRole = roles.some((role: UserRole) =>
+      [
+        UserRole.SPONSOR,
+        UserRole.PREPARER,
+        UserRole.SUBMITTER,
+        UserRole.INITIAL_AUTHORIZER,
+      ].includes(role),
+    );
+
+    this.logger.debug('retrieveAllUserFacilities: ', {userId, hasRequiredRole, bypassEnabled, mockPermissionsEnabled} );
+
+    if (!hasRequiredRole) {
+      this.logger.debug('User does not have one of the required roles. Returning an empty list of responsibilities. ');
       return [];
+    }
+
+    let url: string;
+    let permissionServiceName = "";
+    if (bypassEnabled || mockPermissionsEnabled) {
+      url = `${this.configService.get<string>('app.mockPermissionsUrl',)}?userId=${userId.toUpperCase()}`;
+      permissionServiceName = "Mock Permissions";
+    } else {
+      url = `${this.configService.get<string>('app.permissionsUrl')}?userId=${userId.toUpperCase()}`;
+      permissionServiceName = "CBS"
+    }
+
+    try {
+      return await this.getUserPermissions(clientIp, accessToken, url);
+    } catch (error) {
+      const errorMessage = "Unable to obtain user responsibilities from " +  permissionServiceName + ". Please try again later."
+      this.logger.error(errorMessage, url, error.message);
+      throw new Error(errorMessage);
     }
   }
 
@@ -193,11 +198,13 @@ export class PermissionsService {
 
       return null;
     } catch (e) {
+      this.logger.error('getUserPermissions: ', e);
       // throwing error, when CBS API returns error.
       if (
         !this.configService.get<boolean>('app.mockPermissionsEnabled') &&
         !e.response
       ) {
+        this.logger.error('Call to CBS for user responsibilities failed.', e);
         throw new EaseyException(
           new Error(
             'Unable to obtain user responsibilities from CBS. Please try again later.',
