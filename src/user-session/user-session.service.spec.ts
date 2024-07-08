@@ -116,12 +116,10 @@ describe('User Session Service', () => {
       expect(returned).toEqual(session);
     });
 
-    it('should error if a session is missing', async () => {
+    it('should return null if a session is missing', async () => {
       mockRepo.findOneBy = jest.fn().mockResolvedValue(null);
 
-      expect(async () => {
-        await service.findSessionByUserIdAndToken('', '');
-      }).rejects.toThrow();
+      await expect(service.findSessionByUserIdAndToken('', '')).resolves.toBeNull();
     });
   });
 
