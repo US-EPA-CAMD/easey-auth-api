@@ -70,7 +70,7 @@ export class AuthService {
       //If this is a sign-in flow, log the user out of B2C to avoid any
       //session conflict during the sign-in process.
       if (policyResponse.policy.includes('_SIGNIN')) {
-        await this.oidcHelperService.terminateB2CSession(policyResponse.policy, apiToken);
+        await this.oidcHelperService.terminateOidcSession(policyResponse.policy, apiToken);
       }
 
       return policyResponse;
@@ -353,12 +353,14 @@ export class AuthService {
   }
 
   async signOut(userId: string, token: string): Promise<void> {
+    this.logger.debug('signOut, signing user out: ', userId);
     const session: UserSession = await this.userSessionService.findSessionByUserIdAndToken(userId, token);
 
     //sign the user out with the OIDC provider
-    if (session && session.oidcPolicy) {
+    if (session && session.oidcPolicy && !this.bypassService.bypassEnabled() ) {
+      this.logger.debug('signOut, signing user out from OIDC provider: ', userId);
       const apiToken = await this.tokenService.getCdxApiToken();
-      await this.oidcHelperService.terminateB2CSession(session.oidcPolicy, apiToken);
+      await this.oidcHelperService.terminateOidcSession(session.oidcPolicy, apiToken);
     }
 
     await this.userSessionService.removeUserSessionByUserId(userId);
