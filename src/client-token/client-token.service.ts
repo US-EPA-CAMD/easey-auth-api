@@ -6,16 +6,19 @@ import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
 
 import { TokenDTO } from '../dtos/token.dto';
 import { ClientTokenRepository } from './client-token.repository';
+import { Logger } from '@us-epa-camd/easey-common/logger';
 
 @Injectable()
 export class ClientTokenService {
   constructor(
     private readonly repository: ClientTokenRepository,
     private readonly configService: ConfigService,
+    private readonly logger: Logger,
   ) {}
 
   async validateToken(clientId: string, clientToken: string): Promise<boolean> {
     //Ensure fields have been set
+    this.logger.debug('validateToken for ', { clientId });
     if (!clientId || !clientToken) {
       throw new EaseyException(
         new Error(
@@ -32,7 +35,7 @@ export class ClientTokenService {
       if (!dbRecord) {
         throw new EaseyException(
           new Error(
-            'The client id provided in the request is not a valid registered client application.',
+            'The client id provided in the request is not a valid registered client application: ' + clientId,
           ),
           HttpStatus.BAD_REQUEST,
         );
@@ -44,7 +47,7 @@ export class ClientTokenService {
       if (decoded.passCode !== dbRecord.passCode) {
         throw new EaseyException(
           new Error(
-            'The client token provided in the request is invalid and cannot be verified.',
+            'The client token provided in the request is invalid and cannot be verified: ' + clientId,
           ),
           HttpStatus.BAD_REQUEST,
         );
@@ -60,6 +63,8 @@ export class ClientTokenService {
     clientId: string,
     clientSecret: string,
   ): Promise<TokenDTO> {
+    const firstTenCharsOfClientSecret = clientSecret ? clientSecret.slice(0, 10) : '';
+    this.logger.debug('generateToken for ', { clientId, firstTenCharsOfClientSecret});
     //Ensure fields have been set
     if (!clientId || !clientSecret) {
       throw new EaseyException(
@@ -99,7 +104,7 @@ export class ClientTokenService {
       } else {
         throw new EaseyException(
           new Error(
-            'The client id provided in the request is not a valid registered client application.',
+            'The client id provided in the request is not a valid registered client application: ' + clientId,
           ),
           HttpStatus.BAD_REQUEST,
         );
