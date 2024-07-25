@@ -42,9 +42,16 @@ export class TokenService {
       userId,
       token,
     );
-    this.logger.debug('Retrieved user session', {
-      sessionId: session.sessionId,
-    });
+
+    if (!session) {
+      throw new EaseyException(
+        new Error('Unable to refresh token, no existing session for user/token '),
+        HttpStatus.BAD_REQUEST,
+        { userId: userId },
+      );
+    }
+
+    this.logger.debug('Retrieved user session', {sessionId: session.sessionId,});
 
     //If a request comes in for a session that is already being processed, wait for promise to resolve.
     const sessionId = session.sessionId;
@@ -58,13 +65,33 @@ export class TokenService {
 
     const refreshPromise = (async () => {
       try {
-        //Retrieve fresh token from the token refresh endpoint and store it in the user session
-        const accessTokenResponse = await this.updateUserSessionWithNewTokens(
-          session,
-        );
-        this.logger.debug('Updated user session with newly retrieved tokens', {
-          accessTokenResponse,
-        });
+
+        if (this.bypassService.bypassEnabled()) {
+          //Bypass Tokens
+          const tokenDto = await this.bypassService.generateToken(
+            session.userId,
+            session.sessionId,
+            clientIp,
+            JSON.parse(session.roles)
+          );
+
+          //Save this in the session
+          session.securityToken = tokenDto.token;
+          session.idToken = '';
+          session.refreshToken = '';
+          session.tokenExpiration = tokenDto.expiration;
+          await this.userSessionService.updateSession(session);
+
+        } else {
+
+          //Retrieve fresh token from the token refresh endpoint and store it in the user session
+          const accessTokenResponse = await this.updateUserSessionWithNewOidcTokens(
+            session,
+          );
+          this.logger.debug('Updated user session with newly retrieved tokens', {
+            accessTokenResponse,
+          });
+        }
 
         session = await this.userSessionService.findSessionBySessionId(
           sessionId,
@@ -129,7 +156,7 @@ export class TokenService {
       userSession,
       params,
     );
-    await this.validateAndSaveTokenInUserSession(
+    await this.validateAndSaveOidcTokenInUserSession(
       accessTokenResponse,
       userSession,
     );
@@ -137,7 +164,7 @@ export class TokenService {
     return accessTokenResponse;
   }
 
-  async updateUserSessionWithNewTokens(
+  async updateUserSessionWithNewOidcTokens(
     userSession: UserSession,
   ): Promise<AccessTokenResponse> {
     const params = new URLSearchParams();
@@ -148,7 +175,7 @@ export class TokenService {
       userSession,
       params,
     );
-    await this.validateAndSaveTokenInUserSession(
+    await this.validateAndSaveOidcTokenInUserSession(
       accessTokenResponse,
       userSession,
     );
@@ -156,7 +183,7 @@ export class TokenService {
     return accessTokenResponse;
   }
 
-  private async validateAndSaveTokenInUserSession(
+  private async validateAndSaveOidcTokenInUserSession(
     accessTokenResponse: AccessTokenResponse,
     userSession: UserSession,
   ) {
@@ -294,13 +321,22 @@ export class TokenService {
     expectedAudience: string,
   ): any {
     const now = Math.floor(Date.now() / 1000);
-    if (token.exp && token.exp < now) {
+
+    const clockTolerance = {
+      nbf: 300,  // 5 minutes for not-before
+      exp: 60    // 1 minute for expiration
+    };
+
+    if (token.exp && token.exp < (now - clockTolerance.exp)) {
+      this.logger.debug(
+        `Token has expired. exp: ${token.exp}, now: ${now}, exp with tolerance: ${token.exp + clockTolerance.exp}`
+      );
       return false;
     }
 
-    if (token.nbf && token.nbf > now) {
+    if (token.nbf && token.nbf > (now + clockTolerance.nbf)) {
       this.logger.debug(
-        'Token has expired or the token cannot be used before its begin time',
+        `Token cannot be used before its begin time. nbf: ${token.nbf}, now: ${now}, nbf with tolerance: ${token.nbf - clockTolerance.nbf}`
       );
       return false;
     }

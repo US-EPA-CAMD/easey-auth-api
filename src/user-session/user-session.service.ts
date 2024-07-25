@@ -54,7 +54,7 @@ export class UserSessionService {
 
   isSessionTokenExpired(
     sessionRecord: UserSession,
-    applyThreshold: boolean = true,
+    applyThreshold = true,
   ): boolean {
     const currentExpiration = new Date(sessionRecord.tokenExpiration);
 
@@ -96,7 +96,7 @@ export class UserSessionService {
   async isValidSessionForToken(
     sessionId: string,
     token: string,
-    applyThreshold: boolean = true,
+    applyThreshold = true,
   ): Promise<UserSession> {
     const sessionRecord = await this.repository.findOneBy({
       sessionId,
@@ -146,11 +146,7 @@ export class UserSessionService {
       return session;
     }
 
-    throw new EaseyException(
-      new Error('Existing session for the provided token does not exist.'),
-      HttpStatus.BAD_REQUEST,
-      { userId: userId },
-    );
+    return null;
   }
 
   async findSessionByUserId(userId: string): Promise<UserSession> {

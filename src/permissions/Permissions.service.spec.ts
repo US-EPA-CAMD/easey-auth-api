@@ -8,6 +8,7 @@ import { SignService } from '../sign/Sign.service';
 import { UserSessionService } from '../user-session/user-session.service';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { OidcHelperService } from '../oidc/OidcHelperService';
+import { BypassService } from '../oidc/Bypass.service';
 
 let responseVals = {
   ['app.env']: 'production',
@@ -47,6 +48,7 @@ jest.mock('rxjs', () => ({
 describe('PermissionsService', () => {
   let service: PermissionsService;
   let oidcHelperService: OidcHelperService;
+  let bypassService: BypassService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -75,6 +77,13 @@ describe('PermissionsService', () => {
           },
         },
         {
+          provide: BypassService,
+          useValue: {
+            bypassEnabled: jest.fn().mockReturnValue(false),
+            getBypassUser: jest.fn(),
+          },
+        },
+        {
           provide: HttpService,
           useFactory: () => ({
             get: jest.fn(),
@@ -97,6 +106,7 @@ describe('PermissionsService', () => {
 
     service = module.get<PermissionsService>(PermissionsService);
     oidcHelperService = module.get<OidcHelperService>(OidcHelperService);
+    bypassService = module.get<BypassService>(BypassService);
   });
 
   it('should be defined', () => {

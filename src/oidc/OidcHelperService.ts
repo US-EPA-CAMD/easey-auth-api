@@ -125,7 +125,7 @@ export class OidcHelperService {
     }
   }
 
-  async terminateB2CSession(oidcPolicy: string, apiToken: string) {
+  async terminateOidcSession(oidcPolicy: string, apiToken: string) {
 
     this.logger.debug('Terminating any existing user session with B2C for policy ', {
       oidcPolicy,
