@@ -1,4 +1,3 @@
-import { createClientAsync } from 'soap';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@us-epa-camd/easey-common/logger';
@@ -14,17 +13,11 @@ import { OidcAuthValidationResponseDto } from '../dtos/oidc-auth-validation-resp
 import { SignInDTO } from '../dtos/signin.dto';
 import * as jwt from 'jsonwebtoken';
 import { OidcJwtPayload, OrganizationResponse } from '../dtos/oidc-auth-dtos';
-import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
 import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
 import { OidcHelperService } from '../oidc/OidcHelperService';
 import { BypassService } from '../oidc/Bypass.service';
 import { UserSession } from '../entities/user-session.entity';
 import { LoginStateDTO } from '../dtos/login.state.dto';
-
-interface OrgEmailAndId {
-  email: string;
-  userOrgId: number;
-}
 
 @Injectable()
 export class AuthService {
@@ -168,7 +161,7 @@ export class AuthService {
         signInDto,
         clientIp,
       });
-      const apiToken = await this.tokenService.getCdxApiToken(); //For api calls
+
       if (this.bypassService.bypassEnabled()) {
         this.logger.debug('Bypass is enabled');
         //For bypass, sessionId has the userID
@@ -268,6 +261,7 @@ export class AuthService {
         );
 
         //Retrieve email and roles
+        const apiToken = await this.tokenService.getCdxApiToken(); //For api calls
         const orgResponse = await this.getUserEmail(userDto.userId, apiToken);
         userDto.email = orgResponse.email;
         this.logger.debug('Retrieved user email', { email: userDto.email });
