@@ -1,15 +1,17 @@
-import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
 import {
   applySwagger,
   applyMiddleware,
 } from '@us-epa-camd/easey-common/nestjs';
+import { useContainer } from 'class-validator';
 
 import { AppModule } from './app.module';
 
 export async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  useContainer(app.select(AppModule), { fallbackOnErrors: true });
   await applyMiddleware(AppModule, app, true);
   await applySwagger(app);
 
