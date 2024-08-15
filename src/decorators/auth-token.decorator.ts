@@ -1,5 +1,9 @@
-import { HttpStatus, HttpException, createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
+import {
+  HttpStatus,
+  createParamDecorator,
+  ExecutionContext,
+} from '@nestjs/common';
+import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 
 export const AuthToken = createParamDecorator(
   (data: never, context: ExecutionContext) => {
@@ -8,11 +12,17 @@ export const AuthToken = createParamDecorator(
     // headers { authorization: Bearer <auth token goes here> }
     const header = request.headers?.authorization;
     if (!header)
-      throw new LoggingException('Authorization token is missing.', HttpStatus.UNAUTHORIZED);
+      throw new EaseyException(
+        new Error('Authorization token is missing.'),
+        HttpStatus.UNAUTHORIZED,
+      );
 
     const parts = header.split(' ');
     if (parts.length !== 2 || parts[0] !== 'Bearer')
-      throw new LoggingException('Authorization token is invalid.', HttpStatus.UNAUTHORIZED);
+      throw new EaseyException(
+        new Error('Authorization token is invalid.'),
+        HttpStatus.UNAUTHORIZED,
+      );
 
     return parts[1];
   },
