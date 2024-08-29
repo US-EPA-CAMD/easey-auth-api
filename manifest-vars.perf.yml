@@ -8,7 +8,7 @@ naasSvcs: https://naas.epacdxnode.net/xml/securitytoken_v30.wsdl
 permissionsUrl: https://cbsstagei.epa.gov/CBSD/api/auth-mgmt/responsibilities
 dataFlow: EASEY Performance
 mockPermissionsEnabled: false
-enableAllFacilities: false
+enableAllFacilities: true
 
 # ICAM
 signFilesIndividually: false
