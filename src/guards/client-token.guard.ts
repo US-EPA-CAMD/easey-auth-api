@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
+import { LoggingException } from '@us-epa-camd/easey-common/exceptions';
 
 import { ClientTokenService } from 'src/client-token/client-token.service';
 
@@ -30,12 +30,12 @@ export class ClientTokenGuard implements CanActivate {
       authHeader === null ||
       authHeader === undefined
     ) {
-      throw new EaseyException(new Error(errorMsg), HttpStatus.BAD_REQUEST);
+      throw new LoggingException(errorMsg, HttpStatus.BAD_REQUEST);
     }
 
     const splitString = authHeader.split(' ');
     if (splitString.length !== 2 && splitString[0] !== 'Bearer') {
-      throw new EaseyException(new Error(errorMsg), HttpStatus.BAD_REQUEST);
+      throw new LoggingException(errorMsg, HttpStatus.BAD_REQUEST);
     }
 
     return this.tokenService.validateToken(clientId, splitString[1]);
@@ -52,4 +52,3 @@ export class ClientTokenGuard implements CanActivate {
     return true;
   }
 }
-
