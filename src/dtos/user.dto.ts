@@ -1,5 +1,5 @@
-import { IsArray, IsString } from 'class-validator';
-import { FacilityAccessDTO } from './permissions.dto';
+import { IsArray, IsString, IsBoolean } from 'class-validator';
+import { FacilityAccessWithCertStatementFlagDTO } from './permissions.dto';
 
 export class UserDTO {
   @IsString()
@@ -18,7 +18,7 @@ export class UserDTO {
   refreshToken: string;
   @IsString()
   email: string;
-  facilities: FacilityAccessDTO[];
+  facilities: FacilityAccessWithCertStatementFlagDTO;
   @IsArray()
   roles: string[];
 }

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsArray } from 'class-validator';
+import { IsNumber, IsArray, IsBoolean, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class FacilityAccessDTO {
   @ApiProperty({
@@ -20,3 +21,20 @@ export class FacilityAccessDTO {
   @IsArray()
   permissions: string[];
 }
+
+export class FacilityAccessWithCertStatementFlagDTO {
+  @ApiProperty({
+    description: 'List of faclities with associated permissions',
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => FacilityAccessDTO)
+  plantList: FacilityAccessDTO[];
+
+  @ApiProperty({
+    description: 'missing unsigned certificate statements flag',
+  })
+  @IsBoolean()
+  missingCertificationStatements: boolean;
+}
+

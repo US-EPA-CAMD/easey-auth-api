@@ -13,7 +13,7 @@ import {
   OrganizationResponse,
   UserRolesResponse,
 } from '../dtos/oidc-auth-dtos';
-import { FacilityAccessDTO } from '../dtos/permissions.dto';
+import { FacilityAccessDTO, FacilityAccessWithCertStatementFlagDTO } from '../dtos/permissions.dto';
 import { OidcHelperService } from '../oidc/OidcHelperService';
 import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
 import { BypassService } from '../oidc/Bypass.service';
@@ -99,7 +99,7 @@ export class PermissionsService {
     roles: Array<string>,
     accessToken: string,
     clientIp: string,
-  ) {
+  ): Promise<FacilityAccessWithCertStatementFlagDTO> {
 
     const bypassEnabled = this.bypassService.bypassEnabled();
     const mockPermissionsEnabled = this.configService.get<boolean>('app.mockPermissionsEnabled');
@@ -116,7 +116,7 @@ export class PermissionsService {
 
     if (!hasRequiredRole) {
       this.logger.debug('User does not have one of the required roles. Returning an empty list of responsibilities. ');
-      return [];
+      return new FacilityAccessWithCertStatementFlagDTO();
     }
 
     let url: string;
@@ -138,7 +138,7 @@ export class PermissionsService {
     }
   }
 
-  async getMockPermissions(userId: string): Promise<FacilityAccessDTO[]> {
+  async getMockPermissions(userId: string): Promise<FacilityAccessWithCertStatementFlagDTO> {
     if (this.configService.get<string>('app.env') === 'production') {
       throw new EaseyException(
         new Error('Mocking permissions in production is not allowed!'),
@@ -146,23 +146,24 @@ export class PermissionsService {
       );
     }
 
-    const permissionsDto = [];
+    const permissionsDto = new FacilityAccessWithCertStatementFlagDTO();
     const mockPermissionObject = await this.getMockPermissionObject();
-    const userPermissions = mockPermissionObject.filter(
-      entry => entry.userId.toUpperCase() === userId.toUpperCase(),
-    );
-
+    mockPermissionObject.userId = mockPermissionObject.userId.toUpperCase();
+    const userPermissions = mockPermissionObject;
     if (
-      userPermissions.length > 0 &&
-      userPermissions[0].facilities.length > 0
+      userPermissions.plantList != null &&
+      userPermissions.plantList.length > 0
     ) {
-      for (const facility of userPermissions[0].facilities) {
+      const plantList = []
+      for (const facility of userPermissions.plantList) {
         const dto = new FacilityAccessDTO();
         dto.facId = facility.facId;
         dto.orisCode = facility.orisCode;
         dto.permissions = facility.roles;
-        permissionsDto.push(dto);
-      }
+        plantList.push(dto);
+      };
+      permissionsDto.plantList = plantList;
+      permissionsDto.missingCertificationStatements = userPermissions.missingCertificationStatements;
     } else if (this.configService.get<boolean>('app.enableAllFacilities')) {
       return null;
     }
@@ -174,7 +175,7 @@ export class PermissionsService {
     clientIp: string,
     token: string,
     url: string,
-  ): Promise<FacilityAccessDTO[]> {
+  ): Promise<FacilityAccessWithCertStatementFlagDTO> {
     try {
       const allowLegacyRenegotiationforNodeJsOptions = {
         httpsAgent: new https.Agent({
@@ -216,7 +217,7 @@ export class PermissionsService {
     }
   }
 
-  async getMockPermissionObject(): Promise<MockPermissionObject[]> {
+  async getMockPermissionObject(): Promise<MockPermissionObject> {
     const contentUri = this.configService.get<string>('app.contentUri');
     try {
       const url = `${contentUri}/auth/mockPermissions.json`;

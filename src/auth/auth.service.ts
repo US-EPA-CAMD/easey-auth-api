@@ -298,7 +298,7 @@ export class AuthService {
       this.logger.debug('Retrieved user facilities', { facilities });
       this.logger.debug(
         `Retrieved user facilities, number of facilities: ${
-          userDto.facilities ? userDto.facilities.length : 0
+          userDto.facilities.plantList ? userDto.facilities.plantList.length : 0
         }`,
       );
 
