@@ -148,14 +148,19 @@ export class PermissionsService {
 
     const permissionsDto = new FacilityAccessWithCertStatementFlagDTO();
     const mockPermissionObject = await this.getMockPermissionObject();
-    mockPermissionObject.userId = mockPermissionObject.userId.toUpperCase();
-    const userPermissions = mockPermissionObject;
+
+    //filter out all the unmactched records
+    const userPermissions = mockPermissionObject.filter(
+      entry => entry.userId.toUpperCase() === userId.toUpperCase(),
+    );
+    
+    //only retrieve info from the first matched record
     if (
-      userPermissions.plantList != null &&
-      userPermissions.plantList.length > 0
+      userPermissions[0]?.plantList != null &&
+      userPermissions[0]?.plantList.length > 0
     ) {
       const plantList = []
-      for (const facility of userPermissions.plantList) {
+      for (const facility of userPermissions[0]?.plantList) {
         const dto = new FacilityAccessDTO();
         dto.facId = facility.facId;
         dto.orisCode = facility.orisCode;
@@ -163,7 +168,7 @@ export class PermissionsService {
         plantList.push(dto);
       };
       permissionsDto.plantList = plantList;
-      permissionsDto.missingCertificationStatements = userPermissions.missingCertificationStatements;
+      permissionsDto.missingCertificationStatements = userPermissions[0]?.missingCertificationStatements;
     } else if (this.configService.get<boolean>('app.enableAllFacilities')) {
       return null;
     }
@@ -217,7 +222,7 @@ export class PermissionsService {
     }
   }
 
-  async getMockPermissionObject(): Promise<MockPermissionObject> {
+  async getMockPermissionObject(): Promise<MockPermissionObject[]> {
     const contentUri = this.configService.get<string>('app.contentUri');
     try {
       const url = `${contentUri}/auth/mockPermissions.json`;

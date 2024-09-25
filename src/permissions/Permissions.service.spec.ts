@@ -212,7 +212,7 @@ describe('PermissionsService', () => {
         plantList: [{ orisCode: 1, roles: [], facId: 1 }],
         missingCertificationStatements: true,
       };
-      jest.spyOn(service, 'getMockPermissionObject').mockResolvedValue(p);
+      jest.spyOn(service, 'getMockPermissionObject').mockResolvedValue([p]);
       responseVals = {
         ...responseVals,
         ['app.env']: 'local-dev',
@@ -234,7 +234,7 @@ describe('PermissionsService', () => {
         ['app.env']: 'local-dev',
       };
 
-      jest.spyOn(service, 'getMockPermissionObject').mockResolvedValue(p);
+      jest.spyOn(service, 'getMockPermissionObject').mockResolvedValue([p]);
 
       const permissions = await service.getMockPermissions('userNotFound');
 
