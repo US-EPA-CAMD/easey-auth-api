@@ -294,6 +294,24 @@ export class AuthService {
         userDto.token,
         clientIp,
       );
+      //check if the user has any unsigned cert statements
+      if (facilities.missingCertificationStatements) {
+        this.logger.error('Login Error: User exist unsigned certitifcate statements');
+        //if the user has unsigned cert statements, we need to fail the login
+
+        if (!this.bypassService.bypassEnabled()) {
+          //terminate OIDC session
+          const apiToken = await this.tokenService.getCdxApiToken();
+          await this.oidcHelperService.terminateOidcSession(session.oidcPolicy, apiToken);
+        }
+      
+        //throw and display to error message
+        throw new EaseyException( 
+          new Error(`You have not signed all of the necessary certification statements which are associated with your responsibilities as a representative or agent. Until these certification statements have been signed, you will not be able to log in to ECMPS. Please use the CAMD Business System to sign all of your required certification statements.`),
+          HttpStatus.FORBIDDEN,
+        );
+      };
+
       userDto.facilities = facilities;
       this.logger.debug('Retrieved user facilities', { facilities });
       this.logger.debug(
