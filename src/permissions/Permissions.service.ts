@@ -156,11 +156,11 @@ export class PermissionsService {
     
     //only retrieve info from the first matched record
     if (
-      userPermissions[0]?.plantList != null &&
-      userPermissions[0]?.plantList.length > 0
+      userPermissions.length > 0 &&
+      userPermissions[0].plantList?.length > 0
     ) {
       const plantList = []
-      for (const facility of userPermissions[0]?.plantList) {
+      for (const facility of userPermissions[0].plantList) {
         const dto = new FacilityAccessDTO();
         dto.facId = facility.facId;
         dto.orisCode = facility.orisCode;
