@@ -188,7 +188,11 @@ describe('PermissionsService', () => {
 
   describe('retrieveAllUserFacilities', () => {
     it('should return all facilities for the user given mocked data', async () => {
-      jest.spyOn(service, 'getUserPermissions').mockResolvedValue(new FacilityAccessWithCertStatementFlagDTO());
+      const p: FacilityAccessWithCertStatementFlagDTO = {
+        plantList: [],
+        missingCertificationStatements: true,
+      };
+      jest.spyOn(service, 'getUserPermissions').mockResolvedValue(p);
 
       const facilities = await service.retrieveAllUserFacilities(
         '',
@@ -196,7 +200,8 @@ describe('PermissionsService', () => {
         '',
         '',
       );
-      expect(facilities).toEqual(new FacilityAccessWithCertStatementFlagDTO());
+      expect(facilities?.plantList).toEqual([]);
+      expect(facilities?.missingCertificationStatements).toEqual(true);
     });
   });
 

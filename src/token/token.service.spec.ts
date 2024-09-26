@@ -60,7 +60,7 @@ describe('Token Service', () => {
             isSessionTokenExpired: jest.fn().mockReturnValue(false),
             getUserPermissions: jest
               .fn()
-              .mockResolvedValue(new FacilityAccessWithCertStatementFlagDTO()),
+              .mockResolvedValue({plantList: [], missingCertificationStatements: true, }as FacilityAccessWithCertStatementFlagDTO),
           }),
         },
         {
@@ -84,7 +84,7 @@ describe('Token Service', () => {
           provide: PermissionsService,
           useFactory: () => ({
             retrieveAllUserRoles: jest.fn().mockResolvedValue(['Preparer']),
-            retrieveAllUserFacilities: jest.fn().mockResolvedValue(new FacilityAccessWithCertStatementFlagDTO()),
+            retrieveAllUserFacilities: jest.fn().mockResolvedValue({plantList: [], missingCertificationStatements: true, } as FacilityAccessWithCertStatementFlagDTO),
           }),
         },
         TokenService,

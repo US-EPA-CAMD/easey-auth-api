@@ -116,7 +116,7 @@ export class PermissionsService {
 
     if (!hasRequiredRole) {
       this.logger.debug('User does not have one of the required roles. Returning an empty list of responsibilities. ');
-      return new FacilityAccessWithCertStatementFlagDTO();
+      return { plantList: [], missingCertificationStatements: true,} as FacilityAccessWithCertStatementFlagDTO;
     }
 
     let url: string;
@@ -146,7 +146,7 @@ export class PermissionsService {
       );
     }
 
-    const permissionsDto = new FacilityAccessWithCertStatementFlagDTO();
+    const permissionsDto = {plantList: [], missingCertificationStatements: true,} as FacilityAccessWithCertStatementFlagDTO;
     const mockPermissionObject = await this.getMockPermissionObject();
 
     //filter out all the unmactched records
