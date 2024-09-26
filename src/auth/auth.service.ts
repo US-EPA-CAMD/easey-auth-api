@@ -287,15 +287,17 @@ export class AuthService {
         );
       }
 
+      session.roles = JSON.stringify(userDto.roles);
+
       //Retrieve the list of facilities.
-      const facilities = await this.permissionsService.retrieveAllUserFacilities(
+      const facilitiesWithCertFlag = await this.permissionsService.retrieveAllUserFacilities(
         userDto.userId,
         userDto.roles,
         userDto.token,
         clientIp,
       );
       //check if the user has any unsigned cert statements
-      if (facilities.missingCertificationStatements) {
+      if (facilitiesWithCertFlag.missingCertificationStatements) {
         this.logger.error('Login Error: User has unsigned certificate statements');
         //if the user has unsigned cert statements, we need to fail the login
 
@@ -303,6 +305,8 @@ export class AuthService {
           //terminate OIDC session
           const apiToken = await this.tokenService.getCdxApiToken();
           await this.oidcHelperService.terminateOidcSession(session.oidcPolicy, apiToken);
+          //remove related record from User_Session table
+          await this.userSessionService.removeUserSessionByUserId(userDto.userId);
         }
       
         //throw and display to error message
@@ -312,16 +316,16 @@ export class AuthService {
         );
       };
 
-      userDto.facilities = facilities;
-      this.logger.debug('Retrieved user facilities', { facilities });
+      userDto.facilities = facilitiesWithCertFlag.plantList;
+      userDto.missingCertificationStatements = facilitiesWithCertFlag.missingCertificationStatements;
+      this.logger.debug('Retrieved user facilities and missing certificate statements flag', { facilitiesWithCertFlag });
       this.logger.debug(
         `Retrieved user facilities, number of facilities: ${
-          userDto.facilities.plantList ? userDto.facilities.plantList.length : 0
+          userDto.facilities ? userDto.facilities.length : 0
         }`,
       );
 
-      session.roles = JSON.stringify(userDto.roles);
-      session.facilities = JSON.stringify(facilities);
+      session.facilities = JSON.stringify(userDto.facilities);
 
       //Update the session with user and facility information
       await this.userSessionService.updateSession(session);
