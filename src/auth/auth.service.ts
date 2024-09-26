@@ -296,7 +296,7 @@ export class AuthService {
       );
       //check if the user has any unsigned cert statements
       if (facilities.missingCertificationStatements) {
-        this.logger.error('Login Error: User exist unsigned certitifcate statements');
+        this.logger.error('Login Error: User has unsigned certificate statements');
         //if the user has unsigned cert statements, we need to fail the login
 
         if (!this.bypassService.bypassEnabled()) {
