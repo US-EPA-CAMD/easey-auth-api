@@ -32,7 +32,7 @@ const client = {
 
 jest.mock('rxjs', () => ({
   firstValueFrom: jest.fn().mockResolvedValue({
-    data: [
+    data: 
       {
         userId: 'user',
         isAdmin: true,
@@ -48,7 +48,6 @@ jest.mock('rxjs', () => ({
         ],
         missingCertificationStatements: true,
       },
-    ],
   }),
 }));
 describe('PermissionsService', () => {
@@ -122,7 +121,7 @@ describe('PermissionsService', () => {
   describe('getUserPermissions', () => {
     it('should return mocked user permissions', async () => {
       const permissions = await service.getUserPermissions('', '', '');
-      expect(permissions).toEqual([
+      expect(permissions).toEqual(
         {
           userId: 'user',
           isAdmin: true,
@@ -138,7 +137,7 @@ describe('PermissionsService', () => {
           ], 
           missingCertificationStatements: true,
         },
-      ]);
+      );
     });
   });
 
@@ -214,7 +213,7 @@ describe('PermissionsService', () => {
     it('should parse user env var and build the permissions properly given a found user', async () => {
       const p: MockPermissionObject = {
         userId: 'user',
-        plantList: [{ orisCode: 1, roles: [], facId: 1 }],
+        facilities: [{ orisCode: 1, roles: [], facId: 1 }],
         missingCertificationStatements: true,
       };
       jest.spyOn(service, 'getMockPermissionObject').mockResolvedValue([p]);
@@ -231,7 +230,7 @@ describe('PermissionsService', () => {
     it('should parse user env var and build the permissions properly given a not found user', async () => {
       const p: MockPermissionObject = {
         userId: 'user',
-        plantList: [{ orisCode: 1, roles: [], facId: 1 }],
+        facilities: [{ orisCode: 1, roles: [], facId: 1 }],
         missingCertificationStatements: true,
       };
       responseVals = {

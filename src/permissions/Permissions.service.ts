@@ -157,10 +157,10 @@ export class PermissionsService {
     //only retrieve info from the first matched record
     if (
       userPermissions.length > 0 &&
-      userPermissions[0].plantList?.length > 0
+      userPermissions[0].facilities?.length > 0
     ) {
       const plantList = []
-      for (const facility of userPermissions[0].plantList) {
+      for (const facility of userPermissions[0].facilities) {
         const dto = new FacilityAccessDTO();
         dto.facId = facility.facId;
         dto.orisCode = facility.orisCode;
@@ -168,7 +168,9 @@ export class PermissionsService {
         plantList.push(dto);
       };
       permissionsDto.plantList = plantList;
-      permissionsDto.missingCertificationStatements = userPermissions[0]?.missingCertificationStatements;
+      //if the missingCertificationStatements flag is null or undefined, set the default value to true
+      permissionsDto.missingCertificationStatements = userPermissions[0]?.missingCertificationStatements == null ? true : userPermissions[0]?.missingCertificationStatements;
+    
     } else if (this.configService.get<boolean>('app.enableAllFacilities')) {
       return null;
     }
@@ -199,7 +201,10 @@ export class PermissionsService {
       );
 
       if (permissionResult.data) {
-        return permissionResult.data;
+        const data = permissionResult.data
+        // check if the missingCertificationStatements is null or undefined, if it is, then set the default value to true
+        data.missingCertificationStatements = data.missingCertificationStatements == null ? true : data.missingCertificationStatements; 
+        return data;
       }
 
       return null;
