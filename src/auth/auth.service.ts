@@ -287,23 +287,45 @@ export class AuthService {
         );
       }
 
+      session.roles = JSON.stringify(userDto.roles);
+
       //Retrieve the list of facilities.
-      const facilities = await this.permissionsService.retrieveAllUserFacilities(
+      const facilitiesWithCertFlag = await this.permissionsService.retrieveAllUserFacilities(
         userDto.userId,
         userDto.roles,
         userDto.token,
         clientIp,
       );
-      userDto.facilities = facilities;
-      this.logger.debug('Retrieved user facilities', { facilities });
+      //check if the user has any unsigned cert statements
+      if (facilitiesWithCertFlag.missingCertificationStatements) {
+        this.logger.error('Login Error: User has unsigned certificate statements');
+        //if the user has unsigned cert statements, we need to fail the login
+
+        if (!this.bypassService.bypassEnabled()) {
+          //terminate OIDC session
+          const apiToken = await this.tokenService.getCdxApiToken();
+          await this.oidcHelperService.terminateOidcSession(session.oidcPolicy, apiToken);
+          //remove related record from User_Session table
+          await this.userSessionService.removeUserSessionByUserId(userDto.userId);
+        }
+      
+        //throw and display to error message
+        throw new EaseyException( 
+          new Error(`You have not signed all of the necessary certification statements which are associated with your responsibilities as a representative or agent. Until these certification statements have been signed, you will not be able to log in to ECMPS. Please use the CAMD Business System to sign all of your required certification statements.`),
+          HttpStatus.FORBIDDEN,
+        );
+      };
+
+      userDto.facilities = facilitiesWithCertFlag.plantList;
+      userDto.missingCertificationStatements = facilitiesWithCertFlag.missingCertificationStatements;
+      this.logger.debug('Retrieved user facilities and missing certificate statements flag', { facilitiesWithCertFlag });
       this.logger.debug(
         `Retrieved user facilities, number of facilities: ${
           userDto.facilities ? userDto.facilities.length : 0
         }`,
       );
 
-      session.roles = JSON.stringify(userDto.roles);
-      session.facilities = JSON.stringify(facilities);
+      session.facilities = JSON.stringify(userDto.facilities);
 
       //Update the session with user and facility information
       await this.userSessionService.updateSession(session);

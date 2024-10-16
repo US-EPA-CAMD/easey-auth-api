@@ -13,7 +13,7 @@ import {
   OrganizationResponse,
   UserRolesResponse,
 } from '../dtos/oidc-auth-dtos';
-import { FacilityAccessDTO } from '../dtos/permissions.dto';
+import { FacilityAccessDTO, FacilityAccessWithCertStatementFlagDTO } from '../dtos/permissions.dto';
 import { OidcHelperService } from '../oidc/OidcHelperService';
 import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
 import { BypassService } from '../oidc/Bypass.service';
@@ -99,7 +99,7 @@ export class PermissionsService {
     roles: Array<string>,
     accessToken: string,
     clientIp: string,
-  ) {
+  ): Promise<FacilityAccessWithCertStatementFlagDTO> {
 
     const bypassEnabled = this.bypassService.bypassEnabled();
     const mockPermissionsEnabled = this.configService.get<boolean>('app.mockPermissionsEnabled');
@@ -116,7 +116,7 @@ export class PermissionsService {
 
     if (!hasRequiredRole) {
       this.logger.debug('User does not have one of the required roles. Returning an empty list of responsibilities. ');
-      return [];
+      return { plantList: [], missingCertificationStatements: true,} as FacilityAccessWithCertStatementFlagDTO;
     }
 
     let url: string;
@@ -138,7 +138,7 @@ export class PermissionsService {
     }
   }
 
-  async getMockPermissions(userId: string): Promise<FacilityAccessDTO[]> {
+  async getMockPermissions(userId: string): Promise<FacilityAccessWithCertStatementFlagDTO> {
     if (this.configService.get<string>('app.env') === 'production') {
       throw new EaseyException(
         new Error('Mocking permissions in production is not allowed!'),
@@ -146,23 +146,31 @@ export class PermissionsService {
       );
     }
 
-    const permissionsDto = [];
+    const permissionsDto = {plantList: [], missingCertificationStatements: true,} as FacilityAccessWithCertStatementFlagDTO;
     const mockPermissionObject = await this.getMockPermissionObject();
+
+    //filter out all the unmactched records
     const userPermissions = mockPermissionObject.filter(
       entry => entry.userId.toUpperCase() === userId.toUpperCase(),
     );
-
+    
+    //only retrieve info from the first matched record
     if (
       userPermissions.length > 0 &&
-      userPermissions[0].facilities.length > 0
+      userPermissions[0].facilities?.length > 0
     ) {
+      const plantList = []
       for (const facility of userPermissions[0].facilities) {
         const dto = new FacilityAccessDTO();
         dto.facId = facility.facId;
         dto.orisCode = facility.orisCode;
         dto.permissions = facility.roles;
-        permissionsDto.push(dto);
-      }
+        plantList.push(dto);
+      };
+      permissionsDto.plantList = plantList;
+      //if the missingCertificationStatements flag is null or undefined, set the default value to true
+      permissionsDto.missingCertificationStatements = userPermissions[0]?.missingCertificationStatements == null ? true : userPermissions[0]?.missingCertificationStatements;
+    
     } else if (this.configService.get<boolean>('app.enableAllFacilities')) {
       return null;
     }
@@ -174,7 +182,7 @@ export class PermissionsService {
     clientIp: string,
     token: string,
     url: string,
-  ): Promise<FacilityAccessDTO[]> {
+  ): Promise<FacilityAccessWithCertStatementFlagDTO> {
     try {
       const allowLegacyRenegotiationforNodeJsOptions = {
         httpsAgent: new https.Agent({
@@ -193,7 +201,10 @@ export class PermissionsService {
       );
 
       if (permissionResult.data) {
-        return permissionResult.data;
+        const data = permissionResult.data
+        // check if the missingCertificationStatements is null or undefined, if it is, then set the default value to true
+        data.missingCertificationStatements = data.missingCertificationStatements == null ? true : data.missingCertificationStatements; 
+        return data;
       }
 
       return null;

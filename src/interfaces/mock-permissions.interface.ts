@@ -8,4 +8,5 @@ export interface MockPermissionObject {
   userId: string;
   isAdmin?: boolean;
   facilities: MockPermissions[];
+  missingCertificationStatements: boolean;
 }

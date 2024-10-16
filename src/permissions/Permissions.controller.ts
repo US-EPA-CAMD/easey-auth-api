@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 
 import { ApiTags, ApiOkResponse, ApiSecurity } from '@nestjs/swagger';
-import { FacilityAccessDTO } from '../dtos/permissions.dto';
+import { FacilityAccessWithCertStatementFlagDTO } from '../dtos/permissions.dto';
 import { PermissionsService } from './Permissions.service';
 
 @Controller()
@@ -12,12 +12,12 @@ export class PermissionsController {
 
   @Get('permissions')
   @ApiOkResponse({
-    type: FacilityAccessDTO,
-    description: 'Gets mocked permissions for provided user',
+    type: FacilityAccessWithCertStatementFlagDTO,
+    description: 'Gets mocked permissions and flag for unassigned certificate statements for provided user',
   })
   getPermissions(
     @Query('userId') userId: string,
-  ): Promise<FacilityAccessDTO[]> {
+  ): Promise<FacilityAccessWithCertStatementFlagDTO> {
     return this.service.getMockPermissions(userId);
   }
 }

@@ -9,6 +9,7 @@ import { UserSessionService } from '../user-session/user-session.service';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { OidcHelperService } from '../oidc/OidcHelperService';
 import { BypassService } from '../oidc/Bypass.service';
+import { FacilityAccessWithCertStatementFlagDTO } from '../dtos/permissions.dto';
 
 let responseVals = {
   ['app.env']: 'production',
@@ -31,18 +32,22 @@ const client = {
 
 jest.mock('rxjs', () => ({
   firstValueFrom: jest.fn().mockResolvedValue({
-    data: [
+    data: 
       {
         userId: 'user',
         isAdmin: true,
-        facilities: [
+        plantList: [
           {
             id: 1,
             permissions: ['DSMP', 'DSEM', 'DSQA'],
           },
+          {
+            id: 2,
+            permissions: ['DSMP', 'DSEM'],
+          },
         ],
+        missingCertificationStatements: true,
       },
-    ],
   }),
 }));
 describe('PermissionsService', () => {
@@ -116,18 +121,23 @@ describe('PermissionsService', () => {
   describe('getUserPermissions', () => {
     it('should return mocked user permissions', async () => {
       const permissions = await service.getUserPermissions('', '', '');
-      expect(permissions).toEqual([
+      expect(permissions).toEqual(
         {
           userId: 'user',
           isAdmin: true,
-          facilities: [
+          plantList: [
             {
               id: 1,
               permissions: ['DSMP', 'DSEM', 'DSQA'],
             },
-          ],
+            {
+              id: 2,
+              permissions: ['DSMP', 'DSEM'],
+            },
+          ], 
+          missingCertificationStatements: true,
         },
-      ]);
+      );
     });
   });
 
@@ -177,7 +187,11 @@ describe('PermissionsService', () => {
 
   describe('retrieveAllUserFacilities', () => {
     it('should return all facilities for the user given mocked data', async () => {
-      jest.spyOn(service, 'getUserPermissions').mockResolvedValue([]);
+      const p: FacilityAccessWithCertStatementFlagDTO = {
+        plantList: [],
+        missingCertificationStatements: true,
+      };
+      jest.spyOn(service, 'getUserPermissions').mockResolvedValue(p);
 
       const facilities = await service.retrieveAllUserFacilities(
         '',
@@ -185,7 +199,8 @@ describe('PermissionsService', () => {
         '',
         '',
       );
-      expect(facilities).toEqual([]);
+      expect(facilities?.plantList).toEqual([]);
+      expect(facilities?.missingCertificationStatements).toEqual(true);
     });
   });
 
@@ -199,6 +214,7 @@ describe('PermissionsService', () => {
       const p: MockPermissionObject = {
         userId: 'user',
         facilities: [{ orisCode: 1, roles: [], facId: 1 }],
+        missingCertificationStatements: true,
       };
       jest.spyOn(service, 'getMockPermissionObject').mockResolvedValue([p]);
       responseVals = {
@@ -208,13 +224,14 @@ describe('PermissionsService', () => {
 
       const permissions = await service.getMockPermissions('user');
 
-      expect(permissions[0].facId).toEqual(1);
+      expect(permissions.plantList[0].facId).toEqual(1);
     });
 
     it('should parse user env var and build the permissions properly given a not found user', async () => {
       const p: MockPermissionObject = {
         userId: 'user',
         facilities: [{ orisCode: 1, roles: [], facId: 1 }],
+        missingCertificationStatements: true,
       };
       responseVals = {
         ...responseVals,
