@@ -18,8 +18,10 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { SignAuthResponseDTO } from '../dtos/sign-auth-response.dto';
+import { SignValidateResponseDTO } from '../dtos/sign-validate-response.dto';
 import { SignService } from './Sign.service';
 import { CredentialsSignDTO } from '../dtos/certification-sign-param.dto';
+import { SignValidateParamDTO } from '../dtos/sign-validate-param.dto';
 import { SendPhonePinParamDTO } from '../dtos/send-phone-pin-param.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@us-epa-camd/easey-common/guards';
@@ -45,6 +47,17 @@ export class SignController {
     @Headers('Id-Token') idToken?: string,
   ): Promise<SignAuthResponseDTO> {
     return this.service.createCromerrActivity(user, credentials, idToken);
+  }
+
+  @Post('validate')
+  @ApiOkResponse({
+    type: SignValidateResponseDTO,
+    description: 'validate before call create-activity endpoint',
+  })
+  validate(
+    @Body() params: SignValidateParamDTO,
+  ): Promise<SignValidateResponseDTO> {
+    return this.service.validate(params);
   }
 
   @Post()
