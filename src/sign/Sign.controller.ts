@@ -25,6 +25,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@us-epa-camd/easey-common/guards';
 import { User } from '@us-epa-camd/easey-common/decorators';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
+import { LoggingInterceptor } from '@us-epa-camd/easey-common/interceptors';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -39,6 +40,7 @@ export class SignController {
     type: SignAuthResponseDTO,
     description: 'Creates a CROMERR activity for the logged in user',
   })
+  @UseInterceptors(LoggingInterceptor)
   createCromerrActivity(
     @Body() credentials: CredentialsSignDTO,
     @User() user: CurrentUser,

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post, Query, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query, Res, UseGuards, UseInterceptors } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOkResponse,
@@ -21,6 +21,7 @@ import { SignInDTO } from '../dtos/signin.dto';
 import { CredentialsDTO } from '../dtos/credentials.dto';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { LoginStateDTO } from '../dtos/login.state.dto';
+import { LoggingInterceptor } from '@us-epa-camd/easey-common/interceptors';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -71,6 +72,7 @@ export class AuthController {
     type: UserDTO,
     description: 'Authenticates a user using a previously provided sessionId',
   })
+  @UseInterceptors(LoggingInterceptor)
   async signIn(
     @Body() signInDto: SignInDTO,
     @ClientIP() clientIp: string,
@@ -95,6 +97,7 @@ export class AuthController {
   @ApiOkResponse({
     description: 'Signs a user out of the system',
   })
+  @UseInterceptors(LoggingInterceptor)
   async signOut(
     @Body() user: UserIdDTO,
     @AuthToken() authToken: string,
