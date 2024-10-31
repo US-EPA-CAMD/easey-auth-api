@@ -103,23 +103,8 @@ export class PermissionsService {
 
     const bypassEnabled = this.bypassService.bypassEnabled();
     const mockPermissionsEnabled = this.configService.get<boolean>('app.mockPermissionsEnabled');
-    const hasRequiredRole = roles.some((role: UserRole) =>
-      [
-        UserRole.SPONSOR,
-        UserRole.PREPARER,
-        UserRole.SUBMITTER,
-        UserRole.INITIAL_AUTHORIZER,
-        UserRole.ADMIN,
-        UserRole.ANALYST,
-      ].includes(role),
-    );
 
-    this.logger.debug('retrieveAllUserFacilities: ', {userId, hasRequiredRole, bypassEnabled, mockPermissionsEnabled} );
-
-    if (!hasRequiredRole) {
-      this.logger.debug('User does not have one of the required roles. Returning an empty list of responsibilities. ');
-      return { plantList: [], missingCertificationStatements: true,} as FacilityAccessWithCertStatementFlagDTO;
-    }
+    this.logger.debug('retrieveAllUserFacilities: ', {userId, bypassEnabled, mockPermissionsEnabled} );
 
     let url: string;
     let permissionServiceName = "";
