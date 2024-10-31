@@ -109,6 +109,8 @@ export class PermissionsService {
         UserRole.PREPARER,
         UserRole.SUBMITTER,
         UserRole.INITIAL_AUTHORIZER,
+        UserRole.ADMIN,
+        UserRole.ANALYST,
       ].includes(role),
     );
 
