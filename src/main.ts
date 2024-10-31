@@ -6,7 +6,9 @@ import {
 } from '@us-epa-camd/easey-common/nestjs';
 import { useContainer } from 'class-validator';
 import * as express from 'express';
+import { HttpService } from "@nestjs/axios";
 import { AppModule } from './app.module';
+import { MaintenanceMiddleware } from './maintenance/maintenance.middleware';
 
 export async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -22,6 +24,9 @@ export async function bootstrap() {
   const appPath = configService.get<string>('app.path');
   const appPort = configService.get<number>('app.port');
   const enableDebug = configService.get<boolean>('app.enableDebug');
+
+  const maintenanceMiddleware = new MaintenanceMiddleware(configService, new HttpService());
+  app.use(maintenanceMiddleware.use.bind(maintenanceMiddleware));
 
   const server = await app.listen(appPort);
   server.setTimeout(1800000);
