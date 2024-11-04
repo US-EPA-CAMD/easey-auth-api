@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { RouterModule } from 'nest-router';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -10,6 +10,8 @@ import {
   DbLookupValidator,
   IsValidCodesValidator,
 } from '@us-epa-camd/easey-common/validators';
+import { MaintenanceMiddleware } from '@us-epa-camd/easey-common/middleware/maintenance.middleware';
+import { HttpModule } from '@nestjs/axios';
 
 import routes from './routes';
 import appConfig from './config/app.config';
@@ -40,7 +42,19 @@ import { OidcHelperModule } from './oidc/OidcHelper.module';
     SignModule,
     PermissionsModule,
     OidcHelperModule,
+    HttpModule
   ],
   providers: [DbLookupValidator, IsValidCodesValidator],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(MaintenanceMiddleware).exclude(
+      { path: "/auth-mgmt/authentication/login-state", method: RequestMethod.GET },
+      { path: "/auth-mgmt/tokens/validate", method: RequestMethod.POST },
+      { path: "/auth-mgmt/tokens/client", method: RequestMethod.POST },
+      { path: "/auth-mgmt/tokens", method: RequestMethod.POST },
+      { path: "/auth-mgmt/tokens/client/validate", method: RequestMethod.POST },
+      { path: "/auth-mgmt/tokens/maintenance-validate", method: RequestMethod.POST }
+    ).forRoutes({ path: '*', method: RequestMethod.ALL })
+  }
+}
