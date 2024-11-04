@@ -14,6 +14,7 @@ import { TokenService } from './token.service';
 import { TokenDTO } from '../dtos/token.dto';
 import { UserIdDTO } from '../dtos/user-id.dto';
 import { MaintenanceVerifyParamDTO } from '../dtos/maintenance-verify-param.dto';
+import { ApiExcludeEndpointByEnv } from '../utilities/swagger-decorator.const';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -50,7 +51,8 @@ export class TokenController {
     return this.service.validateToken(authToken, clientIp);
   }
 
-  @Post('maintenance-validate')
+  @Post('/maintenance-validate')
+  @ApiExcludeEndpointByEnv()
   @ApiOkResponse({
     type: Boolean,
     description: 'Validates a user security token and validate user in maintenance list',
