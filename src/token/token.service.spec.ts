@@ -4,7 +4,7 @@ import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { UserSessionService } from '../user-session/user-session.service';
 import { TokenDTO } from '../dtos/token.dto';
 import { TokenService } from './token.service';
-import { FacilityAccessDTO } from '../dtos/permissions.dto';
+import { FacilityAccessWithCertStatementFlagDTO } from '../dtos/permissions.dto';
 import { PermissionsService } from '../permissions/Permissions.service';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
 import { BypassService } from '../oidc/Bypass.service';
@@ -60,7 +60,7 @@ describe('Token Service', () => {
             isSessionTokenExpired: jest.fn().mockReturnValue(false),
             getUserPermissions: jest
               .fn()
-              .mockResolvedValue([new FacilityAccessDTO()]),
+              .mockResolvedValue({plantList: [], missingCertificationStatements: true, }as FacilityAccessWithCertStatementFlagDTO),
           }),
         },
         {
@@ -84,7 +84,7 @@ describe('Token Service', () => {
           provide: PermissionsService,
           useFactory: () => ({
             retrieveAllUserRoles: jest.fn().mockResolvedValue(['Preparer']),
-            retrieveAllUserFacilities: jest.fn().mockResolvedValue([]),
+            retrieveAllUserFacilities: jest.fn().mockResolvedValue({plantList: [], missingCertificationStatements: true, } as FacilityAccessWithCertStatementFlagDTO),
           }),
         },
         TokenService,
