@@ -428,8 +428,11 @@ export class TokenService {
 
   async validateMaintenance(maintenance: MaintenanceVerifyParamDTO): Promise<boolean> {
     const { clientId, clientToken, clientIp, authToken } = maintenance;
-    const fromClientApp = this.clientTokenService.validateToken(clientId, clientToken);
-    if (fromClientApp) {
+    const fromClientApp = await this.clientTokenService.validateToken(clientId, clientToken, true);
+    if (fromClientApp === 'campd-ui') {
+      return true;
+    }
+    if (fromClientApp === 'ecmps-ui') {
       const user = await this.validateToken(authToken, clientIp);
       const maintenanceBypassUsers = this.configService.get('app.maintenanceBypassUsers');
       if (user && (maintenanceBypassUsers.includes(user.userId) || maintenanceBypassUsers.includes(user.userId.toLowerCase()))) {
