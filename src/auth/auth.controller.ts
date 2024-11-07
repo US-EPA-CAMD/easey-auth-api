@@ -21,6 +21,7 @@ import { SignInDTO } from '../dtos/signin.dto';
 import { CredentialsDTO } from '../dtos/credentials.dto';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { LoginStateDTO } from '../dtos/login.state.dto';
+import { AuditLog } from '@us-epa-camd/easey-common/decorators';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -71,6 +72,10 @@ export class AuthController {
     type: UserDTO,
     description: 'Authenticates a user using a previously provided sessionId',
   })
+  @AuditLog({
+    label: 'Sign In',
+    outFields: ['userId'],
+  })
   async signIn(
     @Body() signInDto: SignInDTO,
     @ClientIP() clientIp: string,
@@ -94,6 +99,10 @@ export class AuthController {
   @ApiBearerAuth('Token')
   @ApiOkResponse({
     description: 'Signs a user out of the system',
+  })
+  @AuditLog({
+    label: 'Sign Out',
+    outFields: '*',
   })
   async signOut(
     @Body() user: UserIdDTO,

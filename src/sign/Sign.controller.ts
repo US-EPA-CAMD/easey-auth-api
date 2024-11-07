@@ -20,11 +20,10 @@ import {
 import { SignAuthResponseDTO } from '../dtos/sign-auth-response.dto';
 import { SignService } from './Sign.service';
 import { CredentialsSignDTO } from '../dtos/certification-sign-param.dto';
-import { SendPhonePinParamDTO } from '../dtos/send-phone-pin-param.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@us-epa-camd/easey-common/guards';
-import { User } from '@us-epa-camd/easey-common/decorators';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
+import { AuditLog, User } from '@us-epa-camd/easey-common/decorators';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -38,6 +37,10 @@ export class SignController {
   @ApiOkResponse({
     type: SignAuthResponseDTO,
     description: 'Creates a CROMERR activity for the logged in user',
+  })
+  @AuditLog({
+    label: 'Create Activity',
+    outFields: '*',
   })
   createCromerrActivity(
     @Body() credentials: CredentialsSignDTO,
