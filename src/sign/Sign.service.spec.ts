@@ -15,6 +15,12 @@ import { ClientTokenRepository } from '../client-token/client-token.repository';
 import { UserSessionService } from '../user-session/user-session.service';
 import { SignAuthResponseDTO } from '../dtos/sign-auth-response.dto';
 import { BypassService } from '../oidc/Bypass.service';
+import { FacilityAccessWithCertStatementFlagDTO } from '../dtos/permissions.dto';
+import { SignValidateParamDTO } from '../dtos/sign-validate-param.dto';
+import { SignValidateResponseDTO } from '../dtos/sign-validate-response.dto';
+import { PermissionsService } from '../permissions/Permissions.service';
+import { EntityManager } from 'typeorm';
+import { CredentialsSignDTO } from '../dtos/certification-sign-param.dto';
 
 const client = {
   AuthenticateAsync: jest.fn().mockResolvedValue([{ securityToken: '' }]),
@@ -55,6 +61,10 @@ const mockBypassService = () => ({
   bypassEnabled: jest.fn(),
 });
 
+const mockPermissionsService = () => ({
+  retrieveAllUserFacilities: jest.fn().mockResolvedValue(new FacilityAccessWithCertStatementFlagDTO()),
+});
+
 describe('SignService', () => {
   let service: SignService;
 
@@ -80,6 +90,14 @@ describe('SignService', () => {
           provide: BypassService,
           useValue: mockBypassService,
         },
+        {
+          provide: PermissionsService,
+          useValue: mockPermissionsService,
+        },
+        {
+          provide: EntityManager,
+          useValue: { query: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -91,6 +109,38 @@ describe('SignService', () => {
 
     expect(async () => {
       await service.signAllFiles('', []);
+    }).not.toThrowError();
+  });
+
+  it('should validate successfully', async () => {
+    jest.spyOn(service, 'validate').mockResolvedValue(new SignValidateResponseDTO());
+
+    expect(async () => {
+      await service.validate(new SignValidateParamDTO());
+    }).not.toThrowError();
+  });
+
+  it('should create cromerr activity successfully', async () => {
+    jest.spyOn(service, 'createCromerrActivity').mockResolvedValue(new SignAuthResponseDTO());
+
+    const currentUser = {
+      userId: '',
+      sessionId: '',
+      expiration: '',
+      clientIp: '',
+      facilities: [],
+      roles: [],
+    };
+    expect(async () => {
+      await service.createCromerrActivity(currentUser, new CredentialsSignDTO(), '');
+    }).not.toThrowError();
+  });
+
+  it('should send to cromerr successfully', async () => {
+    jest.spyOn(service, 'sendToCromerr').mockResolvedValue(new SignAuthResponseDTO());
+
+    expect(async () => {
+      await service.sendToCromerr('', new CredentialsSignDTO(), '');
     }).not.toThrowError();
   });
 });
