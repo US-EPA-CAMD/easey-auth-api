@@ -47,6 +47,7 @@ export class BypassService {
     user.firstName = userId;
     user.email = this.configService.get<string>('cdxBypass.userEmail');
     user.lastName = '';
+    // we can update the roles for bypass user for testing purpose
     user.roles = [
       UserRole.SPONSOR,
       UserRole.PREPARER,
