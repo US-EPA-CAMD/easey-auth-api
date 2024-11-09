@@ -115,5 +115,5 @@ export default registerAs('app', () => ({
     'EASEY_AUTH_API_SIGN_FILES_INDIVIDUALLY',
     false,
   ),
-  maintenanceBypassUsers:getConfigValue('EASEY_MAINTENANCE_BYPASS_USERS',[])
+  maintenanceBypassUsers: JSON.parse(getConfigValue('EASEY_MAINTENANCE_BYPASS_USERS', []))
 }));

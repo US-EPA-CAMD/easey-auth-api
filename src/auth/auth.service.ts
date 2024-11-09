@@ -36,12 +36,7 @@ export class AuthService {
 
     userId = userId ? userId.toUpperCase() : userId;
 
-    const appStatus = this.configService.get('app.appStatus');
-    const maintenanceBypassUsers = this.configService.get('app.maintenanceBypassUsers');
-
-    if (appStatus === "TEST" && (!maintenanceBypassUsers.includes(userId) && !maintenanceBypassUsers.includes(userId?.toLowerCase()))) {
-      throw new EaseyException(new Error('The server is temporarily unable to service your request due to maintenance. Please try again later.'), HttpStatus.SERVICE_UNAVAILABLE);
-    }
+    this.validateUserMaintenanceAblity({ userId } as UserDTO);
 
     if (this.bypassService.bypassEnabled()) {
       const policyResponse = new PolicyResponse({
@@ -177,7 +172,7 @@ export class AuthService {
         //For bypass, sessionId has the userID
         userDto = this.bypassService.getBypassUser(signInDto.sessionId);
 
-        await this.validateUserMaintenanceAblity(userDto);
+        this.validateUserMaintenanceAblity(userDto);
 
         //Create a new user session for the first for bypass users
         session = await this.userSessionService.createUserSession(
@@ -271,7 +266,7 @@ export class AuthService {
           'Extracted user information from decoded token and created user object',
           { userDto },
         );
-        await this.validateUserMaintenanceAblity(userDto);
+        this.validateUserMaintenanceAblity(userDto);
         //Retrieve email and roles
         const apiToken = await this.tokenService.getCdxApiToken(); //For api calls
         const orgResponse = await this.getUserEmail(userDto.userId, apiToken);
@@ -352,7 +347,7 @@ export class AuthService {
     }
   }
 
-  async validateUserMaintenanceAblity(userDto: UserDTO) {
+  validateUserMaintenanceAblity(userDto: UserDTO) {
     const appStatus = this.configService.get('app.appStatus');
     const maintenanceBypassUsers = this.configService.get('app.maintenanceBypassUsers');
 

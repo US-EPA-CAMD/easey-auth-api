@@ -50,6 +50,7 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(MaintenanceMiddleware).exclude(
       { path: "/auth-mgmt/authentication/login-state", method: RequestMethod.GET },
+      { path: "/auth-mgmt/permissions", method: RequestMethod.GET },
       { path: "/auth-mgmt/tokens/validate", method: RequestMethod.POST },
       { path: "/auth-mgmt/tokens/client", method: RequestMethod.POST },
       { path: "/auth-mgmt/tokens", method: RequestMethod.POST },
