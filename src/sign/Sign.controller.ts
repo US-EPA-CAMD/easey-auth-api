@@ -43,7 +43,7 @@ export class SignController {
   })
   @AuditLog({
     label: 'Create Activity',
-    outFields: '*',
+    responseBodyOutFields:'*'
   })
   createCromerrActivity(
     @Body() credentials: CredentialsSignDTO,
