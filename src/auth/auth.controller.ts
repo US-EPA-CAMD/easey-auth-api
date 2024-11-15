@@ -74,7 +74,7 @@ export class AuthController {
   })
   @AuditLog({
     label: 'Sign In',
-    outFields: ['userId'],
+    responseBodyOutFields: ['userId'],
   })
   async signIn(
     @Body() signInDto: SignInDTO,
@@ -102,7 +102,7 @@ export class AuthController {
   })
   @AuditLog({
     label: 'Sign Out',
-    outFields: '*',
+    responseBodyOutFields: '*',
   })
   async signOut(
     @Body() user: UserIdDTO,
