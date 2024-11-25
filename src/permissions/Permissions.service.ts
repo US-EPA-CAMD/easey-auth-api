@@ -156,8 +156,9 @@ export class PermissionsService {
         plantList.push(dto);
       };
       permissionsDto.plantList = plantList;
-      //if the missingCertificationStatements flag is null or undefined, set the default value to true
-      permissionsDto.missingCertificationStatements = userPermissions[0]?.missingCertificationStatements == null ? true : userPermissions[0]?.missingCertificationStatements;
+
+      //if the missingCertificationStatements flag is null or undefined, if bypass is on, then set the default value to false, otherwise true
+      permissionsDto.missingCertificationStatements = userPermissions[0]?.missingCertificationStatements == null ? !this.bypassService.bypassEnabled() : userPermissions[0]?.missingCertificationStatements;
     } else if (this.configService.get<boolean>('app.enableAllFacilities')) {
       return null;
     }
