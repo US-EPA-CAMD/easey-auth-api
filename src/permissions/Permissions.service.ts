@@ -126,6 +126,7 @@ export class PermissionsService {
   }
 
   async getMockPermissions(userId: string): Promise<FacilityAccessWithCertStatementFlagDTO> {
+    
     if (this.configService.get<string>('app.env') === 'production') {
       throw new EaseyException(
         new Error('Mocking permissions in production is not allowed!'),
@@ -157,7 +158,6 @@ export class PermissionsService {
       permissionsDto.plantList = plantList;
       //if the missingCertificationStatements flag is null or undefined, set the default value to true
       permissionsDto.missingCertificationStatements = userPermissions[0]?.missingCertificationStatements == null ? true : userPermissions[0]?.missingCertificationStatements;
-    
     } else if (this.configService.get<boolean>('app.enableAllFacilities')) {
       return null;
     }
@@ -170,6 +170,7 @@ export class PermissionsService {
     token: string,
     url: string,
   ): Promise<FacilityAccessWithCertStatementFlagDTO> {
+    
     try {
       const allowLegacyRenegotiationforNodeJsOptions = {
         httpsAgent: new https.Agent({
@@ -215,7 +216,9 @@ export class PermissionsService {
   }
 
   async getMockPermissionObject(): Promise<MockPermissionObject[]> {
+
     const contentUri = this.configService.get<string>('app.contentUri');
+    
     try {
       const url = `${contentUri}/auth/mockPermissions.json`;
       const mockPermissionResult = await firstValueFrom(
