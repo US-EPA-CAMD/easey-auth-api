@@ -18,13 +18,15 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { SignAuthResponseDTO } from '../dtos/sign-auth-response.dto';
+import { SignValidateResponseDTO } from '../dtos/sign-validate-response.dto';
 import { SignService } from './Sign.service';
 import { CredentialsSignDTO } from '../dtos/certification-sign-param.dto';
+import { SignValidateParamDTO } from '../dtos/sign-validate-param.dto';
 import { SendPhonePinParamDTO } from '../dtos/send-phone-pin-param.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@us-epa-camd/easey-common/guards';
-import { User } from '@us-epa-camd/easey-common/decorators';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
+import { AuditLog, User } from '@us-epa-camd/easey-common/decorators';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -39,12 +41,27 @@ export class SignController {
     type: SignAuthResponseDTO,
     description: 'Creates a CROMERR activity for the logged in user',
   })
+  @AuditLog({
+    label: 'Create Activity',
+    responseBodyOutFields:'*'
+  })
   createCromerrActivity(
     @Body() credentials: CredentialsSignDTO,
     @User() user: CurrentUser,
     @Headers('Id-Token') idToken?: string,
   ): Promise<SignAuthResponseDTO> {
     return this.service.createCromerrActivity(user, credentials, idToken);
+  }
+
+  @Post('validate')
+  @ApiOkResponse({
+    type: SignValidateResponseDTO,
+    description: 'validate before call create-activity endpoint',
+  })
+  validate(
+    @Body() params: SignValidateParamDTO,
+  ): Promise<SignValidateResponseDTO> {
+    return this.service.validate(params);
   }
 
   @Post()

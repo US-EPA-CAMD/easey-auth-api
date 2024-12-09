@@ -339,7 +339,7 @@ export class AuthService {
         { session },
       );
 
-      return userDto;
+      return {...userDto};
     } catch (error) {
       this.logger.error('Login Error: ', error);
       throw new EaseyException(new Error(`Login Error: ${error.message}`), HttpStatus.BAD_REQUEST,

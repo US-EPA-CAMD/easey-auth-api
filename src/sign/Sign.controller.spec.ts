@@ -9,9 +9,13 @@ import { SendPhonePinParamDTO } from '../dtos/send-phone-pin-param.dto';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
+import { SignValidateParamDTO } from '../dtos/sign-validate-param.dto';
 
 const mockService = () => ({
   authenticate: jest.fn(),
+  createCromerrActivity: jest.fn(),
+  validate: jest.fn(),
+  signAllFiles: jest.fn(),
 });
 
 jest.mock('./Sign.service');
@@ -41,7 +45,7 @@ describe('SignController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('should call the authenticate service method', async () => {
+  it('should call the createCromerrActivity service method', async () => {
     const mockFunction = jest.fn();
     service.createCromerrActivity = mockFunction;
     const credentialsSignDTO = new CredentialsSignDTO();
@@ -51,6 +55,15 @@ describe('SignController', () => {
   });
 
   it('should call the validate service method', async () => {
+    const mockFunction = jest.fn();
+    service.validate = mockFunction;
+    const signValidateParamsDTO = new SignValidateParamDTO();
+    await controller.validate(signValidateParamsDTO);
+
+    expect(mockFunction).toHaveBeenCalled();
+  });
+
+  it('should call the signAllFiles service method', async () => {
     const mockFunction = jest.fn();
     service.signAllFiles = mockFunction;
 
