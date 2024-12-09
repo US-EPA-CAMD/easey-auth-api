@@ -11,6 +11,7 @@ import { AuthModule } from '../auth/auth.module';
 import { OidcHelperService } from '../oidc/OidcHelperService';
 import { BypassService } from '../oidc/Bypass.service';
 import { OidcHelperModule } from '../oidc/OidcHelper.module';
+import { ClientTokenService } from '../client-token/client-token.service';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { OidcHelperModule } from '../oidc/OidcHelper.module';
     OidcHelperModule,
   ],
   controllers: [TokenController],
-  providers: [TokenService],
-  exports: [TokenService],
+  providers: [TokenService, ClientTokenService],
+  exports: [TokenService, ClientTokenService],
 })
 export class TokenModule {}

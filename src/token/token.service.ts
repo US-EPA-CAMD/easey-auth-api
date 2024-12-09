@@ -18,6 +18,8 @@ import { JwksClient } from 'jwks-rsa';
 import { OidcHelperService } from '../oidc/OidcHelperService';
 import { TokenDTO } from '../dtos/token.dto';
 import { BypassService } from '../oidc/Bypass.service';
+import { ClientTokenService } from '../client-token/client-token.service';
+import { MaintenanceVerifyParamDTO } from '../dtos/maintenance-verify-param.dto';
 
 @Injectable()
 export class TokenService {
@@ -32,7 +34,8 @@ export class TokenService {
     private readonly oidcHelperService: OidcHelperService,
     private readonly bypassService: BypassService,
     private readonly logger: Logger,
-  ) {}
+    private readonly clientTokenService: ClientTokenService
+  ) { }
 
   async refreshToken(userId: string, token: string, clientIp: string) {
     this.logger.debug('Starting refreshToken process', { userId, clientIp });
@@ -51,7 +54,7 @@ export class TokenService {
       );
     }
 
-    this.logger.debug('Retrieved user session', {sessionId: session.sessionId,});
+    this.logger.debug('Retrieved user session', { sessionId: session.sessionId, });
 
     //If a request comes in for a session that is already being processed, wait for promise to resolve.
     const sessionId = session.sessionId;
@@ -420,6 +423,22 @@ export class TokenService {
       return user;
     }
 
+    return false;
+  }
+
+  async validateMaintenance(maintenance: MaintenanceVerifyParamDTO): Promise<boolean> {
+    const { clientId, clientToken, clientIp, authToken } = maintenance;
+    const fromClientApp = await this.clientTokenService.validateToken(clientId, clientToken, true);
+    if (fromClientApp === 'campd-ui') {
+      return true;
+    }
+    if (fromClientApp === 'ecmps-ui') {
+      const user = await this.validateToken(authToken, clientIp);
+      const maintenanceBypassUsers = this.configService.get('app.maintenanceBypassUsers');
+      if (user && (maintenanceBypassUsers.includes(user.userId) || maintenanceBypassUsers.includes(user.userId.toLowerCase()))) {
+        return true;
+      }
+    }
     return false;
   }
 }

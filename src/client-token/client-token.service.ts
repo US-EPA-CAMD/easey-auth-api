@@ -14,9 +14,9 @@ export class ClientTokenService {
     private readonly repository: ClientTokenRepository,
     private readonly configService: ConfigService,
     private readonly logger: Logger,
-  ) {}
+  ) { }
 
-  async validateToken(clientId: string, clientToken: string): Promise<boolean> {
+  async validateToken(clientId: string, clientToken: string, clientName: boolean = false): Promise<any> {
     //Ensure fields have been set
     this.logger.debug('validateToken for ', { clientId });
     if (!clientId || !clientToken) {
@@ -53,7 +53,7 @@ export class ClientTokenService {
         );
       }
 
-      return true;
+      return clientName ? dbRecord.name : true;
     } catch (err) {
       throw new EaseyException(err, HttpStatus.BAD_REQUEST);
     }
@@ -64,7 +64,7 @@ export class ClientTokenService {
     clientSecret: string,
   ): Promise<TokenDTO> {
     const firstTenCharsOfClientSecret = clientSecret ? clientSecret.slice(0, 10) : '';
-    this.logger.debug('generateToken for ', { clientId, firstTenCharsOfClientSecret});
+    this.logger.debug('generateToken for ', { clientId, firstTenCharsOfClientSecret });
     //Ensure fields have been set
     if (!clientId || !clientSecret) {
       throw new EaseyException(
