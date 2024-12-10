@@ -17,6 +17,8 @@ permissionsUrl: https://cbsstagei.epa.gov/CBSD/api/auth-mgmt/responsibilities
 dataFlow: EASEY
 mockPermissionsEnabled: false
 enableAllFacilities: true
+appStatus: ONLINE
+maintenanceBypassUsers: '[]'
 
 # ICAM
 signFilesIndividually: false

@@ -8,6 +8,8 @@ permissionsUrl: https://cbsprodbeta.epa.gov/CBS/api/auth-mgmt/responsibilities
 dataFlow: EASEY Beta
 enableAllFacilities: false
 mockPermissionsEnabled: false
+appStatus: ONLINE
+maintenanceBypassUsers: '[]'
 
 # ICAM
 signFilesIndividually: false

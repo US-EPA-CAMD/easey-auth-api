@@ -57,19 +57,19 @@ export class AppModule implements NestModule {
       .apply(MaintenanceMiddleware)
       .exclude(
         {
-          path: '/auth-mgmt/authentication/login-state',
+          path: '/authentication/login-state',
           method: RequestMethod.GET,
         },
-        { path: '/auth-mgmt/permissions', method: RequestMethod.GET },
-        { path: '/auth-mgmt/tokens/validate', method: RequestMethod.POST },
-        { path: '/auth-mgmt/tokens/client', method: RequestMethod.POST },
-        { path: '/auth-mgmt/tokens', method: RequestMethod.POST },
+        { path: '/permissions', method: RequestMethod.GET },
+        { path: '/tokens/validate', method: RequestMethod.POST },
+        { path: '/tokens/client', method: RequestMethod.POST },
+        { path: '/tokens', method: RequestMethod.POST },
         {
-          path: '/auth-mgmt/tokens/client/validate',
+          path: '/tokens/client/validate',
           method: RequestMethod.POST,
         },
         {
-          path: '/auth-mgmt/tokens/maintenance-validate',
+          path: '/tokens/maintenance-validate',
           method: RequestMethod.POST,
         },
       )
