@@ -10,7 +10,8 @@ import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
 import { BypassService } from '../oidc/Bypass.service';
 import { OidcHelperService } from '../oidc/OidcHelperService';
 import { UserSession } from '../entities/user-session.entity';
-import { Session } from '@nestjs/common';
+import { ClientTokenService } from '../client-token/client-token.service';
+
 import mock = jest.mock;
 jest.mock('soap', () => ({
   createClientAsync: jest.fn(() => Promise.resolve(client)),
@@ -60,7 +61,10 @@ describe('Token Service', () => {
             isSessionTokenExpired: jest.fn().mockReturnValue(false),
             getUserPermissions: jest
               .fn()
-              .mockResolvedValue({plantList: [], missingCertificationStatements: true, }as FacilityAccessWithCertStatementFlagDTO),
+              .mockResolvedValue({
+                plantList: [],
+                missingCertificationStatements: true,
+              } as FacilityAccessWithCertStatementFlagDTO),
           }),
         },
         {
@@ -84,10 +88,21 @@ describe('Token Service', () => {
           provide: PermissionsService,
           useFactory: () => ({
             retrieveAllUserRoles: jest.fn().mockResolvedValue(['Preparer']),
-            retrieveAllUserFacilities: jest.fn().mockResolvedValue({plantList: [], missingCertificationStatements: true, } as FacilityAccessWithCertStatementFlagDTO),
+            retrieveAllUserFacilities: jest
+              .fn()
+              .mockResolvedValue({
+                plantList: [],
+                missingCertificationStatements: true,
+              } as FacilityAccessWithCertStatementFlagDTO),
           }),
         },
         TokenService,
+        {
+          provide: ClientTokenService,
+          useValue: {
+            validateToken: jest.fn().mockResolvedValue(true),
+          },
+        },
       ],
     }).compile();
     service = module.get(TokenService);

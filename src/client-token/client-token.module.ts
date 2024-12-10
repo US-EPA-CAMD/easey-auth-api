@@ -10,6 +10,6 @@ import { ClientTokenService } from './client-token.service';
   imports: [TypeOrmModule.forFeature([ClientTokenRepository]), HttpModule],
   controllers: [ClientTokenController],
   providers: [ClientTokenRepository, ClientTokenService],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, ClientTokenRepository, ClientTokenService],
 })
 export class ClientTokenModule {}
