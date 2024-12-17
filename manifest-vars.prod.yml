@@ -7,6 +7,8 @@ naasSvcs: https://cdxnodenaas.epa.gov/xml/securitytoken_v30.wsdl
 permissionsUrl: https://camd.epa.gov/CBS/api/auth-mgmt/responsibilities
 mockPermissionsEnabled: false
 enableAllFacilities: false
+appStatus: ONLINE
+maintenanceBypassUsers: '[]'
 
 # ICAM
 signFilesIndividually: false

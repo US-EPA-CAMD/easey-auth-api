@@ -104,9 +104,9 @@ export default registerAs('app', () => ({
     'EASEY_AUTH_API_ENABLE_ALL_FACILITIES',
     false,
   ),
-  disableLogin: getConfigValueBoolean(
-    'EASEY_AUTH_API_DISABLE_LOGIN',
-    false,
+  appStatus: getConfigValue(
+    'EASEY_AUTH_API_APP_STATUS',
+    'ONLINE',
   ),
   authApi: {
     uri: getConfigValue('EASEY_AUTH_API', `https://${apiHost}/auth-mgmt`),
@@ -115,4 +115,5 @@ export default registerAs('app', () => ({
     'EASEY_AUTH_API_SIGN_FILES_INDIVIDUALLY',
     false,
   ),
+  maintenanceBypassUsers: JSON.parse(getConfigValue('EASEY_MAINTENANCE_BYPASS_USERS', '[]'))
 }));

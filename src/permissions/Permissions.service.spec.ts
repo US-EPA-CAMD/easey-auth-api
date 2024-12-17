@@ -30,10 +30,12 @@ const client = {
   }),
 };
 
-jest.mock('rxjs', () => ({
-  firstValueFrom: jest.fn().mockResolvedValue({
-    data: 
-      {
+jest.mock('rxjs', () => {
+  const originalModule = jest.requireActual('rxjs');
+  return {
+    ...originalModule,
+    firstValueFrom: jest.fn().mockResolvedValue({
+      data: {
         userId: 'user',
         isAdmin: true,
         plantList: [
@@ -48,8 +50,9 @@ jest.mock('rxjs', () => ({
         ],
         missingCertificationStatements: true,
       },
-  }),
-}));
+    }),
+  };
+});
 describe('PermissionsService', () => {
   let service: PermissionsService;
   let oidcHelperService: OidcHelperService;
@@ -121,23 +124,21 @@ describe('PermissionsService', () => {
   describe('getUserPermissions', () => {
     it('should return mocked user permissions', async () => {
       const permissions = await service.getUserPermissions('', '', '');
-      expect(permissions).toEqual(
-        {
-          userId: 'user',
-          isAdmin: true,
-          plantList: [
-            {
-              id: 1,
-              permissions: ['DSMP', 'DSEM', 'DSQA'],
-            },
-            {
-              id: 2,
-              permissions: ['DSMP', 'DSEM'],
-            },
-          ], 
-          missingCertificationStatements: true,
-        },
-      );
+      expect(permissions).toEqual({
+        userId: 'user',
+        isAdmin: true,
+        plantList: [
+          {
+            id: 1,
+            permissions: ['DSMP', 'DSEM', 'DSQA'],
+          },
+          {
+            id: 2,
+            permissions: ['DSMP', 'DSEM'],
+          },
+        ],
+        missingCertificationStatements: true,
+      });
     });
   });
 

@@ -1,6 +1,5 @@
-import { IsArray, IsBoolean, IsString } from 'class-validator';
-import { FacilityAccessDTO } from './permissions.dto';
+import {  IsString } from 'class-validator';
 
 export class LoginStateDTO {
-  @IsBoolean()   isDisabled: boolean;
+  @IsString()   status: string;
 }

@@ -29,12 +29,15 @@ export class AuthService {
     private readonly oidcHelperService: OidcHelperService,
     private readonly bypassService: BypassService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async determinePolicy(userId: string): Promise<PolicyResponse> {
     this.logger.debug('Starting determinePolicy', { userId });
 
     userId = userId ? userId.toUpperCase() : userId;
+
+    this.validateUserMaintenanceAblity({ userId } as UserDTO);
+
     if (this.bypassService.bypassEnabled()) {
       const policyResponse = new PolicyResponse({
         policy: '_BYPASS',
@@ -162,10 +165,14 @@ export class AuthService {
         clientIp,
       });
 
+
+
       if (this.bypassService.bypassEnabled()) {
         this.logger.debug('Bypass is enabled');
         //For bypass, sessionId has the userID
         userDto = this.bypassService.getBypassUser(signInDto.sessionId);
+
+        this.validateUserMaintenanceAblity(userDto);
 
         //Create a new user session for the first for bypass users
         session = await this.userSessionService.createUserSession(
@@ -220,7 +227,7 @@ export class AuthService {
         );
         this.logger.debug(
           `Exchanged auth code for token, access token expires in ${accessTokenResponse.expires_in /
-            60} minutes`,
+          60} minutes`,
         );
 
         //Get the updated session information here (after code is exchanged for token)
@@ -259,7 +266,7 @@ export class AuthService {
           'Extracted user information from decoded token and created user object',
           { userDto },
         );
-
+        this.validateUserMaintenanceAblity(userDto);
         //Retrieve email and roles
         const apiToken = await this.tokenService.getCdxApiToken(); //For api calls
         const orgResponse = await this.getUserEmail(userDto.userId, apiToken);
@@ -281,8 +288,7 @@ export class AuthService {
         );
         this.logger.debug('Retrieved user roles', { roles: userDto.roles });
         this.logger.debug(
-          `Retrieved user roles, number of roles: ${
-            userDto.roles ? userDto.roles.length : 0
+          `Retrieved user roles, number of roles: ${userDto.roles ? userDto.roles.length : 0
           }`,
         );
       }
@@ -308,9 +314,9 @@ export class AuthService {
           //remove related record from User_Session table
           await this.userSessionService.removeUserSessionByUserId(userDto.userId);
         }
-      
+
         //throw and display to error message
-        throw new EaseyException( 
+        throw new EaseyException(
           new Error(`You have not signed all of the necessary certification statements which are associated with your responsibilities as a representative or agent. Until these certification statements have been signed, you will not be able to log in to ECMPS. Please use the CAMD Business System to sign all of your required certification statements.`),
           HttpStatus.FORBIDDEN,
         );
@@ -320,8 +326,7 @@ export class AuthService {
       userDto.missingCertificationStatements = facilitiesWithCertFlag.missingCertificationStatements;
       this.logger.debug('Retrieved user facilities and missing certificate statements flag', { facilitiesWithCertFlag });
       this.logger.debug(
-        `Retrieved user facilities, number of facilities: ${
-          userDto.facilities ? userDto.facilities.length : 0
+        `Retrieved user facilities, number of facilities: ${userDto.facilities ? userDto.facilities.length : 0
         }`,
       );
 
@@ -337,8 +342,17 @@ export class AuthService {
       return {...userDto};
     } catch (error) {
       this.logger.error('Login Error: ', error);
-      throw new EaseyException( new Error(`Login Error: ${error.message}`), HttpStatus.BAD_REQUEST,
+      throw new EaseyException(new Error(`Login Error: ${error.message}`), HttpStatus.BAD_REQUEST,
       );
+    }
+  }
+
+  validateUserMaintenanceAblity(userDto: UserDTO) {
+    const appStatus = this.configService.get('app.appStatus');
+    const maintenanceBypassUsers = this.configService.get('app.maintenanceBypassUsers');
+
+    if (appStatus === "TEST" && (!maintenanceBypassUsers.includes(userDto.userId) && !maintenanceBypassUsers.includes(userDto.userId?.toLowerCase()))) {
+      throw new EaseyException(new Error('The server is temporarily unable to service your request due to maintenance. Please try again later.'), HttpStatus.SERVICE_UNAVAILABLE);
     }
   }
 
@@ -373,7 +387,7 @@ export class AuthService {
     const session: UserSession = await this.userSessionService.findSessionByUserIdAndToken(userId, token);
 
     //sign the user out with the OIDC provider
-    if (session && session.oidcPolicy && !this.bypassService.bypassEnabled() ) {
+    if (session && session.oidcPolicy && !this.bypassService.bypassEnabled()) {
       this.logger.debug('signOut, signing user out from OIDC provider: ', userId);
       const apiToken = await this.tokenService.getCdxApiToken();
       await this.oidcHelperService.terminateOidcSession(session.oidcPolicy, apiToken);
@@ -383,8 +397,8 @@ export class AuthService {
   }
 
   async getLoginState(): Promise<LoginStateDTO> {
-    const loginState= new LoginStateDTO();
-    loginState.isDisabled = this.configService.get<boolean>('app.disableLogin');
+    const loginState = new LoginStateDTO();
+    loginState.status = this.configService.get<string>('app.appStatus');
     return loginState;
   }
 

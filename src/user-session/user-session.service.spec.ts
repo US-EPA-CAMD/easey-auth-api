@@ -7,11 +7,6 @@ import { EntityManager } from 'typeorm';
 import { UserSession } from '../entities/user-session.entity';
 import { UserSessionRepository } from './user-session.repository';
 import { UserSessionService } from './user-session.service';
-import { AccessTokenResponse } from '../dtos/oidc-auth-dtos';
-
-jest.mock('rxjs', () => ({
-  firstValueFrom: jest.fn().mockResolvedValue({ data: 'MOCKED' }),
-}));
 
 let responseVals = {
   ['app.refreshTokenThresholdSeconds']: 60,
@@ -119,7 +114,9 @@ describe('User Session Service', () => {
     it('should return null if a session is missing', async () => {
       mockRepo.findOneBy = jest.fn().mockResolvedValue(null);
 
-      await expect(service.findSessionByUserIdAndToken('', '')).resolves.toBeNull();
+      await expect(
+        service.findSessionByUserIdAndToken('', ''),
+      ).resolves.toBeNull();
     });
   });
 

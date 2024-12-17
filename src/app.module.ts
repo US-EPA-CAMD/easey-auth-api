@@ -1,6 +1,11 @@
-import { Module } from '@nestjs/common';
-import { RouterModule } from 'nest-router';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { RouterModule } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { dbConfig } from '@us-epa-camd/easey-common/config';
@@ -10,6 +15,8 @@ import {
   DbLookupValidator,
   IsValidCodesValidator,
 } from '@us-epa-camd/easey-common/validators';
+import { MaintenanceMiddleware } from '@us-epa-camd/easey-common/middleware/maintenance.middleware';
+import { HttpModule } from '@nestjs/axios';
 
 import routes from './routes';
 import appConfig from './config/app.config';
@@ -24,7 +31,7 @@ import { OidcHelperModule } from './oidc/OidcHelper.module';
 
 @Module({
   imports: [
-    RouterModule.forRoutes(routes),
+    RouterModule.register(routes),
     ConfigModule.forRoot({
       isGlobal: true,
       load: [dbConfig, appConfig, cdxBypass],
@@ -40,7 +47,32 @@ import { OidcHelperModule } from './oidc/OidcHelper.module';
     SignModule,
     PermissionsModule,
     OidcHelperModule,
+    HttpModule,
   ],
   providers: [DbLookupValidator, IsValidCodesValidator],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(MaintenanceMiddleware)
+      .exclude(
+        {
+          path: '/authentication/login-state',
+          method: RequestMethod.GET,
+        },
+        { path: '/permissions', method: RequestMethod.GET },
+        { path: '/tokens/validate', method: RequestMethod.POST },
+        { path: '/tokens/client', method: RequestMethod.POST },
+        { path: '/tokens', method: RequestMethod.POST },
+        {
+          path: '/tokens/client/validate',
+          method: RequestMethod.POST,
+        },
+        {
+          path: '/tokens/maintenance-validate',
+          method: RequestMethod.POST,
+        },
+      )
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}
