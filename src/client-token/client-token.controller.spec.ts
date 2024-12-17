@@ -1,4 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { LoggerModule } from '@us-epa-camd/easey-common/logger';
+
 import { ClientCredentialsDTO } from '../dtos/client-credentials.dto';
 import { TokenDTO } from '../dtos/token.dto';
 import { ClientIdDTO } from '../dtos/client-id.dto';
@@ -18,7 +20,7 @@ describe('Client Token Controller', () => {
   let service: ClientTokenService;
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [],
+      imports: [LoggerModule],
       controllers: [ClientTokenController],
       providers: [{ provide: ClientTokenService, useFactory: mockService }],
     }).compile();

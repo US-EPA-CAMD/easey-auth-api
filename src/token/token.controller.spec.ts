@@ -1,5 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import { LoggerModule } from '@us-epa-camd/easey-common/logger';
+
 import { TokenController } from './token.controller';
 import { TokenService } from './token.service';
 
@@ -19,7 +21,7 @@ describe('Token Controller', () => {
   let service: TokenService;
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [],
+      imports: [LoggerModule],
       controllers: [TokenController],
       providers: [
         { provide: TokenService, useFactory: mockService },

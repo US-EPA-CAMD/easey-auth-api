@@ -5,6 +5,7 @@ import {
   ApiSecurity,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { AuditLog } from '@us-epa-camd/easey-common/decorators';
 
 import { ClientIP } from './../decorators/client-ip.decorator';
 import { AuthToken } from '../decorators/auth-token.decorator';
@@ -20,7 +21,7 @@ import { ApiExcludeEndpointByEnv } from '../utilities/swagger-decorator.const';
 @ApiSecurity('APIKey')
 @ApiTags('Tokens')
 export class TokenController {
-  constructor(private readonly service: TokenService) {}
+  constructor(private readonly service: TokenService) { }
 
   @Post()
   @UseGuards(AuthGuard)
@@ -28,6 +29,10 @@ export class TokenController {
   @ApiOkResponse({
     type: TokenDTO,
     description: 'Creates a user security token (user must be authenticated)',
+  })
+  @AuditLog({
+    label: 'Creates a user security token',
+    requestBodyOutFields: ['userId']
   })
   async createToken(
     @Body() user: UserIdDTO,
@@ -43,6 +48,9 @@ export class TokenController {
     type: String,
     description:
       'Validates a user security token (user must have valid session)',
+  })
+  @AuditLog({
+    label: 'Validates a user security token'
   })
   validateToken(
     @AuthToken() authToken: string,
