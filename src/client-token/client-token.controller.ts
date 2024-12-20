@@ -6,6 +6,7 @@ import {
   ApiSecurity,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { AuditLog } from '@us-epa-camd/easey-common/decorators';
 
 import { TokenDTO } from '../dtos/token.dto';
 import { ClientIdDTO } from './../dtos/client-id.dto';
@@ -24,6 +25,10 @@ export class ClientTokenController {
     type: TokenDTO,
     description: 'Generates a client token, given a client id and secret',
   })
+  @AuditLog({
+    label: 'Client token created',
+    requestBodyOutFields: ['clientId']
+  })
   generateToken(@Body() payload: ClientCredentialsDTO): Promise<TokenDTO> {
     return this.service.generateToken(payload.clientId, payload.clientSecret);
   }
@@ -33,6 +38,10 @@ export class ClientTokenController {
   @ApiOkResponse({
     type: String,
     description: 'Validates a jwt client token',
+  })
+  @AuditLog({
+    label: 'Client token validated',
+    requestBodyOutFields: ['clientId']
   })
   validateToken(
     @Body() payload: ClientIdDTO,
