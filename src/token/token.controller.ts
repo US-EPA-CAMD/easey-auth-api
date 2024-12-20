@@ -14,7 +14,7 @@ import { TokenService } from './token.service';
 import { TokenDTO } from '../dtos/token.dto';
 import { UserIdDTO } from '../dtos/user-id.dto';
 import { MaintenanceVerifyParamDTO } from '../dtos/maintenance-verify-param.dto';
-import { ApiExcludeEndpointByEnv } from '@us-epa-camd/easey-common/utilities/swagger-decorator.const';
+import { ApiExcludeEndpointByEnv } from '../decorators/swagger-decorator';
 
 @Controller()
 @ApiSecurity('APIKey')
