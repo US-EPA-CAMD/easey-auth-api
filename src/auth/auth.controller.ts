@@ -50,7 +50,6 @@ export class AuthController {
     @ClientIP() clientIp: string,
     @Res() res: Response,
   ): Promise<void> {
-    console.log('oidcPostRequest is', oidcPostRequest);
     const ecmpsUiRedirectUrl = getConfigValue('ECMPS_UI_REDIRECT_URL');
     const oidcAuthValidationResponse = await this.service.validateAndCreateSession(
       oidcPostRequest,
