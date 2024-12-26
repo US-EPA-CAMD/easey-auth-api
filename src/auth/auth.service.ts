@@ -271,7 +271,6 @@ export class AuthService {
         const apiToken = await this.tokenService.getCdxApiToken(); //For api calls
         const orgResponse = await this.getUserEmail(userDto.userId, apiToken);
         userDto.email = orgResponse.email;
-        this.logger.debug('Retrieved user email', { email: userDto.email });
 
         // At this point, it is important to save the session in the database. Otherwise,
         // the subsequent calls that go to other APIs (CBS) will call back here to auth API to validate the token.
