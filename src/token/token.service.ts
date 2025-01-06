@@ -387,12 +387,14 @@ export class TokenService {
     }
 
     // Look up facilities based on userId and token
+    this.logger.debug('Looking up user session', { userId, token });
     const userSession = await this.userSessionService.findSessionByUserIdAndToken(
       userId,
       token,
     );
 
     if (!userSession) {
+      this.logger.debug('No user session found', { userId, token });
       return false;
     }
 
