@@ -67,7 +67,6 @@ export class CertificationsService {
         certList.push(certDto);
       }
     } catch (e) {
-      console.log(e);
       throw new EaseyException(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
