@@ -12,7 +12,7 @@ import { ClientTokenService } from './client-token.service';
     HttpModule,
   ],
   controllers: [ClientTokenController],
-  providers: [ClientTokenService],
+  providers: [ClientTokenRepository, ClientTokenService],
   exports: [TypeOrmModule],
 })
 export class ClientTokenModule {}
