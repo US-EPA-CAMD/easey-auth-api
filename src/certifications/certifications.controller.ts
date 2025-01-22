@@ -32,7 +32,7 @@ export class CertificationsController {
   ): Promise<ArrayResponse<CertificationStatementDTO>> {
     const statements = await this.service.getStatements(dto.monitorPlanIds);
     return {
-      data: statements
+      items: statements
     };
   }
 }
