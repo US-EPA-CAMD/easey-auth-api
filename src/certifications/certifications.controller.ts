@@ -3,18 +3,13 @@ import {
   ApiTags,
   ApiOkResponse,
   ApiSecurity,
-  ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
-import { CertificationVerificationResponseDTO } from '../dtos/certification-verication-response.dto';
-import ClientIP from '../decorators/client-ip.decorator';
-import { CredentialsDTO } from '../dtos/credentials.dto';
 
 import { CertificationsService } from './certifications.service';
-import { AnswerVerificationDTO } from '../dtos/answer-verification.dto';
-import { AuthGuard } from '../guards/auth.guard';
 import { CertificationStatementDTO } from '../dtos/certification-statement.dto';
 import { CertificationParamDTO } from '../dtos/certification-param.dto';
+import { ArrayResponse } from '@us-epa-camd/easey-common/interfaces/common.interface';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -34,7 +29,10 @@ export class CertificationsController {
   })
   async statements(
     @Query() dto: CertificationParamDTO,
-  ): Promise<CertificationStatementDTO[]> {
-    return this.service.getStatements(dto.monitorPlanIds);
+  ): Promise<ArrayResponse<CertificationStatementDTO>> {
+    const statements = await this.service.getStatements(dto.monitorPlanIds);
+    return {
+      data: statements
+    };
   }
 }
