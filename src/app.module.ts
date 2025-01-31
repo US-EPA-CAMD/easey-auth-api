@@ -72,6 +72,10 @@ export class AppModule implements NestModule {
           path: '/tokens/maintenance-validate',
           method: RequestMethod.POST,
         },
+        {
+          path: '/authentication/oauth2/code',
+          method: RequestMethod.POST,
+        },
       )
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
