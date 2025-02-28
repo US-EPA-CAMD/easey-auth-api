@@ -5,6 +5,7 @@ import { AuditLog } from '@us-epa-camd/easey-common/decorators';
 
 import { FacilityAccessWithCertStatementFlagDTO } from '../dtos/permissions.dto';
 import { PermissionsService } from './Permissions.service';
+import { ApiExcludeEndpointByEnv } from '../decorators/swagger-decorator';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -13,6 +14,7 @@ export class PermissionsController {
   constructor(private readonly service: PermissionsService) {}
 
   @Get('permissions')
+  @ApiExcludeEndpointByEnv()
   @ApiOkResponse({
     type: FacilityAccessWithCertStatementFlagDTO,
     description: 'Gets mocked permissions and flag for unassigned certificate statements for provided user',
