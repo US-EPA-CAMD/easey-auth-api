@@ -41,7 +41,7 @@
     "@nestjs/swagger": "^8.0.2",
     "@nestjs/typeorm": "^10.0.2",
     "@us-epa-camd/easey-common": "19.0.7",
-    "axios": "^1.7.4",
+    "axios": "^1.8.2",
     "cache-manager": "<=5",
     "class-transformer": "0.4.0",
     "class-validator": "0.14.0",
