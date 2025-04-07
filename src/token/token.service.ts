@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cacheable } from 'nestjs-cacheable';
 
@@ -382,6 +382,11 @@ export class TokenService {
         signature: string;
       };
       this.logger.debug('Decoded JWT payload');
+
+      if (!oidcJwtPayload || typeof oidcJwtPayload === 'string') {
+        this.logger.debug('Invalid token format: Unable to decode token');
+        throw new UnauthorizedException('Invalid or expired token. Access denied.');
+      }
 
       userId = oidcJwtPayload.payload.userId;
     }

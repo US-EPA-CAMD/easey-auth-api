@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import { UnauthorizedException } from '@nestjs/common';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { UserSessionService } from '../user-session/user-session.service';
 import { TokenDTO } from '../dtos/token.dto';
@@ -155,6 +156,36 @@ describe('Token Service', () => {
       expect(async () => {
         service.validateClientIp(testIp, '1');
       }).not.toThrowError();
+    });
+  });
+
+  describe('validateToken', () => {
+    it('should throw UnauthorizedException when token is invalid or cannot be decoded', async () => {
+      jest.spyOn(bypassService, 'bypassEnabled').mockReturnValue(false);
+      const invalidToken = 'invalid-token';
+      const clientIp = '127.0.0.1';
+
+      // Mock jwt.decode to return null
+      const jwtDecodeSpy = jest.spyOn(require('jsonwebtoken'), 'decode').mockReturnValue(null);
+
+      await expect(service.validateToken(invalidToken, clientIp)).rejects.toThrow(UnauthorizedException);
+      await expect(service.validateToken(invalidToken, clientIp)).rejects.toThrow('Invalid or expired token. Access denied.');
+
+      jwtDecodeSpy.mockRestore();
+    });
+
+    it('should throw UnauthorizedException when token is a string instead of an object', async () => {
+      jest.spyOn(bypassService, 'bypassEnabled').mockReturnValue(false);
+      const invalidToken = 'invalid-token';
+      const clientIp = '127.0.0.1';
+
+      // Mock jwt.decode to return a string
+      const jwtDecodeSpy = jest.spyOn(require('jsonwebtoken'), 'decode').mockReturnValue('string-token');
+
+      await expect(service.validateToken(invalidToken, clientIp)).rejects.toThrow(UnauthorizedException);
+      await expect(service.validateToken(invalidToken, clientIp)).rejects.toThrow('Invalid or expired token. Access denied.');
+
+      jwtDecodeSpy.mockRestore();
     });
   });
 });

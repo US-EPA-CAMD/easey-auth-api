@@ -1,7 +1,9 @@
+//v1
+
 import { TestingModule, Test } from '@nestjs/testing';
 import { AuthGuard } from './auth.guard';
 import { createMock } from '@golevelup/ts-jest';
-import { ExecutionContext } from '@nestjs/common';
+import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { v4 as uuid } from 'uuid';
 import { TokenService } from '../token/token.service';
@@ -55,18 +57,16 @@ describe('AuthGuard', () => {
     expect(await guard.validateRequest(request)).toEqual(true);
   });
 
-  it('should error given no auth header', async () => {
+  it('should throw UnauthorizedException when authorization header is missing', async () => {
     const request = { headers: {} };
-    expect(async () => {
-      await guard.validateRequest(request);
-    }).rejects.toThrowError();
+    await expect(guard.validateRequest(request)).rejects.toThrow(UnauthorizedException);
+    await expect(guard.validateRequest(request)).rejects.toThrow('Unauthorized access: Missing or invalid authorization token.');
   });
 
-  it('should error given invalid bearer format', async () => {
+  it('should throw UnauthorizedException for invalid Bearer token format', async () => {
     const header = 'Beater' + uuid();
     const request = { headers: { authorization: header } };
-    expect(async () => {
-      await guard.validateRequest(request);
-    }).rejects.toThrowError();
+    await expect(guard.validateRequest(request)).rejects.toThrow(UnauthorizedException);
+    await expect(guard.validateRequest(request)).rejects.toThrow("Invalid authorization format. Expected 'Bearer <token>'.");
   });
 });

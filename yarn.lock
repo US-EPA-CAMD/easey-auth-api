@@ -1249,10 +1249,10 @@
   resolved "https://registry.npmjs.org/@ungap/structured-clone/-/structured-clone-1.2.0.tgz"
   integrity sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==
 
-"@us-epa-camd/easey-common@19.0.7":
-  version "19.0.7"
-  resolved "https://npm.pkg.github.com/download/@US-EPA-CAMD/easey-common/19.0.7/96a689ebff59221124c03c26c822dfbb000254e6#96a689ebff59221124c03c26c822dfbb000254e6"
-  integrity sha512-981lXXdosTtXwXm59DbjH6JRI7hJsTnEtT11RcF6W9Oa0gMvK82U4C91xmdNXhPJ2cgPtTcI728CjjFlKjuqPQ==
+"@us-epa-camd/easey-common@19.0.9":
+  version "19.0.9"
+  resolved "https://npm.pkg.github.com/download/@US-EPA-CAMD/easey-common/19.0.9/154e6a659739589fbf22e55dc145a51e2d54cfaf#154e6a659739589fbf22e55dc145a51e2d54cfaf"
+  integrity sha512-ztn2nzcfWK3MBHjia0qeTyvusbMfXYUaJufIesUCo9Css8zxAhf9iKIy+7PJe947xhVKtk6ZphCiwKU+RoBY0A==
   dependencies:
     "@golevelup/ts-jest" "^0.3.4"
     "@nestjs/axios" "3.1.1"
@@ -1264,7 +1264,7 @@
     class-validator "^0.14.0"
     dotenv "^10.0.0"
     express "^4.20.0"
-    helmet "^4.6.0"
+    helmet "^8.0.0"
     json2csv "^5.0.6"
     pg "^8.11.5"
     pg-copy-streams "^6.0.6"
@@ -3601,10 +3601,10 @@ hasown@^2.0.0:
   dependencies:
     function-bind "^1.1.2"
 
-helmet@^4.6.0:
-  version "4.6.0"
-  resolved "https://registry.yarnpkg.com/helmet/-/helmet-4.6.0.tgz#579971196ba93c5978eb019e4e8ec0e50076b4df"
-  integrity sha512-HVqALKZlR95ROkrnesdhbbZJFi/rIVSoNq6f3jA/9u6MIbTsPh3xZwihjeI5+DO/2sOV6HMHooXcEOuwskHpTg==
+helmet@^8.0.0:
+  version "8.1.0"
+  resolved "https://registry.npmmirror.com/helmet/-/helmet-8.1.0.tgz#f96d23fedc89e9476ecb5198181009c804b8b38c"
+  integrity sha512-jOiHyAZsmnr8LqoPGmCjYAaiuWwjAPLgY8ZX2XrmHawt99/u1y6RgrZMTeoPfpUbV96HOalYgz1qzkRbw54Pmg==
 
 highlight.js@^10.7.1:
   version "10.7.3"
