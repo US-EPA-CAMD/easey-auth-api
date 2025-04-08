@@ -3,6 +3,7 @@ import {
   CanActivate,
   ExecutionContext,
   HttpStatus,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
@@ -14,16 +15,15 @@ export class AuthGuard implements CanActivate {
 
   async validateRequest(request): Promise<boolean> {
     const authHeader = request.headers.authorization;
-    let errorMsg =
-      'Prior Authorization (User Security Token) required to access this resource.';
+    const errorMsg = "Unauthorized access: Missing or invalid authorization token.";
 
-    if (authHeader === null || authHeader === undefined) {
-      throw new EaseyException(new Error(errorMsg), HttpStatus.BAD_REQUEST);
+    if (!authHeader) {
+      throw new UnauthorizedException(errorMsg);
     }
 
-    const splitString = authHeader.split(' ');
-    if (splitString.length !== 2 && splitString[0] !== 'Bearer') {
-      throw new EaseyException(new Error(errorMsg), HttpStatus.BAD_REQUEST);
+    const tokenParts = authHeader.split(' ');
+    if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
+      throw new UnauthorizedException("Invalid authorization format. Expected 'Bearer <token>'.");
     }
 
     return true;
