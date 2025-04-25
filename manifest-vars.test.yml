@@ -8,6 +8,7 @@ permissionsUrl: https://cbsstagei.epa.gov/CBS/api/auth-mgmt/responsibilities
 dataFlow: EASEY Test
 appStatus: ONLINE
 maintenanceBypassUsers: '[]'
+enableAuditLog: true
 
 # ICAM
 signFilesIndividually: false

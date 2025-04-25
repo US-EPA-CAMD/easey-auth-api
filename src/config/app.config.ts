@@ -115,5 +115,6 @@ export default registerAs('app', () => ({
     'EASEY_AUTH_API_SIGN_FILES_INDIVIDUALLY',
     false,
   ),
-  maintenanceBypassUsers: JSON.parse(getConfigValue('EASEY_MAINTENANCE_BYPASS_USERS', '[]'))
+  maintenanceBypassUsers: JSON.parse(getConfigValue('EASEY_MAINTENANCE_BYPASS_USERS', '[]')),
+  enableAuditLog: getConfigValueBoolean('EASEY_AUTH_API_ENABLE_AUDIT_LOG', true)
 }));
