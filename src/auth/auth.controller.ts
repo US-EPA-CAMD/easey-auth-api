@@ -22,6 +22,7 @@ import { CredentialsDTO } from '../dtos/credentials.dto';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import { LoginStateDTO } from '../dtos/login.state.dto';
 import { AuditLog } from '@us-epa-camd/easey-common/decorators';
+import { ApiExcludeEndpointByEnv } from '../decorators/swagger-decorator';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -41,6 +42,7 @@ export class AuthController {
   }
 
   @Post('/oauth2/code')
+  @ApiExcludeEndpointByEnv()
   @ApiOkResponse({
     description:
       'Validates the given OIDC parameters and redirects the user to the ECMPS UI home page ',
@@ -50,7 +52,6 @@ export class AuthController {
     @ClientIP() clientIp: string,
     @Res() res: Response,
   ): Promise<void> {
-    console.log('oidcPostRequest is', oidcPostRequest);
     const ecmpsUiRedirectUrl = getConfigValue('ECMPS_UI_REDIRECT_URL');
     const oidcAuthValidationResponse = await this.service.validateAndCreateSession(
       oidcPostRequest,
@@ -112,6 +113,7 @@ export class AuthController {
   }
 
   @Get('login-state')
+  @ApiExcludeEndpointByEnv()
   @ApiOkResponse({
     type: LoginStateDTO,
     description: 'Gets the login state of the api',

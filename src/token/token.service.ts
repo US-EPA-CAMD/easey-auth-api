@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cacheable } from 'nestjs-cacheable';
 
@@ -383,18 +383,23 @@ export class TokenService {
       };
       this.logger.debug('Decoded JWT payload');
 
+      if (!oidcJwtPayload || typeof oidcJwtPayload === 'string') {
+        this.logger.debug('Invalid token format: Unable to decode token');
+        throw new UnauthorizedException('Invalid or expired token. Access denied.');
+      }
+
       userId = oidcJwtPayload.payload.userId;
     }
 
     // Look up facilities based on userId and token
-    this.logger.debug('Looking up user session', { userId, token });
+    this.logger.debug('Looking up user session');
     const userSession = await this.userSessionService.findSessionByUserIdAndToken(
       userId,
       token,
     );
 
     if (!userSession) {
-      this.logger.debug('No user session found', { userId, token });
+      this.logger.debug('No user session found');
       return false;
     }
 
