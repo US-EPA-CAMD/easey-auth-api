@@ -10,6 +10,7 @@ enableAllFacilities: false
 mockPermissionsEnabled: false
 appStatus: ONLINE
 maintenanceBypassUsers: '[]'
+enableAuditLog: true
 
 # ICAM
 signFilesIndividually: false
