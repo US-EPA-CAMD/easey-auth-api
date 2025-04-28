@@ -40,7 +40,7 @@
     "@nestjs/platform-express": "^11.0.15",
     "@nestjs/swagger": "^11.1.1",
     "@nestjs/typeorm": "^11.0.0",
-    "@us-epa-camd/easey-common": "21.1.2",
+    "@us-epa-camd/easey-common": "21.0.0",
     "axios": "^1.8.4",
     "cache-manager": "<=5",
     "class-transformer": "0.4.0",
