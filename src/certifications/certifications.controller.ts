@@ -10,6 +10,7 @@ import { CertificationsService } from './certifications.service';
 import { CertificationStatementDTO } from '../dtos/certification-statement.dto';
 import { CertificationParamDTO } from '../dtos/certification-param.dto';
 import { ArrayResponse } from '@us-epa-camd/easey-common/interfaces/common.interface';
+import { ApiExcludeEndpointByEnv } from '../decorators/swagger-decorator';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -18,6 +19,7 @@ export class CertificationsController {
   constructor(private service: CertificationsService) {}
 
   @Get('/statements')
+  @ApiExcludeEndpointByEnv()
   @ApiOkResponse({
     description: 'Returns a list of certification statements',
   })

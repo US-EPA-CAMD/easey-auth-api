@@ -13,6 +13,7 @@ import { ClientIdDTO } from './../dtos/client-id.dto';
 import { ClientTokenService } from './client-token.service';
 import { AuthToken } from '../decorators/auth-token.decorator';
 import { ClientCredentialsDTO } from '../dtos/client-credentials.dto';
+import { ApiExcludeEndpointByEnv } from '../decorators/swagger-decorator';
 
 @Controller()
 @ApiTags('Tokens')
@@ -21,6 +22,7 @@ export class ClientTokenController {
   constructor(private readonly service: ClientTokenService) {}
 
   @Post()
+  @ApiExcludeEndpointByEnv()
   @ApiOkResponse({
     type: TokenDTO,
     description: 'Generates a client token, given a client id and secret',
@@ -34,6 +36,7 @@ export class ClientTokenController {
   }
 
   @Post('validate')
+  @ApiExcludeEndpointByEnv()
   @ApiBearerAuth('ClientToken')
   @ApiOkResponse({
     type: String,
