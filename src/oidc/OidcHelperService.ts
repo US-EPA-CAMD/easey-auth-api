@@ -2,6 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
+import safeStringify from 'fast-safe-stringify';
 import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
 import { Logger } from '@us-epa-camd/easey-common/logger';
 import * as FormData from 'form-data';
@@ -298,44 +299,26 @@ export class OidcHelperService {
     url: string,
     params?: Record<string, any> | URLSearchParams,
   ): void {
-    const {
-      message = 'Unknown error occurred',
-      stack = 'No stack trace available',
-      ...rest
-    } = error;
 
-    this.logger.error(
-      `Error making a request to ${url} with params ${
-        params ? JSON.stringify(params) : 'n/a'
-      }:`,
-      {
-        message,
-        stack,
-        ...rest,
-      },
-    );
+    const message = error?.message || 'Unknown error occurred';
 
-    let errorMessage = message;
-    let errorCode = 'UNKNOWN_ERROR';
-    let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+    const details = {
+      code: error?.code,
+      responseStatus: error?.response?.status,
+      responseData: error?.response?.data,
+      requestMethod: error?.config?.method,
+    };
 
-    if (error.response) {
-      // Handle known error structure
-      const { data, status } = error.response;
-      statusCode = status;
-      if (data && data.message && data.code) {
-        errorMessage = data.message;
-        errorCode = data.code;
-      } else if (typeof data === 'string') {
-        errorMessage = data;
-      }
-    } else if (error.message) {
-      // Fallback for other errors
-      errorMessage = error.message;
-    }
+    //Not logging parameters because contains sensitive info such as tokens, and security codes.
+    this.logger.error(`Error making a request to ${url}`, safeStringify({ message, details }));
+
+    const { data, status } = error?.response || {};
+    const errorMessage = (data?.message as string) || (typeof data === 'string' ? data : message);
+    const errorCode = data?.code || 'UNKNOWN_ERROR';
+    const statusCode = status || HttpStatus.INTERNAL_SERVER_ERROR;
 
     throw new HttpException(
-      { code: errorCode, message: errorMessage },
+      { code: errorCode, message: `Error making a request to ${url}: ${errorMessage}`, },
       statusCode,
     );
   }
