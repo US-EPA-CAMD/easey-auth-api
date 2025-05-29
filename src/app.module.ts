@@ -28,6 +28,7 @@ import { CertificationsModule } from './certifications/certifications.module';
 import { SignModule } from './sign/Sign.module';
 import { PermissionsModule } from './permissions/Permissions.module';
 import { OidcHelperModule } from './oidc/OidcHelper.module';
+import { HealthModule } from '@us-epa-camd/easey-common/health/health.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { OidcHelperModule } from './oidc/OidcHelper.module';
     TypeOrmModule.forRootAsync({
       useClass: TypeOrmConfigService,
     }),
+    HealthModule,
     LoggerModule,
     CorsOptionsModule,
     AuthModule,
