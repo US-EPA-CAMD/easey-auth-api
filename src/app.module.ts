@@ -78,6 +78,10 @@ export class AppModule implements NestModule {
           path: '/authentication/oauth2/code',
           method: RequestMethod.POST,
         },
+        {
+          path: '/health',
+          method: RequestMethod.GET,
+        },
       )
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
