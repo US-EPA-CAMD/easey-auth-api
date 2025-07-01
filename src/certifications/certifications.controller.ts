@@ -3,13 +3,14 @@ import {
   ApiTags,
   ApiOkResponse,
   ApiSecurity,
-  ApiQuery,
+  ApiQuery, getSchemaPath, ApiExtraModels,
 } from '@nestjs/swagger';
 
 import { CertificationsService } from './certifications.service';
 import { CertificationStatementDTO } from '../dtos/certification-statement.dto';
 import { CertificationParamDTO } from '../dtos/certification-param.dto';
 import { ArrayResponse } from '@us-epa-camd/easey-common/interfaces/common.interface';
+import { ApiExcludeEndpointByEnv } from '../decorators/swagger-decorator';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -18,8 +19,23 @@ export class CertificationsController {
   constructor(private service: CertificationsService) {}
 
   @Get('/statements')
+  @ApiExcludeEndpointByEnv()
+  @ApiExtraModels(CertificationStatementDTO)
   @ApiOkResponse({
     description: 'Returns a list of certification statements',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            items: {
+              type: 'array',
+              items: { $ref: getSchemaPath(CertificationStatementDTO) },
+            },
+          },
+        },
+      },
+    }
   })
   @ApiQuery({
     style: 'pipeDelimited',
