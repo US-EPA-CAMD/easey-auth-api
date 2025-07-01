@@ -31,6 +31,7 @@ export class AuthController {
   constructor(private service: AuthService, private readonly logger: Logger) {}
 
   @Post('/determinePolicy')
+  @ApiExcludeEndpointByEnv()
   @ApiOkResponse({
     type: PolicyResponse,
     description: 'Determines the users policy based the given user id',
@@ -69,6 +70,7 @@ export class AuthController {
   }
 
   @Post('/sign-in')
+  @ApiExcludeEndpointByEnv()
   @ApiOkResponse({
     type: UserDTO,
     description: 'Authenticates a user using a previously provided sessionId',
@@ -86,6 +88,7 @@ export class AuthController {
   }
 
   @Post('/update-last-activity')
+  @ApiExcludeEndpointByEnv()
   @UseGuards(AuthGuard)
   @ApiBearerAuth('Token')
   @ApiOkResponse({
@@ -96,6 +99,7 @@ export class AuthController {
   }
 
   @Delete('/sign-out')
+  @ApiExcludeEndpointByEnv()
   @UseGuards(AuthGuard)
   @ApiBearerAuth('Token')
   @ApiOkResponse({
