@@ -38,7 +38,8 @@ jest.mock('rxjs', () => {
     firstValueFrom: jest.fn().mockResolvedValue({
       data: {
         userId: 'user',
-        facilities: [
+		isAdmin: false,
+        plantList: [
           {
             id: 1,
             permissions: ['DSMP', 'DSEM', 'DSQA'],
