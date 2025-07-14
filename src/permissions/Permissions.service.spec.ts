@@ -10,6 +10,7 @@ import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { OidcHelperService } from '../oidc/OidcHelperService';
 import { BypassService } from '../oidc/Bypass.service';
 import { FacilityAccessWithCertStatementFlagDTO } from '../dtos/permissions.dto';
+import { UserRole } from '@us-epa-camd/easey-common/enums';
 
 let responseVals = {
   ['app.env']: 'production',
@@ -37,7 +38,7 @@ jest.mock('rxjs', () => {
     firstValueFrom: jest.fn().mockResolvedValue({
       data: {
         userId: 'user',
-        isAdmin: true,
+        isAdmin: false,
         plantList: [
           {
             id: 1,
@@ -49,6 +50,7 @@ jest.mock('rxjs', () => {
           },
         ],
         missingCertificationStatements: true,
+		roles: [UserRole.PREPARER],
       },
     }),
   };
@@ -89,6 +91,24 @@ describe('PermissionsService', () => {
           useValue: {
             bypassEnabled: jest.fn().mockReturnValue(false),
             getBypassUser: jest.fn(),
+			getMockPermissionObject: jest.fn().mockReturnValue({
+			  {
+				userId: 'user',
+				isAdmin: false,
+				plantList: [
+				  {
+					id: 1,
+					permissions: ['DSMP', 'DSEM', 'DSQA'],
+				  },
+				  {
+					id: 2,
+					permissions: ['DSMP', 'DSEM'],
+				  },
+				],
+				missingCertificationStatements: true,
+				roles: [UserRole.PREPARER],
+			  }
+			}),
           },
         },
         {
@@ -126,7 +146,7 @@ describe('PermissionsService', () => {
       const permissions = await service.getUserPermissions('', '', '');
       expect(permissions).toEqual({
         userId: 'user',
-        isAdmin: true,
+        isAdmin: false,
         plantList: [
           {
             id: 1,
@@ -138,6 +158,7 @@ describe('PermissionsService', () => {
           },
         ],
         missingCertificationStatements: true,
+		roles: [UserRole.PREPARER],
       });
     });
   });
@@ -202,6 +223,35 @@ describe('PermissionsService', () => {
       );
       expect(facilities?.plantList).toEqual([]);
       expect(facilities?.missingCertificationStatements).toEqual(true);
+    });
+  });
+
+  describe('getMockPermissions', () => {
+    it('should error in production', async () => {
+      await expect(service.getMockPermissions('')).rejects.toThrowError(
+        EaseyException,
+      );
+    });
+    it('should parse user env var and build the permissions properly given a found user', async () => {
+      responseVals = {
+        ...responseVals,
+        ['app.env']: 'local-dev',
+      };
+
+      const permissions = await service.getMockPermissions('user');
+
+      expect(permissions.plantList[0].facId).toEqual(1);
+    });
+
+    it('should parse user env var and build the permissions properly given a not found user', async () => {
+      responseVals = {
+        ...responseVals,
+        ['app.env']: 'local-dev',
+      };
+
+      const permissions = await service.getMockPermissions('userNotFound');
+
+      expect(permissions).toBe(null);
     });
   });
 });

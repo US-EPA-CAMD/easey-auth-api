@@ -3,11 +3,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { HttpService } from '@nestjs/axios';
 import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
-import { UserSessionService } from '../user-session/user-session.service';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { BypassService } from '../oidc/Bypass.service';
 import { FacilityAccessWithCertStatementFlagDTO } from '../dtos/permissions.dto';
-import { UserRole } from '@us-epa-camd/easey-common/enums';
 
 let responseVals = {
   ['app.env']: 'production',
@@ -17,17 +15,6 @@ let responseVals = {
   ['app.enableAllFacilities']: true,
 };
 
-jest.mock('soap', () => ({
-  createClientAsync: jest.fn(() => Promise.resolve(client)),
-}));
-
-const client = {
-  RetrieveRolesAsync: jest.fn(),
-  RetrieveOrganizationsAsync: jest.fn().mockResolvedValue({
-    email: 'user@example.com',
-  }),
-};
-
 jest.mock('rxjs', () => {
   const originalModule = jest.requireActual('rxjs');
   return {
@@ -35,7 +22,7 @@ jest.mock('rxjs', () => {
     firstValueFrom: jest.fn().mockResolvedValue({
       data: {
         userId: 'user',
-        isAdmin: true,
+        isAdmin: false,
         plantList: [
           {
             id: 1,
@@ -47,7 +34,6 @@ jest.mock('rxjs', () => {
           },
         ],
         missingCertificationStatements: true,
-		roles: [UserRole.PREPARER],
       },
     }),
   };
@@ -84,12 +70,7 @@ describe('BypassService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('getMockPermissions', () => {
-    it('should error in production', async () => {
-      await expect(service.getMockPermissions('')).rejects.toThrowError(
-        EaseyException,
-      );
-    });
+  describe('getMockRoles', () => {
     it('should parse user env var and build the permissions properly given a found user', async () => {
       const p: MockPermissionObject = {
         userId: 'user',
@@ -103,9 +84,10 @@ describe('BypassService', () => {
         ['app.env']: 'local-dev',
       };
 
-      const permissions = await service.getMockPermissions('user');
+      const roles = await service.getMockRoles('user');
 
-      expect(permissions.plantList[0].facId).toEqual(1);
+      expect(roles.length.toEqual(1);
+	  expect(roles[0].toEqual(UserRole.PREPARER);
     });
 
     it('should parse user env var and build the permissions properly given a not found user', async () => {
@@ -122,9 +104,10 @@ describe('BypassService', () => {
 
       jest.spyOn(service, 'getMockPermissionObject').mockResolvedValue([p]);
 
-      const permissions = await service.getMockPermissions('userNotFound');
-
-      expect(permissions).toBe(null);
+      const roles = await service.getMockRoles('userNotFound');
+	
+	  expect(roles.length.toEqual(6);
+		
     });
   });
 });
