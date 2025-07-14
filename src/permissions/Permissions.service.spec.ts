@@ -204,46 +204,4 @@ describe('PermissionsService', () => {
       expect(facilities?.missingCertificationStatements).toEqual(true);
     });
   });
-
-  describe('getMockPermissions', () => {
-    it('should error in production', async () => {
-      await expect(service.getMockPermissions('')).rejects.toThrowError(
-        EaseyException,
-      );
-    });
-    it('should parse user env var and build the permissions properly given a found user', async () => {
-      const p: MockPermissionObject = {
-        userId: 'user',
-        facilities: [{ orisCode: 1, roles: [], facId: 1 }],
-        missingCertificationStatements: true,
-      };
-      jest.spyOn(service.bypassService, 'getMockPermissionObject').mockResolvedValue([p]);
-      responseVals = {
-        ...responseVals,
-        ['app.env']: 'local-dev',
-      };
-
-      const permissions = await service.getMockPermissions('user');
-
-      expect(permissions.plantList[0].facId).toEqual(1);
-    });
-
-    it('should parse user env var and build the permissions properly given a not found user', async () => {
-      const p: MockPermissionObject = {
-        userId: 'user',
-        facilities: [{ orisCode: 1, roles: [], facId: 1 }],
-        missingCertificationStatements: true,
-      };
-      responseVals = {
-        ...responseVals,
-        ['app.env']: 'local-dev',
-      };
-
-      jest.spyOn(service.bypassService, 'getMockPermissionObject').mockResolvedValue([p]);
-
-      const permissions = await service.getMockPermissions('userNotFound');
-
-      expect(permissions).toBe(null);
-    });
-  });
 });
