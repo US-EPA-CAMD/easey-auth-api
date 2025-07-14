@@ -97,11 +97,11 @@ describe('PermissionsService', () => {
 				  userId: 'user',
 			      facilities: [
     			    {
-			  	      id: 1,
+			  	      facId: 1,
 				      permissions: ['DSMP', 'DSEM', 'DSQA'],
 				    },
 				    {
-				      id: 2,
+				      facId: 2,
 				      permissions: ['DSMP', 'DSEM'],
 				    },
 			      ],
