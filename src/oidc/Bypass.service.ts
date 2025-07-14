@@ -10,7 +10,7 @@ import { decode, encode } from 'js-base64';
 import { TokenDTO } from '../dtos/token.dto';
 import { UserDTO } from '../dtos/user.dto';
 
-import { MockPermissionObject } from '/../interfaces/mock-permissions.interface';
+import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
 
 @Injectable()
 export class BypassService {
