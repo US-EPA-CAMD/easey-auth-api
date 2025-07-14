@@ -50,7 +50,7 @@ jest.mock('rxjs', () => {
           },
         ],
         missingCertificationStatements: true,
-		roles: [UserRole.PREPARER],
+		roles: ["Preparer"],
       },
     }),
   };

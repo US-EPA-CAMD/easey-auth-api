@@ -87,8 +87,8 @@ describe('BypassService', () => {
 
       const roles = await service.getMockRoles('user');
 
-      expect(roles.length.toEqual(1);
-	  expect(roles[0] === 1;
+      expect(roles.length === 1);
+	  expect(roles[0].toEqual(UserRole.PREPARER);
     });
 
     it('should parse user env var and build the permissions properly given a not found user', async () => {
@@ -107,7 +107,7 @@ describe('BypassService', () => {
 
       const roles = await service.getMockRoles('userNotFound');
 	
-	  expect(roles.length === 6;
+	  expect(roles.length === 6);
 		
     });
   });
