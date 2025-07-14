@@ -32,7 +32,7 @@ export class BypassService {
     return this.bypass;
   }
 
-  getBypassUser(userId: string) {
+  async getBypassUser(userId: string): Promise<UserDTO> {
     //Handle bypass sign in if enabled
     const acceptedUsers = JSON.parse(
       this.configService.get<string>('cdxBypass.users'),
@@ -53,7 +53,7 @@ export class BypassService {
     user.email = this.configService.get<string>('cdxBypass.userEmail');
     user.lastName = '';
 	
-    user.roles = this.getMockRoles(userId);
+    user.roles = await this.getMockRoles(userId);
 
     return user;
   }
@@ -127,7 +127,7 @@ export class BypassService {
     ) {
       //test roles are defined for this user
 	  // return test roles
-	  return userPermissions[0].roles as string[];
+	  return userPermissions[0].roles;
     }
 	else {		
 	  //test roles are not defined for this user
@@ -139,7 +139,7 @@ export class BypassService {
 		UserRole.ANALYST,
 		UserRole.ADMIN,
 		UserRole.INITIAL_AUTHORIZER,
-	  ] as string[];
+	  ];
 	}
   }
 
