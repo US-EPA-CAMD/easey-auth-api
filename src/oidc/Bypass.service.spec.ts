@@ -1,13 +1,10 @@
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
-import { PermissionsService } from './Permissions.service';
 import { HttpService } from '@nestjs/axios';
 import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
-import { SignService } from '../sign/Sign.service';
 import { UserSessionService } from '../user-session/user-session.service';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
-import { OidcHelperService } from '../oidc/OidcHelperService';
 import { BypassService } from '../oidc/Bypass.service';
 import { FacilityAccessWithCertStatementFlagDTO } from '../dtos/permissions.dto';
 import { UserRole } from '@us-epa-camd/easey-common/enums';
