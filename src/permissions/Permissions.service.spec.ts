@@ -38,8 +38,7 @@ jest.mock('rxjs', () => {
     firstValueFrom: jest.fn().mockResolvedValue({
       data: {
         userId: 'user',
-        isAdmin: false,
-        plantList: [
+        facilities: [
           {
             id: 1,
             permissions: ['DSMP', 'DSEM', 'DSQA'],
@@ -95,8 +94,7 @@ describe('PermissionsService', () => {
 			  [
 			    {
 				  userId: 'user',
-			      isAdmin: false,
-			      plantList: [
+			      facilities: [
     			    {
 			  	      id: 1,
 				      permissions: ['DSMP', 'DSEM', 'DSQA'],
