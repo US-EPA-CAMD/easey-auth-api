@@ -50,7 +50,7 @@ export class BypassService {
     user.email = this.configService.get<string>('cdxBypass.userEmail');
     user.lastName = '';
 	
-    user.roles = this.getMockRoles();
+    user.roles = this.getMockRoles(userId);
 
     return user;
   }
@@ -108,7 +108,7 @@ export class BypassService {
     return user;
   }
   
-  async getMockRoles(): Promise<Array<string>> {
+  async getMockRoles(userId: string): Promise<Array<string>> {
 	  
 	const mockPermissionObject = await this.getMockPermissionObject();
 	
