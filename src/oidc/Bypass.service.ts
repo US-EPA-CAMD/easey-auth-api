@@ -111,7 +111,7 @@ export class BypassService {
     return user;
   }
   
-  async getMockRoles(userId: string): Promise<> {
+  async getMockRoles(userId: string): Promise<object> {
 	  
 	const mockPermissionObject = await this.getMockPermissionObject();
 	
