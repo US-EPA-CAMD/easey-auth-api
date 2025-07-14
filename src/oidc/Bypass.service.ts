@@ -111,7 +111,7 @@ export class BypassService {
     return user;
   }
   
-  async getMockRoles(userId: string): Promise<object> {
+  async getMockRoles(userId: string): Promise<string[]> {
 	  
 	const mockPermissionObject = await this.getMockPermissionObject();
 	
@@ -127,7 +127,7 @@ export class BypassService {
     ) {
       //test roles are defined for this user
 	  // return test roles
-	  return userPermissions[0].roles;
+	  return userPermissions[0].roles as string[];
     }
 	else {		
 	  //test roles are not defined for this user
@@ -139,7 +139,7 @@ export class BypassService {
 		UserRole.ANALYST,
 		UserRole.ADMIN,
 		UserRole.INITIAL_AUTHORIZER,
-	  ];
+	  ] as string[];
 	}
   }
 
