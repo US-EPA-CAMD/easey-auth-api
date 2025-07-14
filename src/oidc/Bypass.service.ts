@@ -50,7 +50,7 @@ export class BypassService {
     user.email = this.configService.get<string>('cdxBypass.userEmail');
     user.lastName = '';
 	
-    user.roles = await this.getMockRoles();
+    user.roles = this.getMockRoles();
 
     return user;
   }
