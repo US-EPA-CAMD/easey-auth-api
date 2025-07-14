@@ -111,11 +111,9 @@ export class BypassService {
     return user;
   }
   
-  async getMockRoles(
-    userId: string,
-  ): Promise<string[]> {
+  getMockRoles(userId: string) {
 	  
-	const mockPermissionObject = await this.getMockPermissionObject();
+	const mockPermissionObject = this.getMockPermissionObject();
 	
 	//filter out all the unmactched records
     const userPermissions = mockPermissionObject.filter(
