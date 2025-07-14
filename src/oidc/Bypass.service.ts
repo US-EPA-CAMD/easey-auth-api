@@ -12,6 +12,7 @@ import { TokenDTO } from '../dtos/token.dto';
 import { UserDTO } from '../dtos/user.dto';
 
 import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class BypassService {
@@ -20,6 +21,7 @@ export class BypassService {
   constructor(
     private readonly logger: Logger,
     private readonly configService: ConfigService,
+    private httpService: HttpService,
   ) {
     this.bypass =
       this.configService.get<string>('app.env') !== 'production' &&
@@ -109,7 +111,9 @@ export class BypassService {
     return user;
   }
   
-  async getMockRoles(userId: string): Promise<string[]> {
+  async getMockRoles(
+    userId: string,
+  ): Promise<string[]> {
 	  
 	const mockPermissionObject = await this.getMockPermissionObject();
 	
