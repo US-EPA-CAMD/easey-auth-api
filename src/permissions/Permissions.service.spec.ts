@@ -91,7 +91,7 @@ describe('PermissionsService', () => {
           useValue: {
             bypassEnabled: jest.fn().mockReturnValue(false),
             getBypassUser: jest.fn(),
-			getMockPermissionObject: jest.fn().mockReturnValue({{
+			getMockPermissionObject: jest.fn().mockReturnValue(
 			  [
 			    {
 				  userId: 'user',
@@ -110,7 +110,7 @@ describe('PermissionsService', () => {
 			      roles: [UserRole.PREPARER],
 			    }
 			  ]
-			}}),
+			),
           },
         },
         {
