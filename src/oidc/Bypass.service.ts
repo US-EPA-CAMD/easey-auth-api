@@ -1,3 +1,4 @@
+import { HttpService } from '@nestjs/axios';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UserRole } from '@us-epa-camd/easey-common/enums';
@@ -108,7 +109,7 @@ export class BypassService {
     return user;
   }
   
-  async getMockRoles(userId: string): Promise<Array<string>> {
+  async getMockRoles(userId: string): Promise<string[]> {
 	  
 	const mockPermissionObject = await this.getMockPermissionObject();
 	
