@@ -92,20 +92,24 @@ describe('PermissionsService', () => {
             bypassEnabled: jest.fn().mockReturnValue(false),
             getBypassUser: jest.fn(),
 			getMockPermissionObject: jest.fn().mockReturnValue({
-			  userId: 'user',
-			  isAdmin: false,
-			  plantList: [
+			  [
 			    {
-			  	  id: 1,
-				  permissions: ['DSMP', 'DSEM', 'DSQA'],
-				},
-				{
-				  id: 2,
-				  permissions: ['DSMP', 'DSEM'],
-				},
-			  ],
-			  missingCertificationStatements: true,
-			  roles: [UserRole.PREPARER],
+				  userId: 'user',
+			      isAdmin: false,
+			      plantList: [
+    			    {
+			  	      id: 1,
+				      permissions: ['DSMP', 'DSEM', 'DSQA'],
+				    },
+				    {
+				      id: 2,
+				      permissions: ['DSMP', 'DSEM'],
+				    },
+			      ],
+			      missingCertificationStatements: true,
+			      roles: [UserRole.PREPARER],
+			    }
+			  ]
 			}),
           },
         },
