@@ -113,14 +113,14 @@ export class BypassService {
   
   async getMockRoles(userId: string): Promise<string[]> {
     
-	const mockPermissionObject = await this.getMockPermissionObject();
+    const mockPermissionObject = await this.getMockPermissionObject();
     
-	//Filter out all the unmatched records
+    //Filter out all the unmatched records
     const userPermissions = mockPermissionObject.filter(
       (entry) => entry.userId.toUpperCase() === userId.toUpperCase(),
     );
     
-	//Only retrieve info from the first matched record
+    //Only retrieve info from the first matched record
     if (userPermissions.length > 0 && userPermissions[0]?.roles?.length > 0) {
       //Test roles are defined for this user
       // return test roles
