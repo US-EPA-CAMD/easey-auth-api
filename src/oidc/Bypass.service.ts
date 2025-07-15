@@ -112,35 +112,31 @@ export class BypassService {
   }
   
   async getMockRoles(userId: string): Promise<string[]> {
-	  
+    
 	const mockPermissionObject = await this.getMockPermissionObject();
-	
-	//filter out all the unmactched records
+    
+	//Filter out all the unmatched records
     const userPermissions = mockPermissionObject.filter(
-      entry => entry.userId.toUpperCase() === userId.toUpperCase(),
+      (entry) => entry.userId.toUpperCase() === userId.toUpperCase(),
     );
     
-    //only retrieve info from the first matched record
-    if (
-      userPermissions.length > 0 &&
-      userPermissions[0]?.roles?.length > 0
-    ) {
-      //test roles are defined for this user
-	  // return test roles
-	  return userPermissions[0].roles;
+	//Only retrieve info from the first matched record
+    if (userPermissions.length > 0 && userPermissions[0]?.roles?.length > 0) {
+      //Test roles are defined for this user
+      // return test roles
+      return userPermissions[0].roles;
+    } else {
+      //Test roles are not defined for this user
+      // return all possible roles
+      return [
+        UserRole.SPONSOR,
+        UserRole.PREPARER,
+        UserRole.SUBMITTER,
+        UserRole.ANALYST,
+        UserRole.ADMIN,
+        UserRole.INITIAL_AUTHORIZER,
+      ];
     }
-	else {		
-	  //test roles are not defined for this user
-	  // return all possible roles
-	  return [
-		UserRole.SPONSOR,
-		UserRole.PREPARER,
-		UserRole.SUBMITTER,
-		UserRole.ANALYST,
-		UserRole.ADMIN,
-		UserRole.INITIAL_AUTHORIZER,
-	  ];
-	}
   }
 
   async getMockPermissionObject(): Promise<MockPermissionObject[]> {
