@@ -1,16 +1,21 @@
 import { Injectable, HttpStatus } from '@nestjs/common';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { EntityManager, IsNull } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
+import { firstValueFrom } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
 
 import { CertificationFacilitiesDTO } from '../dtos/cert-facilities.dto';
 import { CertificationStatementRepository } from './certifications.repository';
 import { CertificationStatementDTO } from '../dtos/certification-statement.dto';
-
+import { CertificationStatement } from '../entities/certification-statement.entity'
 @Injectable()
 export class CertificationsService {
   constructor(
     private readonly repository: CertificationStatementRepository,
     private readonly entityManager: EntityManager,
+    private readonly configService: ConfigService,
+    private readonly httpService: HttpService,
   ) {}
 
   public returnManager() {
@@ -21,7 +26,8 @@ export class CertificationsService {
     monitorPlanIds: string[],
   ): Promise<CertificationStatementDTO[]> {
     let certList: CertificationStatementDTO[] = [];
-
+    let templateString;
+    const contentUri = this.configService.get<string>('app.contentUri');
     try {
       const manager = this.returnManager();
 
@@ -47,7 +53,7 @@ export class CertificationsService {
       });
 
       for (const [key, value] of Object.entries(compiledKeys)) {
-        let statementData;
+        let statementData:CertificationStatement;
 
         if (key === 'null') {
           statementData = await this.repository.findOneBy({
@@ -57,11 +63,15 @@ export class CertificationsService {
           statementData = await this.repository.findOneBy({ prgCode: key });
         }
 
+        const url = `${contentUri}/${statementData?.statementLocation}`;
+        const template = await firstValueFrom(this.httpService.get(url));
+        templateString = template.data;
+
         const certDto = new CertificationStatementDTO();
         certDto.displayOrder = statementData.displayOrder;
         certDto.prgCode = key;
         certDto.statementId = statementData.statementId;
-        certDto.statementText = statementData.statementText;
+        certDto.statementText = templateString;
         certDto.facData = value;
 
         certList.push(certDto);
