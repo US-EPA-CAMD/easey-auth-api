@@ -1,3 +1,4 @@
+import { HttpService } from '@nestjs/axios';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UserRole } from '@us-epa-camd/easey-common/enums';
@@ -10,6 +11,9 @@ import { decode, encode } from 'js-base64';
 import { TokenDTO } from '../dtos/token.dto';
 import { UserDTO } from '../dtos/user.dto';
 
+import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
+import { firstValueFrom } from 'rxjs';
+
 @Injectable()
 export class BypassService {
   private bypass = false;
@@ -17,6 +21,7 @@ export class BypassService {
   constructor(
     private readonly logger: Logger,
     private readonly configService: ConfigService,
+    private httpService: HttpService,
   ) {
     this.bypass =
       this.configService.get<string>('app.env') !== 'production' &&
@@ -27,7 +32,7 @@ export class BypassService {
     return this.bypass;
   }
 
-  getBypassUser(userId: string) {
+  async getBypassUser(userId: string): Promise<UserDTO> {
     //Handle bypass sign in if enabled
     const acceptedUsers = JSON.parse(
       this.configService.get<string>('cdxBypass.users'),
@@ -47,15 +52,8 @@ export class BypassService {
     user.firstName = userId;
     user.email = this.configService.get<string>('cdxBypass.userEmail');
     user.lastName = '';
-    // we can update the roles for bypass user for testing purpose
-    user.roles = [
-      UserRole.SPONSOR,
-      UserRole.PREPARER,
-      UserRole.SUBMITTER,
-      UserRole.ANALYST,
-      UserRole.ADMIN,
-      UserRole.INITIAL_AUTHORIZER,
-    ];
+	
+    user.roles = await this.getMockRoles(userId);
 
     return user;
   }
@@ -111,5 +109,48 @@ export class BypassService {
     });
 
     return user;
+  }
+  
+  async getMockRoles(userId: string): Promise<string[]> {
+    
+    const mockPermissionObject = await this.getMockPermissionObject();
+    
+    //Filter out all the unmatched records
+    const userPermissions = mockPermissionObject.filter(
+      (entry) => entry.userId.toUpperCase() === userId.toUpperCase(),
+    );
+    
+    //Only retrieve info from the first matched record
+    if (userPermissions.length > 0 && userPermissions[0]?.roles?.length > 0) {
+      //Test roles are defined for this user
+      // return test roles
+      return userPermissions[0].roles;
+    } else {
+      //Test roles are not defined for this user
+      // return all possible roles
+      return [
+        UserRole.SPONSOR,
+        UserRole.PREPARER,
+        UserRole.SUBMITTER,
+        UserRole.ANALYST,
+        UserRole.ADMIN,
+        UserRole.INITIAL_AUTHORIZER,
+      ];
+    }
+  }
+
+  async getMockPermissionObject(): Promise<MockPermissionObject[]> {
+
+    const contentUri = this.configService.get<string>('app.contentUri');
+    
+    try {
+      const url = `${contentUri}/auth/mockPermissions.json`;
+      const mockPermissionResult = await firstValueFrom(
+        this.httpService.get(url),
+      );
+      return mockPermissionResult.data;
+    } catch (e) {
+      throw new EaseyException(e, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }
