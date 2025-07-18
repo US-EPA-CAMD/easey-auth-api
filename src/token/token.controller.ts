@@ -24,6 +24,7 @@ export class TokenController {
   constructor(private readonly service: TokenService) { }
 
   @Post()
+  @ApiExcludeEndpointByEnv()
   @UseGuards(AuthGuard)
   @ApiBearerAuth('Token')
   @ApiOkResponse({
@@ -43,6 +44,7 @@ export class TokenController {
   }
 
   @Post('/validate')
+  @ApiExcludeEndpointByEnv()
   @ApiBearerAuth('Token')
   @ApiOkResponse({
     type: String,
