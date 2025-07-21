@@ -27,6 +27,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@us-epa-camd/easey-common/guards';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
 import { AuditLog, User } from '@us-epa-camd/easey-common/decorators';
+import { ApiExcludeEndpointByEnv } from '../decorators/swagger-decorator';
 
 @Controller()
 @ApiSecurity('APIKey')
@@ -35,6 +36,7 @@ export class SignController {
   constructor(private readonly service: SignService) {}
 
   @Post('create-activity')
+  @ApiExcludeEndpointByEnv()
   @UseGuards(AuthGuard)
   @ApiBearerAuth('Token')
   @ApiOkResponse({
@@ -54,6 +56,7 @@ export class SignController {
   }
 
   @Post('validate')
+  @ApiExcludeEndpointByEnv()
   @ApiOkResponse({
     type: SignValidateResponseDTO,
     description: 'validate before call create-activity endpoint',
@@ -65,6 +68,7 @@ export class SignController {
   }
 
   @Post()
+  @ApiExcludeEndpointByEnv()
   @ApiOkResponse({
     description: 'Signs a document and binds it to an activityId',
   })
