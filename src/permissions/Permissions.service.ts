@@ -62,9 +62,10 @@ export class PermissionsService {
         UserRolesResponse
       >(apiUrl, apiToken, null);
 
+      const dataflow = this.configService.get<string>('app.dataFlow');
       if (res && res.length > 0) {
         const activeDescriptions = res
-          .filter(role => role.status.code === 'Active')
+          .filter(role => role.dataflow === dataflow && role.status.code === 'Active')
           .map(role => role.type.description);
         return activeDescriptions;
       }
