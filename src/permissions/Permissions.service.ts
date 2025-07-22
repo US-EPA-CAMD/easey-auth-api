@@ -136,7 +136,7 @@ export class PermissionsService {
     }
 
     const permissionsDto = {plantList: [], missingCertificationStatements: true,} as FacilityAccessWithCertStatementFlagDTO;
-    const mockPermissionObject = await this.getMockPermissionObject();
+    const mockPermissionObject = await this.bypassService.getMockPermissionObject();
 
     //filter out all the unmactched records
     const userPermissions = mockPermissionObject.filter(
@@ -213,21 +213,6 @@ export class PermissionsService {
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
-      throw new EaseyException(e, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  async getMockPermissionObject(): Promise<MockPermissionObject[]> {
-
-    const contentUri = this.configService.get<string>('app.contentUri');
-    
-    try {
-      const url = `${contentUri}/auth/mockPermissions.json`;
-      const mockPermissionResult = await firstValueFrom(
-        this.httpService.get(url),
-      );
-      return mockPermissionResult.data;
-    } catch (e) {
       throw new EaseyException(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

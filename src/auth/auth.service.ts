@@ -170,7 +170,7 @@ export class AuthService {
       if (this.bypassService.bypassEnabled()) {
         this.logger.debug('Bypass is enabled');
         //For bypass, sessionId has the userID
-        userDto = this.bypassService.getBypassUser(signInDto.sessionId);
+        userDto = await this.bypassService.getBypassUser(signInDto.sessionId);
 
         this.validateUserMaintenanceAblity(userDto);
 
