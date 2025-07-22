@@ -10,6 +10,7 @@ import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { OidcHelperService } from '../oidc/OidcHelperService';
 import { BypassService } from '../oidc/Bypass.service';
 import { FacilityAccessWithCertStatementFlagDTO } from '../dtos/permissions.dto';
+import { UserRole } from '@us-epa-camd/easey-common/enums';
 
 let responseVals = {
   ['app.env']: 'production',
@@ -37,7 +38,7 @@ jest.mock('rxjs', () => {
     firstValueFrom: jest.fn().mockResolvedValue({
       data: {
         userId: 'user',
-        isAdmin: true,
+		isAdmin: false,
         plantList: [
           {
             id: 1,
@@ -49,6 +50,7 @@ jest.mock('rxjs', () => {
           },
         ],
         missingCertificationStatements: true,
+		roles: ["Preparer"],
       },
     }),
   };
@@ -89,6 +91,25 @@ describe('PermissionsService', () => {
           useValue: {
             bypassEnabled: jest.fn().mockReturnValue(false),
             getBypassUser: jest.fn(),
+			getMockPermissionObject: jest.fn().mockReturnValue(
+			  [
+			    {
+				  userId: 'user',
+			      facilities: [
+    			    {
+			  	      facId: 1,
+				      permissions: ['DSMP', 'DSEM', 'DSQA'],
+				    },
+				    {
+				      facId: 2,
+				      permissions: ['DSMP', 'DSEM'],
+				    },
+			      ],
+			      missingCertificationStatements: true,
+			      roles: [UserRole.PREPARER],
+			    }
+			  ]
+			),
           },
         },
         {
@@ -126,7 +147,7 @@ describe('PermissionsService', () => {
       const permissions = await service.getUserPermissions('', '', '');
       expect(permissions).toEqual({
         userId: 'user',
-        isAdmin: true,
+        isAdmin: false,
         plantList: [
           {
             id: 1,
@@ -138,6 +159,7 @@ describe('PermissionsService', () => {
           },
         ],
         missingCertificationStatements: true,
+		roles: [UserRole.PREPARER],
       });
     });
   });
@@ -156,7 +178,7 @@ describe('PermissionsService', () => {
     it('should return roles for the user', async () => {
       client.RetrieveRolesAsync = jest.fn().mockResolvedValue([
         {
-          Role: [{ status: { code: 'Active' }, type: { description: 'Mock' } }],
+          Role: [{ dataflow: 'flow', status: { code: 'Active' }, type: { description: 'Mock' } }],
         },
       ]);
       const roles = await service.getUserRoles('', 0, '');
@@ -212,12 +234,6 @@ describe('PermissionsService', () => {
       );
     });
     it('should parse user env var and build the permissions properly given a found user', async () => {
-      const p: MockPermissionObject = {
-        userId: 'user',
-        facilities: [{ orisCode: 1, roles: [], facId: 1 }],
-        missingCertificationStatements: true,
-      };
-      jest.spyOn(service, 'getMockPermissionObject').mockResolvedValue([p]);
       responseVals = {
         ...responseVals,
         ['app.env']: 'local-dev',
@@ -229,17 +245,10 @@ describe('PermissionsService', () => {
     });
 
     it('should parse user env var and build the permissions properly given a not found user', async () => {
-      const p: MockPermissionObject = {
-        userId: 'user',
-        facilities: [{ orisCode: 1, roles: [], facId: 1 }],
-        missingCertificationStatements: true,
-      };
       responseVals = {
         ...responseVals,
         ['app.env']: 'local-dev',
       };
-
-      jest.spyOn(service, 'getMockPermissionObject').mockResolvedValue([p]);
 
       const permissions = await service.getMockPermissions('userNotFound');
 

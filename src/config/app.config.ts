@@ -106,7 +106,7 @@ export default registerAs('app', () => ({
   ),
   appStatus: getConfigValue(
     'EASEY_AUTH_API_APP_STATUS',
-    'ONLINE',
+    'DOWN',
   ),
   authApi: {
     uri: getConfigValue('EASEY_AUTH_API', `https://${apiHost}/auth-mgmt`),
