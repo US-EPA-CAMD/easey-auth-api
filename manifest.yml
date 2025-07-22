@@ -37,8 +37,6 @@ applications:
       EASEY_AUTH_API_DATA_FLOW: ((dataFlow))
       EASEY_AUTH_API_ENABLE_ALL_FACILITIES: ((enableAllFacilities))
       TZ: America/New_York
-      EASEY_AUTH_API_APP_STATUS: ((appStatus))
-      EASEY_MAINTENANCE_BYPASS_USERS: ((maintenanceBypassUsers))
       EASEY_AUTH_API_ENABLE_AUDIT_LOG: ((enableAuditLog))
 
       # ICAM
