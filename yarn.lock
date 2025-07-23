@@ -442,6 +442,11 @@
   resolved "https://registry.npmjs.org/@golevelup/ts-jest/-/ts-jest-0.6.2.tgz#483a482e1ab5a835cdd0f8669f76d1201c4a0f63"
   integrity sha512-ks82vcWbnRuwHSKlrZTGCPPWXZEKlsn1VA2OiYfJ+tVMcMsI4y9ExWkf7FnmYypYJIRWKS9b9N5QVVrCOmaVlg==
 
+"@golevelup/ts-jest@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@golevelup/ts-jest/-/ts-jest-0.7.0.tgz#b16c6775a34fa424e5fb492bc45a20c6d8204e0b"
+  integrity sha512-b5Kf+NiEfWuMGUD5bl/Gm/RqojS4Sr/4Q0ySXN4xn3xlkhgPYG6nGLBeNjk3MiM2I3ztVVFfI7SB8ajqDy6Idw==
+
 "@humanfs/core@^0.19.1":
   version "0.19.1"
   resolved "https://registry.npmjs.org/@humanfs/core/-/core-0.19.1.tgz#17c55ca7d426733fe3c561906b8173c336b40a77"
