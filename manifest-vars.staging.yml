@@ -10,6 +10,8 @@ mockPermissionsEnabled: false
 enableAllFacilities: false
 maintenanceBypassUsers: '[]'
 enableAuditLog: true
+healthCheckInterval: 30
+healthCheckInvocationTimeout: 60
 
 # ICAM
 signFilesIndividually: false
