@@ -13,10 +13,6 @@ import { OidcHelperService } from '../oidc/OidcHelperService';
 import { UserSession } from '../entities/user-session.entity';
 import { ClientTokenService } from '../client-token/client-token.service';
 
-import mock = jest.mock;
-jest.mock('soap', () => ({
-  createClientAsync: jest.fn(() => Promise.resolve(client)),
-}));
 let responseVals = {
   ['app.env']: 'development',
 };

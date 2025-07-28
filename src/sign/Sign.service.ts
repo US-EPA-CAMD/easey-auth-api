@@ -1,9 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@us-epa-camd/easey-common/logger';
-import { createClientAsync } from 'soap';
 import { SignAuthResponseDTO } from '../dtos/sign-auth-response.dto';
-import { SendPhonePinParamDTO } from '../dtos/send-phone-pin-param.dto';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
 import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
@@ -15,7 +13,6 @@ import {
   SignatureRequest,
 } from '../dtos/certification-sign-param.dto';
 import { BypassService } from '../oidc/Bypass.service';
-import { PolicyResponse } from '../dtos/policy-response';
 import { EntityManager } from 'typeorm';
 import { SignValidateResponseDTO } from '../dtos/sign-validate-response.dto';
 import { SignValidateParamDTO } from '../dtos/sign-validate-param.dto';
