@@ -12,9 +12,6 @@ import { AccessTokenResponse } from '../dtos/oidc-auth-dtos';
 import { OidcAuthValidationRequestDto } from '../dtos/oidc-auth-validation-request.dto';
 import { UserSession } from '../entities/user-session.entity';
 
-jest.mock('soap', () => ({
-  createClientAsync: jest.fn(),
-}));
 jest.mock('@nestjs/axios', () => ({
   HttpService: jest.fn(),
 }));

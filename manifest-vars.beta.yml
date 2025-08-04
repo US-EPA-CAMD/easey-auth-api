@@ -8,9 +8,10 @@ permissionsUrl: https://cbsprodbeta.epa.gov/CBS/api/auth-mgmt/responsibilities
 dataFlow: EASEY Beta
 enableAllFacilities: false
 mockPermissionsEnabled: false
-appStatus: ONLINE
 maintenanceBypassUsers: '[]'
 enableAuditLog: true
+healthCheckInterval: 30
+healthCheckInvocationTimeout: 60
 
 # ICAM
 signFilesIndividually: false

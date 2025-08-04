@@ -9,9 +9,10 @@ permissionsUrl: https://cbsstagei.epa.gov/CBSD/api/auth-mgmt/responsibilities
 dataFlow: EASEY Performance
 mockPermissionsEnabled: false
 enableAllFacilities: true
-appStatus: ONLINE
 maintenanceBypassUsers: '[]'
 enableAuditLog: true
+healthCheckInterval: 30
+healthCheckInvocationTimeout: 60
 
 # ICAM
 signFilesIndividually: false

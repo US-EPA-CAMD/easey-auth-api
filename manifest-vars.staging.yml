@@ -8,9 +8,10 @@ permissionsUrl: https://cbsstagei.epa.gov/CBS/api/auth-mgmt/responsibilities
 dataFlow: EASEY Staging
 mockPermissionsEnabled: false
 enableAllFacilities: false
-appStatus: ONLINE
 maintenanceBypassUsers: '[]'
 enableAuditLog: true
+healthCheckInterval: 30
+healthCheckInvocationTimeout: 60
 
 # ICAM
 signFilesIndividually: false
