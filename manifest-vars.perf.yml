@@ -13,6 +13,8 @@ maintenanceBypassUsers: '[]'
 enableAuditLog: true
 healthCheckInterval: 30
 healthCheckInvocationTimeout: 60
+dbHealthTimeout: 300000
+tokenExpirationDurationMinutes: 120
 
 # ICAM
 signFilesIndividually: false
