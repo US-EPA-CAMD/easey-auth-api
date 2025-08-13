@@ -22,6 +22,6 @@ describe('Certification Controller', () => {
   it('statements', () => {
     expect(async () => {
       await controller.statements({ monitorPlanIds: [] });
-    }).not.toThrowError();
+    }).not.toThrow();
   });
 });

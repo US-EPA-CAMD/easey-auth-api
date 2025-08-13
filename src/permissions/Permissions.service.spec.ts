@@ -224,7 +224,7 @@ describe('PermissionsService', () => {
 
   describe('getMockPermissions', () => {
     it('should error in production', async () => {
-      await expect(service.getMockPermissions('')).rejects.toThrowError(
+      await expect(service.getMockPermissions('')).rejects.toThrow(
         EaseyException,
       );
     });
