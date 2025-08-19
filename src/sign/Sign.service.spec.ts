@@ -1,46 +1,19 @@
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
-import { SignService } from './Sign.service';
-import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
-import { TokenService } from '../token/token.service';
-import { OidcHelperService } from '../oidc/OidcHelperService';
-import { OidcHelperModule } from '../oidc/OidcHelper.module';
-import { UserSessionModule } from '../user-session/user-session.module';
-import { TokenModule } from '../token/token.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserSessionRepository } from '../user-session/user-session.repository';
-import { UserSession } from '../entities/user-session.entity';
-import { ClientTokenRepository } from '../client-token/client-token.repository';
-import { UserSessionService } from '../user-session/user-session.service';
-import { SignAuthResponseDTO } from '../dtos/sign-auth-response.dto';
-import { BypassService } from '../oidc/Bypass.service';
-import { FacilityAccessWithCertStatementFlagDTO } from '../dtos/permissions.dto';
-import { SignValidateParamDTO } from '../dtos/sign-validate-param.dto';
-import { SignValidateResponseDTO } from '../dtos/sign-validate-response.dto';
-import { PermissionsService } from '../permissions/Permissions.service';
 import { EntityManager } from 'typeorm';
 import { CredentialsSignDTO } from '../dtos/certification-sign-param.dto';
-
-const client = {
-  AuthenticateAsync: jest.fn().mockResolvedValue([{ securityToken: '' }]),
-  CreateActivityAsync: jest.fn().mockResolvedValue([{ activityId: 'mockId' }]),
-  AuthenticateUserAsync: jest.fn(),
-  GetQuestionAsync: jest
-    .fn()
-    .mockResolvedValue([
-      { question: { questionId: 'mockId', text: 'mockQuestion' } },
-    ]),
-  ValidateAnswerAsync: jest.fn().mockResolvedValue(true),
-  RetrieveUserMobileAsync: jest.fn().mockResolvedValue([{ return: [] }]),
-  GenerateAndSendSecretCodeAsync: jest.fn(),
-  ValidateSecretCodeAsync: jest.fn(),
-  SignAsync: jest.fn(),
-};
-
-jest.mock('soap', () => ({
-  createClientAsync: jest.fn(() => Promise.resolve(client)),
-}));
+import { FacilityAccessWithCertStatementFlagDTO } from '../dtos/permissions.dto';
+import { SignAuthResponseDTO } from '../dtos/sign-auth-response.dto';
+import { SignValidateParamDTO } from '../dtos/sign-validate-param.dto';
+import { SignValidateResponseDTO } from '../dtos/sign-validate-response.dto';
+import { UserSession } from '../entities/user-session.entity';
+import { BypassService } from '../oidc/Bypass.service';
+import { OidcHelperService } from '../oidc/OidcHelperService';
+import { PermissionsService } from '../permissions/Permissions.service';
+import { TokenService } from '../token/token.service';
+import { UserSessionService } from '../user-session/user-session.service';
+import { SignService } from './Sign.service';
 
 const mockUserSessionService = () => ({
   findSessionByUserId: jest.fn().mockResolvedValue(new UserSession()),

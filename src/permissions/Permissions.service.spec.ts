@@ -3,7 +3,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { PermissionsService } from './Permissions.service';
 import { HttpService } from '@nestjs/axios';
-import { MockPermissionObject } from './../interfaces/mock-permissions.interface';
 import { SignService } from '../sign/Sign.service';
 import { UserSessionService } from '../user-session/user-session.service';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
@@ -19,10 +18,6 @@ let responseVals = {
   ['app.mockPermissionsEnabled']: true,
   ['app.enableAllFacilities']: true,
 };
-
-jest.mock('soap', () => ({
-  createClientAsync: jest.fn(() => Promise.resolve(client)),
-}));
 
 const client = {
   RetrieveRolesAsync: jest.fn(),
@@ -178,7 +173,7 @@ describe('PermissionsService', () => {
     it('should return roles for the user', async () => {
       client.RetrieveRolesAsync = jest.fn().mockResolvedValue([
         {
-          Role: [{ status: { code: 'Active' }, type: { description: 'Mock' } }],
+          Role: [{ dataflow: 'flow', status: { code: 'Active' }, type: { description: 'Mock' } }],
         },
       ]);
       const roles = await service.getUserRoles('', 0, '');
