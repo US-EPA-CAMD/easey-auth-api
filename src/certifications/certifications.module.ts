@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { HttpModule } from '@nestjs/axios';
 
 import { AuthModule } from '../auth/auth.module';
 import { CertificationsController } from './certifications.controller';
@@ -11,6 +12,7 @@ import { CertificationsService } from './certifications.service';
   imports: [
     TypeOrmModule.forFeature([CertificationStatementRepository]),
     AuthModule,
+    HttpModule
   ],
   controllers: [CertificationsController],
   providers: [
