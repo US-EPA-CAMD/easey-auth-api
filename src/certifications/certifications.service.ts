@@ -63,7 +63,7 @@ export class CertificationsService {
           statementData = await this.repository.findOneBy({ prgCode: key });
         }
 
-        const url = `${contentUri}/${statementData?.statementLocation}`;
+        const url = `${contentUri}${statementData?.statementLocation}`;
         const template = await firstValueFrom(this.httpService.get(url));
         templateString = template.data;
 
