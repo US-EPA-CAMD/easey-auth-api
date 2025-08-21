@@ -4,10 +4,21 @@ import { ConfigService } from '@nestjs/config';
 import { EntityManager } from 'typeorm';
 import { HttpService } from '@nestjs/axios';
 import { of } from 'rxjs';
+import { URL } from 'url';
 
 import { CertificationsService } from './certifications.service';
 import { CertificationStatementRepository } from './certifications.repository';
 import { CertificationStatement } from '../entities/certification-statement.entity';
+
+jest.mock('url', () => {
+  return {
+    URL: class {
+      href = 'https://statements/statement.pdf';
+      constructor(path: string, base: string) {
+     }
+    },
+  };
+});
 
 const mockRepository = () => ({
   findOneBy: jest.fn().mockResolvedValue(new CertificationStatement()),
