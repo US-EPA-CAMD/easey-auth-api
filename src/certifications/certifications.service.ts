@@ -4,7 +4,7 @@ import { EntityManager, IsNull } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
-
+import { URL } from 'url';
 import { CertificationFacilitiesDTO } from '../dtos/cert-facilities.dto';
 import { CertificationStatementRepository } from './certifications.repository';
 import { CertificationStatementDTO } from '../dtos/certification-statement.dto';
@@ -27,7 +27,7 @@ export class CertificationsService {
   ): Promise<CertificationStatementDTO[]> {
     let certList: CertificationStatementDTO[] = [];
     let templateString;
-    const contentUri = this.configService.get<string>('app.contentUri');
+    const contentUri = (this.configService.get<string>('app.contentUri') || '').replace(/\/?$/, '/');
     try {
       const manager = this.returnManager();
 
@@ -63,7 +63,7 @@ export class CertificationsService {
           statementData = await this.repository.findOneBy({ prgCode: key });
         }
 
-        const url = `${contentUri}/${statementData?.statementLocation}`;
+        const url = new URL((statementData?.statementLocation)?.replace(/^\/+/, '') || '', contentUri).href;
         const template = await firstValueFrom(this.httpService.get(url));
         templateString = template.data;
 
