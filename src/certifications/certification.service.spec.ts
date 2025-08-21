@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { ConfigService } from '@nestjs/config';
 import { EntityManager } from 'typeorm';
+import { HttpService } from '@nestjs/axios';
+import { of } from 'rxjs';
 
 import { CertificationsService } from './certifications.service';
 import { CertificationStatementRepository } from './certifications.repository';
@@ -10,6 +12,10 @@ import { CertificationStatement } from '../entities/certification-statement.enti
 const mockRepository = () => ({
   findOneBy: jest.fn().mockResolvedValue(new CertificationStatement()),
 });
+  const mockHttpService = {
+  get: jest.fn(),
+  post: jest.fn(),
+};
 describe('Certification Controller', () => {
   let service: CertificationsService;
   beforeAll(async () => {
@@ -25,6 +31,10 @@ describe('Certification Controller', () => {
           provide: EntityManager,
           useValue: { query: jest.fn() },
         },
+        {
+          provide: HttpService,
+          useValue: mockHttpService
+        },
         CertificationsService,
         ConfigService,
       ],
@@ -36,6 +46,9 @@ describe('Certification Controller', () => {
   });
 
   it('should function correctly and build a list of cert statements and their associated facilities', async () => {
+    mockHttpService.get.mockReturnValue(
+    of({ data: '<html><body>Certification Content</body></html>' })
+    );
     jest.spyOn(service, 'returnManager').mockReturnValue({
       query: jest.fn().mockResolvedValue([
         {
