@@ -4,7 +4,7 @@ import { EntityManager, IsNull } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
-
+import { URL } from 'url';
 import { CertificationFacilitiesDTO } from '../dtos/cert-facilities.dto';
 import { CertificationStatementRepository } from './certifications.repository';
 import { CertificationStatementDTO } from '../dtos/certification-statement.dto';
