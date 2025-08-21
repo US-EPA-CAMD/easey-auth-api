@@ -151,7 +151,7 @@ describe('Token Service', () => {
       const testIp = { clientIp: '1' } as CurrentUser;
       expect(async () => {
         service.validateClientIp(testIp, '1');
-      }).not.toThrowError();
+      }).not.toThrow();
     });
   });
 
