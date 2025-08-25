@@ -19,6 +19,7 @@ mockPermissionsEnabled: false
 enableAllFacilities: true
 maintenanceBypassUsers: '[]'
 enableAuditLog: true
+disableClientIpValidation: true
 healthCheckInterval: 30
 healthCheckInvocationTimeout: 60
 dbHealthTimeout: 5000
