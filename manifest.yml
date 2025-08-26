@@ -39,6 +39,7 @@ applications:
       EASEY_AUTH_API_ENABLE_ALL_FACILITIES: ((enableAllFacilities))
       TZ: America/New_York
       EASEY_AUTH_API_ENABLE_AUDIT_LOG: ((enableAuditLog))
+      EASEY_AUTH_API_DISABLE_CLIENT_IP_VALIDATION: ((disableClientIpValidation))
       EASEY_DB_HEALTH_TIMEOUT: ((dbHealthTimeout))
 
       # ICAM

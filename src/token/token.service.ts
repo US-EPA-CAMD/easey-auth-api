@@ -119,11 +119,20 @@ export class TokenService {
   }
 
   async validateClientIp(user: CurrentUser, clientIp: string) {
+    // Skip IP validation if disabled in configuration (but never in production)
+    const disableIpValidation = this.configService.get<boolean>('app.disableClientIpValidation');
+    const isProduction = this.configService.get<string>('app.env') === 'production';
+    
+    if (disableIpValidation && !isProduction) {
+      this.logger.debug('Client IP validation is disabled');
+      return;
+    }
+
     if (user.clientIp !== clientIp) {
       throw new EaseyException(
         new Error('Request coming from invalid IP address'),
         HttpStatus.BAD_REQUEST,
-        { userId: user.userId, clientIp: clientIp },
+        { userId: user.userId, clientIp: clientIp, storedIp: user.clientIp },
       );
     }
   }
