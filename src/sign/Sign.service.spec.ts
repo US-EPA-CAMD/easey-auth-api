@@ -82,7 +82,7 @@ describe('SignService', () => {
 
     expect(async () => {
       await service.signAllFiles('', []);
-    }).not.toThrowError();
+    }).not.toThrow();
   });
 
   it('should validate successfully', async () => {
@@ -90,7 +90,7 @@ describe('SignService', () => {
 
     expect(async () => {
       await service.validate(new SignValidateParamDTO());
-    }).not.toThrowError();
+    }).not.toThrow();
   });
 
   it('should create cromerr activity successfully', async () => {
@@ -106,7 +106,7 @@ describe('SignService', () => {
     };
     expect(async () => {
       await service.createCromerrActivity(currentUser, new CredentialsSignDTO(), '');
-    }).not.toThrowError();
+    }).not.toThrow();
   });
 
   it('should send to cromerr successfully', async () => {
@@ -114,6 +114,6 @@ describe('SignService', () => {
 
     expect(async () => {
       await service.sendToCromerr('', new CredentialsSignDTO(), '');
-    }).not.toThrowError();
+    }).not.toThrow();
   });
 });

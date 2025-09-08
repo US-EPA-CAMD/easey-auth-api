@@ -55,7 +55,7 @@ describe('Token Service', () => {
     it('should fail when client Id and client Token is null', async () => {
       expect(async () => {
         await service.validateToken(null, null);
-      }).rejects.toThrowError();
+      }).rejects.toThrow();
     });
 
     it('should fail when client id is invalid', async () => {
@@ -63,7 +63,7 @@ describe('Token Service', () => {
 
       expect(async () => {
         await service.validateToken('id', 'token');
-      }).rejects.toThrowError();
+      }).rejects.toThrow();
     });
 
     it('should fail when encrypted passcode is different for client', async () => {
@@ -74,7 +74,7 @@ describe('Token Service', () => {
 
       expect(async () => {
         await service.validateToken('id', 'token');
-      }).rejects.toThrowError();
+      }).rejects.toThrow();
     });
 
     it('should pass when encrypted passcode is correct for client', async () => {
@@ -91,7 +91,7 @@ describe('Token Service', () => {
     it('should fail when client Id and client Secret is null', async () => {
       expect(async () => {
         await service.generateToken(null, null);
-      }).rejects.toThrowError();
+      }).rejects.toThrow();
     });
 
     it('should fail when client id is invalid', async () => {
@@ -99,7 +99,7 @@ describe('Token Service', () => {
 
       expect(async () => {
         await service.generateToken('id', 'secret');
-      }).rejects.toThrowError();
+      }).rejects.toThrow();
     });
 
     it('should pass and return a new token dto', async () => {

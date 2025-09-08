@@ -116,5 +116,6 @@ export default registerAs('app', () => ({
     false,
   ),
   maintenanceBypassUsers: JSON.parse(getConfigValue('EASEY_MAINTENANCE_BYPASS_USERS', '[]')),
-  enableAuditLog: getConfigValueBoolean('EASEY_AUTH_API_ENABLE_AUDIT_LOG', true)
+  enableAuditLog: getConfigValueBoolean('EASEY_AUTH_API_ENABLE_AUDIT_LOG', true),
+  disableClientIpValidation: getConfigValueBoolean('EASEY_AUTH_API_DISABLE_CLIENT_IP_VALIDATION', false),
 }));
