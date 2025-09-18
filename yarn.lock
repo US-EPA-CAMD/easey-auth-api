@@ -2669,12 +2669,12 @@ cache-manager@^5.4.0:
     lru-cache "^10.2.2"
     promise-coalesce "^1.1.2"
 
-cache-manager@^6:
-  version "6.4.2"
-  resolved "https://registry.npmjs.org/cache-manager/-/cache-manager-6.4.2.tgz#a2d3f8c52b0b19849b41ccfca7dde1b81d4ab1de"
-  integrity sha512-oT0d1cGWZAlqEGDPjOfhmldTS767jT6kBT3KIdn7MX5OevlRVYqJT+LxRv5WY4xW9heJtYxeRRXaoKlEW+Biew==
+cache-manager@^7:
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/cache-manager/-/cache-manager-7.2.0.tgz#2b29098e6d748e875bbccd148fc28639d9f5cdf8"
+  integrity sha512-GRv0Ji8Xgqtrg1Mmi4ygYpIt+SOApQNjJb5+rYIl+5y3u+tyBf+Csx79LL4wQjKLio63A6x1OpuBzhMzRv9jJg==
   dependencies:
-    keyv "^5.3.2"
+    keyv "^5.5.0"
 
 call-bind-apply-helpers@^1.0.0, call-bind-apply-helpers@^1.0.1, call-bind-apply-helpers@^1.0.2:
   version "1.0.2"
@@ -5191,7 +5191,7 @@ keyv@^4.5.4:
   dependencies:
     json-buffer "3.0.1"
 
-keyv@^5.3.2, keyv@^5.5.2:
+keyv@^5.5.0, keyv@^5.5.2:
   version "5.5.2"
   resolved "https://registry.yarnpkg.com/keyv/-/keyv-5.5.2.tgz#942348b882e08a27429688897eec4f735f75a978"
   integrity sha512-TXcFHbmm/z7MGd1u9ASiCSfTS+ei6Z8B3a5JHzx3oPa/o7QzWVtPRpc4KGER5RR469IC+/nfg4U5YLIuDUua2g==
