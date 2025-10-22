@@ -118,4 +118,16 @@ export default registerAs('app', () => ({
   maintenanceBypassUsers: JSON.parse(getConfigValue('EASEY_MAINTENANCE_BYPASS_USERS', '[]')),
   enableAuditLog: getConfigValueBoolean('EASEY_AUTH_API_ENABLE_AUDIT_LOG', true),
   disableClientIpValidation: getConfigValueBoolean('EASEY_AUTH_API_DISABLE_CLIENT_IP_VALIDATION', false),
+
+  // Enhanced IP validation configuration
+  enableEnhancedIpValidation: getConfigValueBoolean('ENHANCED_IP_VALIDATION', false),
+
+  ipValidation: {
+    subnetMask: getConfigValue('IP_SUBNET_MASK', '255.255.255.0'),
+    allowedRanges: getConfigValue('ALLOWED_IP_RANGES', '10.0.0.0/8,172.16.0.0/12,192.168.0.0/16')?.split(',') || [
+      '10.0.0.0/8',      // Private Class A
+      '172.16.0.0/12',   // Private Class B
+      '192.168.0.0/16'   // Private Class C
+    ]
+  },
 }));

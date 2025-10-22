@@ -182,6 +182,61 @@ describe('Token Service', () => {
       await expect(service.validateToken(invalidToken, clientIp)).rejects.toThrow('Invalid or expired token. Access denied.');
 
       jwtDecodeSpy.mockRestore();
+      });
+  });
+
+  describe('validateClientIpSmart', () => {
+    beforeEach(() => {
+      responseVals['app.enableEnhancedIpValidation'] = true;
+    });
+
+    it('should allow exact IP match', async () => {
+      const user = { clientIp: '192.168.1.100', userId: 'testuser' } as CurrentUser;
+      const clientIp = '192.168.1.100';
+
+      await expect(service.validateClientIp(user, clientIp)).resolves.toBeUndefined();
+    });
+
+    it('should allow same subnet IP changes', async () => {
+      const user = { clientIp: '192.168.1.100', userId: 'testuser' } as CurrentUser;
+      const clientIp = '192.168.1.101';
+
+      responseVals['app.ipValidation.subnetMask'] = '255.255.255.0';
+      responseVals['app.ipValidation.allowedRanges'] = [];
+
+      await expect(service.validateClientIp(user, clientIp)).resolves.toBeUndefined();
+    });
+
+    it('should allow corporate IP range changes', async () => {
+      const user = { clientIp: '192.168.1.100', userId: 'testuser' } as CurrentUser;
+      const clientIp = '10.0.0.50';
+
+      responseVals['app.ipValidation.subnetMask'] = '255.255.255.0';
+      responseVals['app.ipValidation.allowedRanges'] = ['10.0.0.0/8'];
+
+      await expect(service.validateClientIp(user, clientIp)).resolves.toBeUndefined();
+    });
+
+    it('should reject suspicious IP changes', async () => {
+      const user = { clientIp: '192.168.1.100', userId: 'testuser' } as CurrentUser;
+      const clientIp = '203.0.113.1'; // Different network entirely
+
+      responseVals['app.ipValidation.subnetMask'] = '255.255.255.0';
+      responseVals['app.ipValidation.allowedRanges'] = [];
+
+      await expect(service.validateClientIp(user, clientIp))
+        .rejects.toThrow('Suspicious IP address change detected. Please re-authenticate.');
+    });
+
+    it('should fall back to legacy validation when enhanced validation is disabled', async () => {
+      const user = { clientIp: '192.168.1.100', userId: 'testuser' } as CurrentUser;
+      const clientIp = '192.168.1.101';
+
+      responseVals['app.enableEnhancedIpValidation'] = false;
+      responseVals['app.disableClientIpValidation'] = false;
+
+      await expect(service.validateClientIp(user, clientIp))
+        .rejects.toThrow('Request coming from invalid IP address');
     });
   });
 });

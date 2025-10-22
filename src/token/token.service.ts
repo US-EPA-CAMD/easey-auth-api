@@ -119,7 +119,19 @@ export class TokenService {
   }
 
   async validateClientIp(user: CurrentUser, clientIp: string) {
-    // Skip IP validation if disabled in configuration (but never in production)
+    // Check for enhanced validation flag (but never in production)
+
+    const enhancedValidation = this.configService.get<boolean>('app.enableEnhancedIpValidation');
+
+    if (!enhancedValidation) {
+      return this.validateClientIpLegacy(user, clientIp);
+    }
+
+    return this.validateClientIpSmart(user, clientIp);
+  }
+
+  // Keep existing logic as fallback
+  private async validateClientIpLegacy(user: CurrentUser, clientIp: string) {
     const disableIpValidation = this.configService.get<boolean>('app.disableClientIpValidation');
     const isProduction = this.configService.get<string>('app.env') === 'production';
     
@@ -135,6 +147,41 @@ export class TokenService {
         { userId: user.userId, clientIp: clientIp, storedIp: user.clientIp },
       );
     }
+  }
+
+  // New Smart validation
+  private async validateClientIpSmart(user: CurrentUser, clientIp: string) {
+    const storedIp = user.clientIp;
+
+    // Exact match - always pass
+    if (storedIp === clientIp) return;
+
+    // Same subnet check
+    if (this.isSameSubnet(storedIp, clientIp)) {
+      this.logger.debug('IP change within same subnet allowed', {
+        userId: user.userId, oldIp: storedIp, newIp: clientIp
+      });
+      return;
+    }
+
+    // Corporate IP range check
+    if (this.isInCorporateRange(clientIp)) {
+      this.logger.debug('IP change within corporate range allowed', {
+        userId: user.userId, oldIp: storedIp, newIp: clientIp
+      });
+      return;
+    }
+
+    // Reject suspicious change
+    this.logger.warn('Suspicious IP change detected', {
+      userId: user.userId, oldIp: storedIp, newIp: clientIp
+    });
+
+    throw new EaseyException(
+      new Error('Suspicious IP address change detected. Please re-authenticate.'),
+      HttpStatus.BAD_REQUEST,
+      { userId: user.userId, oldIp: storedIp, newIp: clientIp },
+    );
   }
 
   // Cache the API token with a default TTL; adjust based on requirements
@@ -454,5 +501,36 @@ export class TokenService {
       }
     }
     return false;
+    }
+
+  // IP validation utility methods
+  private isSameSubnet(ip1: string, ip2: string): boolean {
+    const mask = this.configService.get<string>('app.ipValidation.subnetMask') || '255.255.255.0';
+    const subnet1 = this.applySubnetMask(ip1, mask);
+    const subnet2 = this.applySubnetMask(ip2, mask);
+    return subnet1 === subnet2;
+  }
+
+  private isInCorporateRange(ip: string): boolean {
+    const ranges = this.configService.get<string[]>('app.ipValidation.allowedRanges') || [];
+    return ranges.some(range => this.isIpInRange(ip, range));
+  }
+
+  private applySubnetMask(ip: string, mask: string): string {
+    const ipParts = ip.split('.').map(Number);
+    const maskParts = mask.split('.').map(Number);
+    return ipParts.map((part, i) => part & maskParts[i]).join('.');
+  }
+
+  private isIpInRange(ip: string, cidr: string): boolean {
+    const [rangeIp, bits] = cidr.split('/');
+    const mask = ~(0xffffffff >>> parseInt(bits));
+    const ipInt = this.ipToInt(ip);
+    const rangeInt = this.ipToInt(rangeIp);
+    return (ipInt & mask) === (rangeInt & mask);
+  }
+
+  private ipToInt(ip: string): number {
+    return ip.split('.').reduce((acc, octet) => acc * 256 + parseInt(octet), 0);
   }
 }
