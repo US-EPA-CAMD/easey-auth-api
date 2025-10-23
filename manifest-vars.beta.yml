@@ -27,8 +27,3 @@ oidcCdxTokenEndpoint: https://icamauthtest.epacdx.net/cdxidbridgetest.onmicrosof
 oidcCdxLogoutEndpoint: https://icamauthtest.epacdx.net/cdxidbridgetest.onmicrosoft.com/%s/oauth2/v2.0/logout
 oidcCdxJwksUri: https://icamauthtest.epacdx.net/cdxidbridgetest.onmicrosoft.com/%s/discovery/v2.0/keys
 oidcCdxTokenIssuer: https://icamauthtest.epacdx.net/5a10b81f-ebf8-4a09-a9d8-5df54d203422/v2.0/
-
-# Enhanced IP Validation Configuration
-enhancedIpValidation: 'true'
-ipSubnetMask: '255.255.255.0'
-allowedIpRanges: '10.0.0.0/8,172.16.0.0/12,192.168.0.0/16'

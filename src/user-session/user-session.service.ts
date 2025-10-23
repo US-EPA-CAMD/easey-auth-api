@@ -192,4 +192,16 @@ export class UserSessionService {
   async insertNewUserSession(session: UserSession) {
     await this.repository.insert(session);
   }
+
+  // ADDED: Method to update client IP in existing session
+  async updateClientIp(sessionId: string, newClientIp: string): Promise<void> {
+    if (!sessionId || !newClientIp) {
+      throw new Error('SessionId and newClientIp are required for IP update');
+    }
+
+    await this.repository.update(
+      { sessionId: sessionId },
+      { clientIp: newClientIp }
+    );
+  }
 }
