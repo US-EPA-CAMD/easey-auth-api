@@ -54,6 +54,7 @@ describe('Token Service', () => {
             findSessionByUserId: jest.fn().mockResolvedValue(new UserSession()),
             createUserSession: jest.fn().mockResolvedValue(new TokenDTO()),
             updateUserSessionToken: jest.fn(),
+            updateClientIp: jest.fn().mockResolvedValue(undefined),
             isValidSessionForToken: jest.fn().mockResolvedValue(true),
             isSessionTokenExpired: jest.fn().mockReturnValue(false),
             getUserPermissions: jest
@@ -69,6 +70,8 @@ describe('Token Service', () => {
           useValue: {
             bypassEnabled: jest.fn().mockReturnValue(false),
             getBypassUser: jest.fn(),
+            extractUserFromValidatedBypassToken: jest.fn().mockResolvedValue({}),
+            generateToken: jest.fn().mockResolvedValue({}),
           },
         },
         {
@@ -141,6 +144,7 @@ describe('Token Service', () => {
       // Mock updateClientIp method for these tests
       jest.spyOn(userSessionService, 'updateClientIp').mockResolvedValue();
     });
+
     it('should handle IP validation through validateToken when IP changes', async () => {
       const mockUser = {
         userId: 'testuser',
