@@ -130,13 +130,18 @@ export class TokenService {
 
     if (user.clientIp !== clientIp) {
       // CHANGED: Log IP change instead of throwing exception
-      this.logger.warn('IP address change detected - audit only', {
-        event: 'IP_CHANGE_DETECTED',
+      this.logger.auditLog({
+        eventContext: 'TokenService',
+        eventName: 'validateClientIp',
+        eventOutcome: 'IP_CHANGE_DETECTED',
+        eventSource: clientIp,
         userId: user.userId,
-        sessionId: user.sessionId,
-        previousIp: user.clientIp,
-        currentIp: clientIp,
-        timestamp: new Date().toISOString()
+        moreInfo: {
+          sessionId: user.sessionId,
+          previousIp: user.clientIp,
+          currentIp: clientIp,
+          timestamp: new Date().toISOString()
+        }
       });
 
   // ADDED: Update stored IP in session for future comparisons
