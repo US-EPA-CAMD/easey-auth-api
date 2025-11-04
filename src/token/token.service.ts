@@ -118,7 +118,7 @@ export class TokenService {
     return authToken;
   }
 
-  async validateClientIp(user: CurrentUser, clientIp: string) {
+  private async validateClientIp(user: CurrentUser, clientIp: string) {
     // Skip IP validation if disabled in configuration (but never in production)
     const disableIpValidation = this.configService.get<boolean>('app.disableClientIpValidation');
     const isProduction = this.configService.get<string>('app.env') === 'production';
@@ -129,11 +129,30 @@ export class TokenService {
     }
 
     if (user.clientIp !== clientIp) {
-      throw new EaseyException(
-        new Error('Request coming from invalid IP address'),
-        HttpStatus.BAD_REQUEST,
-        { userId: user.userId, clientIp: clientIp, storedIp: user.clientIp },
-      );
+      // CHANGED: Log IP change instead of throwing exception
+      this.logger.auditLog({
+        eventContext: 'TokenService',
+        eventName: 'validateClientIp',
+        eventOutcome: 'IP_CHANGE_DETECTED',
+        eventSource: clientIp,
+        userId: user.userId,
+        moreInfo: {
+          sessionId: user.sessionId,
+          previousIp: user.clientIp,
+          currentIp: clientIp,
+          timestamp: new Date().toISOString()
+        }
+      });
+
+  // ADDED: Update stored IP in session for future comparisons
+      try {
+        await this.userSessionService.updateClientIp(user.sessionId, clientIp);
+        // Update user context for this request
+        user.clientIp = clientIp;
+      } catch (error) {
+        this.logger.error('Failed to update client IP in session', `sessionId: ${user.sessionId}, error: ${error.message}`);
+        // Continue processing even if update fails
+      }
     }
   }
 
@@ -455,4 +474,5 @@ export class TokenService {
     }
     return false;
   }
+
 }

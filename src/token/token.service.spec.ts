@@ -54,6 +54,7 @@ describe('Token Service', () => {
             findSessionByUserId: jest.fn().mockResolvedValue(new UserSession()),
             createUserSession: jest.fn().mockResolvedValue(new TokenDTO()),
             updateUserSessionToken: jest.fn(),
+            updateClientIp: jest.fn().mockResolvedValue(undefined),
             isValidSessionForToken: jest.fn().mockResolvedValue(true),
             isSessionTokenExpired: jest.fn().mockReturnValue(false),
             getUserPermissions: jest
@@ -69,6 +70,8 @@ describe('Token Service', () => {
           useValue: {
             bypassEnabled: jest.fn().mockReturnValue(false),
             getBypassUser: jest.fn(),
+            extractUserFromValidatedBypassToken: jest.fn().mockResolvedValue({}),
+            generateToken: jest.fn().mockResolvedValue({}),
           },
         },
         {
@@ -136,22 +139,68 @@ describe('Token Service', () => {
     });
   });
 
-  describe('validateClientIp', () => {
-    it('should fail when client Ip does not match', async () => {
-      const testIp = { clientIp: '1' } as CurrentUser;
-      let errored = false;
-      try {
-        await service.validateClientIp(testIp, '2');
-      } catch (error) {
-        errored = true;
-      }
-      expect(errored).toBe(true);
+  describe('validateClientIp via validateToken', () => {
+    beforeEach(() => {
+      // Mock updateClientIp method for these tests
+      jest.spyOn(userSessionService, 'updateClientIp').mockResolvedValue();
     });
-    it('should fail when client Ip does not match', async () => {
-      const testIp = { clientIp: '1' } as CurrentUser;
-      expect(async () => {
-        service.validateClientIp(testIp, '1');
-      }).not.toThrow();
+
+    it('should handle IP validation through validateToken when IP changes', async () => {
+      const mockUser = {
+        userId: 'testuser',
+        sessionId: 'testsession',
+        clientIp: '192.168.1.100',
+        expiration: '01-01-3000',
+        facilities: [],
+        roles: []
+      };
+
+      const userSession = new UserSession();
+      userSession.userId = 'testuser';
+      userSession.sessionId = 'testsession';
+      userSession.clientIp = '192.168.1.100';
+      userSession.tokenExpiration = '01-01-3000';
+      userSession.facilities = '[]';
+      userSession.roles = '[]';
+
+      jest.spyOn(userSessionService, 'findSessionByUserIdAndToken').mockResolvedValue(userSession);
+      jest.spyOn(userSessionService, 'isValidSessionForToken').mockResolvedValue(userSession);
+      jest.spyOn(bypassService, 'bypassEnabled').mockReturnValue(true);
+      jest.spyOn(bypassService, 'extractUserFromValidatedBypassToken').mockResolvedValue(mockUser);
+
+      // Test that validateToken processes IP change without throwing
+      const result = await service.validateToken('test-token', '192.168.1.101');
+      expect(result).toBeTruthy();
+      expect(userSessionService.updateClientIp).toHaveBeenCalledWith('testsession', '192.168.1.101');
+    });
+
+    it('should handle validateToken when IP matches', async () => {
+      const mockUser = {
+        userId: 'testuser',
+        sessionId: 'testsession',
+        clientIp: '192.168.1.100',
+        expiration: '01-01-3000',
+        facilities: [],
+        roles: []
+      };
+
+      const userSession = new UserSession();
+      userSession.userId = 'testuser';
+      userSession.sessionId = 'testsession';
+      userSession.clientIp = '192.168.1.100';
+      userSession.tokenExpiration = '01-01-3000';
+      userSession.facilities = '[]';
+      userSession.roles = '[]';
+
+      jest.spyOn(userSessionService, 'findSessionByUserIdAndToken').mockResolvedValue(userSession);
+      jest.spyOn(userSessionService, 'isValidSessionForToken').mockResolvedValue(userSession);
+      jest.spyOn(bypassService, 'bypassEnabled').mockReturnValue(true);
+      jest.spyOn(bypassService, 'extractUserFromValidatedBypassToken').mockResolvedValue(mockUser);
+
+      // Test that validateToken processes matching IP without issues
+      const result = await service.validateToken('test-token', '192.168.1.100');
+      expect(result).toBeTruthy();
+      expect(userSessionService.updateClientIp).not.toHaveBeenCalled();
     });
   });
 
@@ -182,6 +231,71 @@ describe('Token Service', () => {
       await expect(service.validateToken(invalidToken, clientIp)).rejects.toThrow('Invalid or expired token. Access denied.');
 
       jwtDecodeSpy.mockRestore();
+      });
+  });
+
+  describe('IP validation integration tests', () => {
+    beforeEach(() => {
+      // Mock updateClientIp method for these tests
+      jest.spyOn(userSessionService, 'updateClientIp').mockResolvedValue();
+    });
+
+    it('should process IP changes through full validateToken flow', async () => {
+      const mockUser = {
+        userId: 'testuser',
+        sessionId: 'testsession',
+        clientIp: '192.168.1.100',
+        expiration: '01-01-3000',
+        facilities: [],
+        roles: []
+      };
+
+      const userSession = new UserSession();
+      userSession.userId = 'testuser';
+      userSession.sessionId = 'testsession';
+      userSession.clientIp = '192.168.1.100';
+      userSession.tokenExpiration = '01-01-3000';
+      userSession.facilities = '[]';
+      userSession.roles = '[]';
+
+      jest.spyOn(userSessionService, 'findSessionByUserIdAndToken').mockResolvedValue(userSession);
+      jest.spyOn(userSessionService, 'isValidSessionForToken').mockResolvedValue(userSession);
+      jest.spyOn(bypassService, 'bypassEnabled').mockReturnValue(true);
+      jest.spyOn(bypassService, 'extractUserFromValidatedBypassToken').mockResolvedValue(mockUser);
+
+      // Test audit-only behavior - no exception thrown, session updated
+      const result = await service.validateToken('test-token', '192.168.1.101');
+      expect(result).toBeTruthy();
+      expect(userSessionService.updateClientIp).toHaveBeenCalledWith('testsession', '192.168.1.101');
+    });
+
+    it('should handle database errors during IP update gracefully', async () => {
+      const mockUser = {
+        userId: 'testuser',
+        sessionId: 'testsession',
+        clientIp: '192.168.1.100',
+        expiration: '01-01-3000',
+        facilities: [],
+        roles: []
+      };
+
+      const userSession = new UserSession();
+      userSession.userId = 'testuser';
+      userSession.sessionId = 'testsession';
+      userSession.clientIp = '192.168.1.100';
+      userSession.tokenExpiration = '01-01-3000';
+      userSession.facilities = '[]';
+      userSession.roles = '[]';
+
+    jest.spyOn(userSessionService, 'findSessionByUserIdAndToken').mockResolvedValue(userSession);
+      jest.spyOn(userSessionService, 'isValidSessionForToken').mockResolvedValue(userSession);
+      jest.spyOn(userSessionService, 'updateClientIp').mockRejectedValue(new Error('Database error'));
+      jest.spyOn(bypassService, 'bypassEnabled').mockReturnValue(true);
+      jest.spyOn(bypassService, 'extractUserFromValidatedBypassToken').mockResolvedValue(mockUser);
+
+      // Should not throw even when IP update fails - graceful error handling
+      const result = await service.validateToken('test-token', '192.168.1.101');
+      expect(result).toBeTruthy();
     });
   });
 });
