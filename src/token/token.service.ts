@@ -118,7 +118,7 @@ export class TokenService {
     return authToken;
   }
 
-  async validateClientIp(user: CurrentUser, clientIp: string) {
+  private async validateClientIp(user: CurrentUser, clientIp: string) {
     // Skip IP validation if disabled in configuration (but never in production)
     const disableIpValidation = this.configService.get<boolean>('app.disableClientIpValidation');
     const isProduction = this.configService.get<string>('app.env') === 'production';
@@ -129,11 +129,30 @@ export class TokenService {
     }
 
     if (user.clientIp !== clientIp) {
-      throw new EaseyException(
-        new Error('Request coming from invalid IP address'),
-        HttpStatus.BAD_REQUEST,
-        { userId: user.userId, clientIp: clientIp, storedIp: user.clientIp },
-      );
+      // CHANGED: Log IP change instead of throwing exception
+      this.logger.auditLog({
+        eventContext: 'TokenService',
+        eventName: 'validateClientIp',
+        eventOutcome: 'IP_CHANGE_DETECTED',
+        eventSource: clientIp,
+        userId: user.userId,
+        moreInfo: {
+          sessionId: user.sessionId,
+          previousIp: user.clientIp,
+          currentIp: clientIp,
+          timestamp: new Date().toISOString()
+        }
+      });
+
+  // ADDED: Update stored IP in session for future comparisons
+      try {
+        await this.userSessionService.updateClientIp(user.sessionId, clientIp);
+        // Update user context for this request
+        user.clientIp = clientIp;
+      } catch (error) {
+        this.logger.error('Failed to update client IP in session', `sessionId: ${user.sessionId}, error: ${error.message}`);
+        // Continue processing even if update fails
+      }
     }
   }
 
@@ -441,18 +460,36 @@ export class TokenService {
   }
 
   async validateMaintenance(maintenance: MaintenanceVerifyParamDTO): Promise<boolean> {
-    const { clientId, clientToken, clientIp, authToken } = maintenance;
-    const fromClientApp = await this.clientTokenService.validateToken(clientId, clientToken, true);
-    if (fromClientApp === 'campd-ui') {
+    const { appIdentifier, clientIp, authToken } = maintenance;
+
+    // CAMPD is always allowed in TEST mode (public data access)
+    if (appIdentifier === 'campd-ui') {
       return true;
     }
-    if (fromClientApp === 'ecmps-ui') {
+
+    // ECMPS requires user to be authenticated and in maintenance bypass list
+    if (appIdentifier === 'ecmps-ui') {
+      // If no auth token, deny access
+      if (!authToken) {
+        return false;
+      }
+
+      // Validate user token and check bypass list
       const user = await this.validateToken(authToken, clientIp);
+      if (!user) {
+        return false;
+      }
+
       const maintenanceBypassUsers = this.configService.get('app.maintenanceBypassUsers');
-      if (user && (maintenanceBypassUsers.includes(user.userId) || maintenanceBypassUsers.includes(user.userId.toLowerCase()))) {
+      const userId = user.userId.toLowerCase();
+
+      // Check if user is in bypass list (case-insensitive)
+      if (maintenanceBypassUsers.some(bypassUser => bypassUser.toLowerCase() === userId)) {
         return true;
       }
     }
+
     return false;
   }
+
 }
