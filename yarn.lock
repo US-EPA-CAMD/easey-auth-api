@@ -1382,7 +1382,7 @@
     jsonc-parser "3.3.1"
     pluralize "8.0.0"
 
-"@nestjs/swagger@^11.2.0", "@nestjs/swagger@^11.2.1":
+"@nestjs/swagger@^11.2.1":
   version "11.2.1"
   resolved "https://registry.yarnpkg.com/@nestjs/swagger/-/swagger-11.2.1.tgz#590047ed74e4c8417f0b0f0260d04eea9a1d7daf"
   integrity sha512-1MS7xf0pzc1mofG53xrrtrurnziafPUHkqzRm4YUVPA/egeiMaSerQBD/feiAeQ2BnX0WiLsTX4HQFO0icvOjQ==
@@ -2045,17 +2045,17 @@
   resolved "https://registry.yarnpkg.com/@unrs/resolver-binding-win32-x64-msvc/-/resolver-binding-win32-x64-msvc-1.11.1.tgz#538b1e103bf8d9864e7b85cc96fa8d6fb6c40777"
   integrity sha512-lrW200hZdbfRtztbygyaq/6jP6AKE8qQN2KvPcJ+x7wiD038YtnYtZ82IMNJ69GJibV7bwL3y9FgK+5w/pYt6g==
 
-"@us-epa-camd/easey-common@21.3.4":
-  version "21.3.4"
-  resolved "https://npm.pkg.github.com/download/@US-EPA-CAMD/easey-common/21.3.4/b2aebbc46049dec0c19ccdb183415ab038364a5a#b2aebbc46049dec0c19ccdb183415ab038364a5a"
-  integrity sha512-CtimQN7ztIih2C3IgamhS0ytgYkIWlzutOBgLU1M2DWUSqL2CL8r0416OVGCcxDDaNOWEsKnirUduunj2Bynag==
+"@us-epa-camd/easey-common@21.3.6":
+  version "21.3.6"
+  resolved "https://npm.pkg.github.com/download/@US-EPA-CAMD/easey-common/21.3.6/ffa3bf2bfa2195321c5576fa451c5c3d70f773a2#ffa3bf2bfa2195321c5576fa451c5c3d70f773a2"
+  integrity sha512-+TPS6ewugEkq3S/VTjqi3cTknRsHXNQvrm3Sb8SF/jnWiLr4nj7dvm7Fnz7n7z4+4cb2XDdf0GZqHjtNVeHCLg==
   dependencies:
     "@golevelup/ts-jest" "^0.7.0"
     "@nestjs/axios" "4.0.0"
     "@nestjs/common" "^11.1.6"
     "@nestjs/config" "^4.0.2"
     "@nestjs/core" "^11.1.6"
-    "@nestjs/swagger" "^11.2.0"
+    "@nestjs/swagger" "^11.2.1"
     "@nestjs/terminus" "^11.0.0"
     "@nestjs/typeorm" "^11.0.0"
     axios "^1.12.2"

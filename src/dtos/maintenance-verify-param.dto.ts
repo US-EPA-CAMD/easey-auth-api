@@ -1,15 +1,13 @@
-import {  IsString } from 'class-validator';
+import { IsString, IsIn, IsOptional } from 'class-validator';
 
 export class MaintenanceVerifyParamDTO {
   @IsString()
-  authToken: string;
+  @IsOptional()
+  authToken?: string;
 
   @IsString()
   clientIp: string;
 
   @IsString()
-  clientId: string;
-
-  @IsString()
-  clientToken: string;
+  appIdentifier: string;
 }

@@ -460,18 +460,35 @@ export class TokenService {
   }
 
   async validateMaintenance(maintenance: MaintenanceVerifyParamDTO): Promise<boolean> {
-    const { clientId, clientToken, clientIp, authToken } = maintenance;
-    const fromClientApp = await this.clientTokenService.validateToken(clientId, clientToken, true);
-    if (fromClientApp === 'campd-ui') {
+    const { appIdentifier, clientIp, authToken } = maintenance;
+
+    // CAMPD is always allowed in TEST mode (public data access)
+    if (appIdentifier === 'campd-ui') {
       return true;
     }
-    if (fromClientApp === 'ecmps-ui') {
+
+    // ECMPS requires user to be authenticated and in maintenance bypass list
+    if (appIdentifier === 'ecmps-ui') {
+      // If no auth token, deny access
+      if (!authToken) {
+        return false;
+      }
+
+      // Validate user token and check bypass list
       const user = await this.validateToken(authToken, clientIp);
+      if (!user) {
+        return false;
+      }
+
       const maintenanceBypassUsers = this.configService.get('app.maintenanceBypassUsers');
-      if (user && (maintenanceBypassUsers.includes(user.userId) || maintenanceBypassUsers.includes(user.userId.toLowerCase()))) {
+      const userId = user.userId.toLowerCase();
+
+      // Check if user is in bypass list (case-insensitive)
+      if (maintenanceBypassUsers.some(bypassUser => bypassUser.toLowerCase() === userId)) {
         return true;
       }
     }
+
     return false;
   }
 
