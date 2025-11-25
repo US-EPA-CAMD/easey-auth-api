@@ -95,7 +95,7 @@ export class AuthController {
     description: 'Refreshes a users last activity date',
   })
   async lastActivity(@AuthToken() authToken: string): Promise<void> {
-    await this.service.updateLastActivity(authToken);
+    await this. service.updateLastActivity(authToken);
   }
 
   @Delete('/sign-out')

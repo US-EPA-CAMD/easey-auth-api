@@ -119,7 +119,7 @@ export class SignService {
 
     // Check for valid CDX ESA status
     const hasValidEsa = permissionsWithCertStatementsFlag.hasValidEsa;
-    if (!hasValidEsa) {
+    if (hasValidEsa !== true) {
       result.hasValidationError = true;
       result.validationErrorHeading = "Invalid CDX ESA Status Error"
       result.validationErrorMessage = "You must have a valid CDX ESA status to submit."

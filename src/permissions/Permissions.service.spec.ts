@@ -154,6 +154,7 @@ describe('PermissionsService', () => {
           },
         ],
         missingCertificationStatements: true,
+        hasValidEsa: true,
 		roles: [UserRole.PREPARER],
       });
     });
@@ -208,6 +209,7 @@ describe('PermissionsService', () => {
       const p: FacilityAccessWithCertStatementFlagDTO = {
         plantList: [],
         missingCertificationStatements: true,
+        hasValidEsa: true,
       };
       jest.spyOn(service, 'getUserPermissions').mockResolvedValue(p);
 

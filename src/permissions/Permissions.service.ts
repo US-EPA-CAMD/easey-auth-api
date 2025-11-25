@@ -135,6 +135,7 @@ export class PermissionsService {
       );
     }
 
+    //For mock permissions, always set hasValidEsa to true by default
     const permissionsDto = {plantList: [], missingCertificationStatements: true, hasValidEsa: true} as FacilityAccessWithCertStatementFlagDTO;
     const mockPermissionObject = await this.bypassService.getMockPermissionObject();
 
@@ -161,7 +162,7 @@ export class PermissionsService {
       //if the missingCertificationStatements flag is null or undefined, if bypass is on, then set the default value to false, otherwise true
       permissionsDto.missingCertificationStatements = userPermissions[0]?.missingCertificationStatements == null ? !this.bypassService.bypassEnabled() : userPermissions[0]?.missingCertificationStatements;
 
-      //if hasValidEsa is null or undefined, then set the default value to true (assume valid ESA status unless explicitly set to false)
+      //if hasValidEsa is null or undefined, then always set the default value to true (assume valid ESA status unless explicitly set to false)
       permissionsDto.hasValidEsa = userPermissions[0]?.hasValidEsa == null ? true : userPermissions[0]?.hasValidEsa;
     } else if (this.configService.get<boolean>('app.enableAllFacilities')) {
       return null;
@@ -197,8 +198,8 @@ export class PermissionsService {
         const data = permissionResult.data
         // check if the missingCertificationStatements is null or undefined, if it is, then set the default value to true
         data.missingCertificationStatements = data.missingCertificationStatements == null ? true : data.missingCertificationStatements;
-        // check if hasValidEsa is null or undefined, if it is, then set the default value to true
-        data.hasValidEsa = data.hasValidEsa == null ? true : data.hasValidEsa;
+        // check if hasValidEsa is null or undefined, if it is, then set the default value to false (less permissive).
+        data.hasValidEsa = data.hasValidEsa == null ? false : data.hasValidEsa;
         return data;
       }
 
