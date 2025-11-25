@@ -154,7 +154,7 @@ describe('PermissionsService', () => {
           },
         ],
         missingCertificationStatements: true,
-        hasValidEsa: true,
+        hasValidEsa: false,
 		roles: [UserRole.PREPARER],
       });
     });
