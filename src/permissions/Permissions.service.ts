@@ -199,13 +199,28 @@ export class PermissionsService {
 
       return null;
     } catch (e) {
-      this.logger.error('getUserPermissions: ', e.message);
+      // Enhanced error logging to include CBS response details (Issue #6939)
+      if (e.response) {
+        this.logger.error('CBS API call failed with response error', {
+          message: e.message,
+          url: url,
+          statusCode: e.response.status,
+          statusText: e.response.statusText,
+          responseData: e.response.data,
+        });
+      } else {
+        this.logger.error('CBS API call failed without response (network/timeout error)', {
+          message: e.message,
+          url: url,
+        });
+      }
+
       // throwing error, when CBS API returns error.
       if (
         !this.configService.get<boolean>('app.mockPermissionsEnabled') &&
         !e.response
       ) {
-        this.logger.error('Call to CBS for user responsibilities failed.', e.message);
+        this.logger.error('Call to CBS for user responsibilities failed - no response received.', e.message);
         throw new EaseyException(
           new Error(
             'Unable to obtain user responsibilities from CBS. Please try again later.',
