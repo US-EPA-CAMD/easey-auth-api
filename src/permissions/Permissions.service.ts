@@ -8,6 +8,7 @@ import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
 import * as crypto from 'crypto';
 import * as https from 'https';
 import { firstValueFrom } from 'rxjs';
+import safeStringify from 'fast-safe-stringify';
 
 import {
   OrganizationResponse,
@@ -203,7 +204,7 @@ export class PermissionsService {
       if (e.response) {
         this.logger.error(
           'CBS API call failed with response error',
-          `URL: ${url}, Status: ${e.response.status} ${e.response.statusText}, Message: ${e.message}, Response: ${JSON.stringify(e.response.data)}`
+          `URL: ${url}, Status: ${e.response.status} ${e.response.statusText}, Message: ${e.message}, Response: ${safeStringify(e.response.data)}`
         );
       } else {
         this.logger.error(
