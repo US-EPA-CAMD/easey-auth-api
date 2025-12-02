@@ -201,18 +201,15 @@ export class PermissionsService {
     } catch (e) {
       // Enhanced error logging to include CBS response details (Issue #6939)
       if (e.response) {
-        this.logger.error('CBS API call failed with response error', {
-          message: e.message,
-          url: url,
-          statusCode: e.response.status,
-          statusText: e.response.statusText,
-          responseData: e.response.data,
-        });
+        this.logger.error(
+          'CBS API call failed with response error',
+          `URL: ${url}, Status: ${e.response.status} ${e.response.statusText}, Message: ${e.message}, Response: ${JSON.stringify(e.response.data)}`
+        );
       } else {
-        this.logger.error('CBS API call failed without response (network/timeout error)', {
-          message: e.message,
-          url: url,
-        });
+        this.logger.error(
+          'CBS API call failed without response (network/timeout error)',
+          `URL: ${url}, Message: ${e.message}`
+        );
       }
 
       // throwing error, when CBS API returns error.

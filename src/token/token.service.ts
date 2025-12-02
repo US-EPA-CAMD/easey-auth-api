@@ -427,11 +427,10 @@ export class TokenService {
     );
 
     if (!userSession) {
-      this.logger.error('Token validation failed: No user session found', {
-        userId,
-        tokenPrefix: token?.substring(0, 10),
-        clientIp,
-      });
+      this.logger.error(
+        'Token validation failed: No user session found',
+        `userId: ${userId}, tokenPrefix: ${token?.substring(0, 10)}, clientIp: ${clientIp}`
+      );
       throw new UnauthorizedException('Invalid or expired token. Access denied.');
     }
 
@@ -462,12 +461,10 @@ export class TokenService {
 
     // INVESTIGATION NOTE (Issue #6939): Session token validation failed
     // This may occur when the session exists but the token is invalid or expired
-    this.logger.error('Token validation failed: Invalid session token', {
-      userId,
-      sessionId: user.sessionId,
-      tokenPrefix: token?.substring(0, 10),
-      clientIp,
-    });
+    this.logger.error(
+      'Token validation failed: Invalid session token',
+      `userId: ${userId}, sessionId: ${user.sessionId}, tokenPrefix: ${token?.substring(0, 10)}, clientIp: ${clientIp}`
+    );
     throw new UnauthorizedException('Invalid or expired token. Access denied.');
   }
 
