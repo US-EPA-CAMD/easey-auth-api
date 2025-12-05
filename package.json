@@ -43,7 +43,7 @@
     "@nestjs/typeorm": "^11.0.0",
     "@us-epa-camd/easey-common": "21.4.1",
     "axios": "^1.13.2",
-    "cache-manager": "^6",
+    "cache-manager": "^7",
     "class-transformer": "0.5.1",
     "class-validator": "0.14.3",
     "dotenv": "^16.5.0",
