@@ -266,6 +266,29 @@ export class AuthService {
           'Extracted user information from decoded token and created user object',
           { userDto },
         );
+
+        // Validate that JWT userId matches the userId from OAuth state parameter (Issue #6939)
+        // This catches cases where Azure AD B2C returns tokens for the wrong CDX account
+        // (e.g., when multiple CDX accounts are linked to the same Login.gov identity)
+        if (userDto.userId.toUpperCase() !== session.userId.toUpperCase()) {
+          this.logger.error(
+            'JWT token userId mismatch with attempted login userId',
+            `JWT userId: ${userDto.userId}, Attempted login userId: ${session.userId}, SessionId: ${session.sessionId}`
+          );
+
+          // Clean up: terminate OIDC session and remove user session
+          const apiToken = await this.tokenService.getCdxApiToken();
+          await this.oidcHelperService.terminateOidcSession(session.oidcPolicy, apiToken);
+          await this.userSessionService.removeUserSessionByUserId(session.userId);
+
+          throw new EaseyException(
+            new Error(
+              `Authentication failed: Identity provider returned credentials for a different user account (${userDto.userId}) than the one attempting to login (${session.userId}). This can occur when multiple CDX accounts are linked to the same Login.gov identity.`
+            ),
+            HttpStatus.UNAUTHORIZED,
+          );
+        }
+
         this.validateUserMaintenanceAblity(userDto);
         //Retrieve email and roles
         const apiToken = await this.tokenService.getCdxApiToken(); //For api calls
