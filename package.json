@@ -62,7 +62,7 @@
     "swagger-ui-express": "^5.0.1",
     "typeorm": "0.3.27",
     "uuid": "^8.3.2",
-    "winston": "^3.18.3"
+    "winston": "^3.19.0"
   },
   "devDependencies": {
     "@golevelup/ts-jest": "^0.7.0",
