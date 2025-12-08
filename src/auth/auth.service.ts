@@ -283,7 +283,7 @@ export class AuthService {
 
           throw new EaseyException(
             new Error(
-              `Authentication failed: Identity provider returned credentials for a different user account (${userDto.userId}) than the one attempting to login (${session.userId}). This can occur when multiple CDX accounts are linked to the same Login.gov identity.`
+              `Authentication failed: Identity provider returned credentials for a different user account than the one attempting to login (${session.userId}). This can occur when multiple CDX accounts are linked to the same Login.gov identity.`
             ),
             HttpStatus.UNAUTHORIZED,
           );
