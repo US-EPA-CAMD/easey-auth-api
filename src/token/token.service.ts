@@ -121,9 +121,8 @@ export class TokenService {
   private async validateClientIp(user: CurrentUser, clientIp: string) {
     // Skip IP validation if disabled in configuration (but never in production)
     const disableIpValidation = this.configService.get<boolean>('app.disableClientIpValidation');
-    const isProduction = this.configService.get<string>('app.env') === 'production';
-    
-    if (disableIpValidation && !isProduction) {
+
+    if (disableIpValidation) {
       this.logger.debug('Client IP validation is disabled');
       return;
     }
