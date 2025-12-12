@@ -4,6 +4,7 @@ import {
   ApiOkResponse,
   ApiSecurity,
   ApiBearerAuth,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { AuditLog } from '@us-epa-camd/easey-common/decorators';
 
@@ -49,7 +50,11 @@ export class TokenController {
   @ApiOkResponse({
     type: String,
     description:
-      'Validates a user security token (user must have valid session)',
+      'Validates a user security token and returns user information (user must have valid session)',
+  })
+  @ApiUnauthorizedResponse({
+    description:
+      'Token validation failed - invalid or expired token, no user session found, or session token mismatch',
   })
   @AuditLog({
     label: 'Validates a user security token'

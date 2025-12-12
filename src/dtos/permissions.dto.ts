@@ -36,5 +36,11 @@ export class FacilityAccessWithCertStatementFlagDTO {
   })
   @IsBoolean()
   missingCertificationStatements: boolean;
+
+  @ApiProperty({
+    description: 'flag indicating if user has valid CDX ESA status',
+  })
+  @IsBoolean()
+  hasValidEsa: boolean;
 }
 
