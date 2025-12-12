@@ -18,6 +18,7 @@ import {
     @PrimaryColumn({
       name: 'unit_id',
       transformer: new NumericColumnTransformer(),
+      type: 'numeric',
     })
     id: number;
   

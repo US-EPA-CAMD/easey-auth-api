@@ -141,4 +141,37 @@ describe('User Session Service', () => {
       expect(mock).toHaveBeenCalled();
     });
   });
+
+  describe('updateClientIp', () => {
+    it('should update client IP for existing session', async () => {
+      const sessionId = 'test-session-id';
+      const newClientIp = '192.168.1.100';
+
+      await service.updateClientIp(sessionId, newClientIp);
+
+      expect(mockRepo.update).toHaveBeenCalledWith(
+        { sessionId: sessionId },
+        { clientIp: newClientIp }
+      );
+    });
+
+    it('should throw error when sessionId is missing', async () => {
+      const newClientIp = '192.168.1.100';
+
+      await expect(service.updateClientIp('', newClientIp))
+        .rejects.toThrow('SessionId and newClientIp are required for IP update');
+    });
+
+    it('should throw error when newClientIp is missing', async () => {
+      const sessionId = 'test-session-id';
+
+      await expect(service.updateClientIp(sessionId, ''))
+        .rejects.toThrow('SessionId and newClientIp are required for IP update');
+    });
+
+    it('should throw error when both parameters are missing', async () => {
+      await expect(service.updateClientIp('', ''))
+        .rejects.toThrow('SessionId and newClientIp are required for IP update');
+    });
+  });
 });
