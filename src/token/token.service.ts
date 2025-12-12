@@ -121,9 +121,8 @@ export class TokenService {
   private async validateClientIp(user: CurrentUser, clientIp: string) {
     // Skip IP validation if disabled in configuration (but never in production)
     const disableIpValidation = this.configService.get<boolean>('app.disableClientIpValidation');
-    const isProduction = this.configService.get<string>('app.env') === 'production';
-    
-    if (disableIpValidation && !isProduction) {
+
+    if (disableIpValidation) {
       this.logger.debug('Client IP validation is disabled');
       return;
     }
@@ -427,8 +426,11 @@ export class TokenService {
     );
 
     if (!userSession) {
-      this.logger.debug('No user session found');
-      return false;
+      this.logger.error(
+        'Token validation failed: No user session found',
+        `userId: ${userId}, tokenPrefix: ${token?.substring(0, 10)}, clientIp: ${clientIp}`
+      );
+      throw new UnauthorizedException('Invalid or expired token. Access denied.');
     }
 
     //populate user values
@@ -456,7 +458,13 @@ export class TokenService {
       return user;
     }
 
-    return false;
+    // INVESTIGATION NOTE (Issue #6939): Session token validation failed
+    // This may occur when the session exists but the token is invalid or expired
+    this.logger.error(
+      'Token validation failed: Invalid session token',
+      `userId: ${userId}, sessionId: ${user.sessionId}, tokenPrefix: ${token?.substring(0, 10)}, clientIp: ${clientIp}`
+    );
+    throw new UnauthorizedException('Invalid or expired token. Access denied.');
   }
 
   async validateMaintenance(maintenance: MaintenanceVerifyParamDTO): Promise<boolean> {
