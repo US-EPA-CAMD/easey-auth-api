@@ -1,10 +1,11 @@
 import { Injectable, HttpStatus } from '@nestjs/common';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
-import { EntityManager, IsNull } from 'typeorm';
+import { EntityManager, IsNull, DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { URL } from 'url';
+import { withSlaveConnection } from '@us-epa-camd/easey-common/connection';
 import { CertificationFacilitiesDTO } from '../dtos/cert-facilities.dto';
 import { CertificationStatementRepository } from './certifications.repository';
 import { CertificationStatementDTO } from '../dtos/certification-statement.dto';
@@ -16,6 +17,7 @@ export class CertificationsService {
     private readonly entityManager: EntityManager,
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
+    private readonly dataSource: DataSource,
   ) {}
 
   public returnManager() {
@@ -29,12 +31,13 @@ export class CertificationsService {
     let templateString;
     const contentUri = (this.configService.get<string>('app.contentUri') || '').replace(/\/?$/, '/');
     try {
-      const manager = this.returnManager();
-
-      const results = await manager.query(
-        'SELECT * from camdecmpswks.get_certification_statements($1)',
-        [monitorPlanIds],
-      );
+      // Use withSlaveConnection utility for read replica routing
+      const results = await withSlaveConnection(this.dataSource, async (manager) => {
+        return await manager.query(
+          'SELECT * from camdecmpswks.get_certification_statements($1)',
+          [monitorPlanIds],
+        );
+      });
 
       const compiledKeys = {};
 
@@ -55,13 +58,17 @@ export class CertificationsService {
       for (const [key, value] of Object.entries(compiledKeys)) {
         let statementData:CertificationStatement;
 
-        if (key === 'null') {
-          statementData = await this.repository.findOneBy({
-            prgCode: IsNull(),
-          });
-        } else {
-          statementData = await this.repository.findOneBy({ prgCode: key });
-        }
+        // Use withSlaveConnection for repository queries too
+        statementData = await withSlaveConnection(this.dataSource, async (manager) => {
+          const repository = manager.getRepository(CertificationStatement);
+          if (key === 'null') {
+            return await repository.findOneBy({
+              prgCode: IsNull(),
+            });
+          } else {
+            return await repository.findOneBy({ prgCode: key });
+          }
+        });
 
         const url = new URL((statementData?.statementLocation)?.replace(/^\/+/, '') || '', contentUri).href;
         const template = await firstValueFrom(this.httpService.get(url));
