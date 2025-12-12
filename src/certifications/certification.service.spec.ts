@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
 import { ConfigService } from '@nestjs/config';
-import { EntityManager } from 'typeorm';
+import { EntityManager, DataSource } from 'typeorm';
 import { HttpService } from '@nestjs/axios';
 import { of } from 'rxjs';
 import { URL } from 'url';
@@ -9,6 +9,11 @@ import { URL } from 'url';
 import { CertificationsService } from './certifications.service';
 import { CertificationStatementRepository } from './certifications.repository';
 import { CertificationStatement } from '../entities/certification-statement.entity';
+
+// Mock the withSlaveConnection utility
+jest.mock('@us-epa-camd/easey-common/connection', () => ({
+  withSlaveConnection: jest.fn(),
+}));
 
 jest.mock('url', () => {
   return {
@@ -23,7 +28,12 @@ jest.mock('url', () => {
 const mockRepository = () => ({
   findOneBy: jest.fn().mockResolvedValue(new CertificationStatement()),
 });
-  const mockHttpService = {
+
+const mockDataSource = {
+  createQueryRunner: jest.fn(),
+};
+
+const mockHttpService = {
   get: jest.fn(),
   post: jest.fn(),
 };
@@ -43,6 +53,10 @@ describe('Certification Controller', () => {
           useValue: { query: jest.fn() },
         },
         {
+          provide: DataSource,
+          useValue: mockDataSource,
+        },
+        {
           provide: HttpService,
           useValue: mockHttpService
         },
@@ -57,10 +71,17 @@ describe('Certification Controller', () => {
   });
 
   it('should function correctly and build a list of cert statements and their associated facilities', async () => {
+    const { withSlaveConnection } = require('@us-epa-camd/easey-common/connection');
+
     mockHttpService.get.mockReturnValue(
     of({ data: '<html><body>Certification Content</body></html>' })
     );
-    jest.spyOn(service, 'returnManager').mockReturnValue({
+
+    // Mock withSlaveConnection to execute the operation with mocked data
+    withSlaveConnection.mockImplementation(async (dataSource, operation) => {
+      // For the main query operation
+      if (operation.toString().includes('query')) {
+        const mockManager = {
       query: jest.fn().mockResolvedValue([
         {
           prg_cd: null,
@@ -75,12 +96,24 @@ describe('Certification Controller', () => {
           unit_info: '5',
         },
       ]),
-    } as any);
+    };
+        return await operation(mockManager);
+      } else {
+        // For repository operations
+        const mockManager = {
+          getRepository: jest.fn().mockReturnValue({
+            findOneBy: jest.fn().mockResolvedValue(new CertificationStatement()),
+          }),
+        };
+        return await operation(mockManager);
+      }
+    });
 
     const result = await service.getStatements(['']);
 
     expect(result.length).toEqual(2);
     expect(result[0].prgCode).toEqual('null');
     expect(result[1].prgCode).toEqual('MATS');
+    expect(withSlaveConnection).toHaveBeenCalled();
   });
 });
