@@ -29,8 +29,10 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
     const replicaHost = this.configService.get<string>('database.replicaHost');
     const host = this.configService.get<string>('database.host');
 
+    const replicaAccessEnabled = this.configService.get<boolean>('app.enableReplicaDbAccess');
+
     // If replica host is available and different from primary host, use replication configuration
-    if (replicaHost && replicaHost !== host) {
+    if (replicaAccessEnabled && replicaHost && replicaHost !== host) {
       return {
         type: 'postgres',
         applicationName: this.configService.get<string>('app.name'),
