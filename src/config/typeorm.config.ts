@@ -39,6 +39,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
         entities: [__dirname + '/../**/*.entity.{js,ts}'],
         synchronize: false,
         replication: {
+          defaultMode: 'master',
           master: {
             host: this.configService.get<string>('database.host'),
             port: this.configService.get<number>('database.port'),
