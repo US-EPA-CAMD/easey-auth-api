@@ -6294,6 +6294,11 @@ serialize-javascript@^6.0.0, serialize-javascript@^6.0.2:
   dependencies:
     randombytes "^2.1.0"
 
+serialize-javascript@^7.0.2:
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/serialize-javascript/-/serialize-javascript-7.0.2.tgz#3939e695db5adff30b282bb36466b58e518008bb"
+  integrity sha512-Y/agDAqbUWRYFWLF5pMT9Rb8wN5ERPMbQH7oq6R+4YgFdMNO4+ELo4PjFCW3H+2CbXirPr/XUgYT+3iXJfTbZQ==
+
 serve-static@^2.2.0:
   version "2.2.0"
   resolved "https://registry.npmjs.org/serve-static/-/serve-static-2.2.0.tgz#9c02564ee259bdd2251b82d659a2e7e1938d66f9"
