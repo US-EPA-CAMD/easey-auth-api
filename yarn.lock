@@ -1303,7 +1303,7 @@
     iterare "1.2.1"
     tslib "2.8.1"
 
-"@nestjs/common@^11.1.12", "@nestjs/common@^11.1.9":
+"@nestjs/common@^11.1.12":
   version "11.1.12"
   resolved "https://registry.yarnpkg.com/@nestjs/common/-/common-11.1.12.tgz#bd28d34fa6bf676671c70be8148b5405ccd3d422"
   integrity sha512-v6U3O01YohHO+IE3EIFXuRuu3VJILWzyMmSYZXpyBbnp0hk0mFyHxK2w3dF4I5WnbwiRbWlEXdeXFvPQ7qaZzw==
@@ -1335,7 +1335,7 @@
     path-to-regexp "3.3.0"
     tslib "2.8.1"
 
-"@nestjs/core@^11.1.12", "@nestjs/core@^11.1.9":
+"@nestjs/core@^11.1.12":
   version "11.1.12"
   resolved "https://registry.yarnpkg.com/@nestjs/core/-/core-11.1.12.tgz#cdbff023cc87ed071aebafeacb209bc5997da1e4"
   integrity sha512-97DzTYMf5RtGAVvX1cjwpKRiCUpkeQ9CCzSAenqkAhOmNVVFaApbhuw+xrDt13rsCa2hHVOYPrV4dBgOYMJjsA==
@@ -1374,7 +1374,7 @@
     jsonc-parser "3.3.1"
     pluralize "8.0.0"
 
-"@nestjs/swagger@^11.2.3", "@nestjs/swagger@^11.2.5":
+"@nestjs/swagger@^11.2.5":
   version "11.2.5"
   resolved "https://registry.yarnpkg.com/@nestjs/swagger/-/swagger-11.2.5.tgz#41334fca6d42704e4175c04c15031046d73498e9"
   integrity sha512-wCykbEybMqiYcvkyzPW4SbXKcwra9AGdajm0MvFgKR3W+gd1hfeKlo67g/s9QCRc/mqUU4KOE5Qtk7asMeFuiA==
@@ -2016,17 +2016,17 @@
   resolved "https://registry.yarnpkg.com/@unrs/resolver-binding-win32-x64-msvc/-/resolver-binding-win32-x64-msvc-1.11.1.tgz#538b1e103bf8d9864e7b85cc96fa8d6fb6c40777"
   integrity sha512-lrW200hZdbfRtztbygyaq/6jP6AKE8qQN2KvPcJ+x7wiD038YtnYtZ82IMNJ69GJibV7bwL3y9FgK+5w/pYt6g==
 
-"@us-epa-camd/easey-common@21.4.5":
-  version "21.4.5"
-  resolved "https://npm.pkg.github.com/download/@US-EPA-CAMD/easey-common/21.4.5/4e7f2c66b9b6ea54ab23d0bc8cb7c310264722f1#4e7f2c66b9b6ea54ab23d0bc8cb7c310264722f1"
-  integrity sha512-Ndd3mYdM9TtuerWbRbWaz4eHMMBE5GgtY6I2HT4HLOX3uNjEE0uzsZcVckRSRqknpGtkGhFPRmPeHJvieaC8Bw==
+"@us-epa-camd/easey-common@21.4.6":
+  version "21.4.6"
+  resolved "https://npm.pkg.github.com/download/@US-EPA-CAMD/easey-common/21.4.6/4ad26aafa67f60da4faad07269d700e3ed8b449a#4ad26aafa67f60da4faad07269d700e3ed8b449a"
+  integrity sha512-+PwjwtCEr/gG0CgXWzo9lGALaX41/jbr+HCHFFXAOBlo04TpwF+aUrgWApT8tD1aKe0IIQB8oCYNwdDBfwCYKQ==
   dependencies:
     "@golevelup/ts-jest" "^0.7.0"
     "@nestjs/axios" "4.0.1"
-    "@nestjs/common" "^11.1.9"
+    "@nestjs/common" "^11.1.12"
     "@nestjs/config" "^4.0.2"
-    "@nestjs/core" "^11.1.9"
-    "@nestjs/swagger" "^11.2.3"
+    "@nestjs/core" "^11.1.12"
+    "@nestjs/swagger" "^11.2.5"
     "@nestjs/terminus" "^11.0.0"
     "@nestjs/typeorm" "^11.0.0"
     axios "^1.13.2"
@@ -2035,10 +2035,10 @@
     express "^5.2.1"
     helmet "^8.1.0"
     json2csv "^5.0.7"
-    pg "^8.16.3"
+    pg "^8.17.1"
     pg-copy-streams "^6.0.6"
-    pg-pool "^3.10.1"
-    pg-query-stream "^4.10.3"
+    pg-pool "^3.11.0"
+    pg-query-stream "^4.11.1"
     reflect-metadata "^0.2.2"
     rxjs "^7.8.2"
     tls "^0.0.1"
@@ -5822,17 +5822,17 @@ pg-copy-streams@^6.0.6:
   dependencies:
     obuf "^1.1.2"
 
-pg-cursor@^2.15.3:
-  version "2.15.3"
-  resolved "https://registry.yarnpkg.com/pg-cursor/-/pg-cursor-2.15.3.tgz#19f05739ff95366eed28e80191a6321d0e036395"
-  integrity sha512-eHw63TsiGtFEfAd7tOTZ+TLy+i/2ePKS20H84qCQ+aQ60pve05Okon9tKMC+YN3j6XyeFoHnaim7Lt9WVafQsA==
+pg-cursor@^2.16.1:
+  version "2.16.1"
+  resolved "https://registry.yarnpkg.com/pg-cursor/-/pg-cursor-2.16.1.tgz#08c0f8288063ed6134e7e11f245686f33dcb0094"
+  integrity sha512-ixa4eoGi2nAc3ZHn0xknrN5M9W4LHmzx+h+6J35aaU/lFAtNNqeldCfWTlxJFo2AUVbw0Wtse9SGZZ2OUes0Bg==
 
 pg-int8@1.0.1:
   version "1.0.1"
   resolved "https://registry.npmjs.org/pg-int8/-/pg-int8-1.0.1.tgz#943bd463bf5b71b4170115f80f8efc9a0c0eb78c"
   integrity sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==
 
-pg-pool@^3.10.1, pg-pool@^3.11.0:
+pg-pool@^3.11.0:
   version "3.11.0"
   resolved "https://registry.yarnpkg.com/pg-pool/-/pg-pool-3.11.0.tgz#adf9a6651a30c839f565a3cc400110949c473d69"
   integrity sha512-MJYfvHwtGp870aeusDh+hg9apvOe2zmpZJpyt+BMtzUWlVqbhFmMK6bOBXLBUPd7iRtIF9fZplDc7KrPN3PN7w==
@@ -5842,12 +5842,12 @@ pg-protocol@^1.11.0:
   resolved "https://registry.yarnpkg.com/pg-protocol/-/pg-protocol-1.11.0.tgz#2502908893edaa1e8c0feeba262dd7b40b317b53"
   integrity sha512-pfsxk2M9M3BuGgDOfuy37VNRRX3jmKgMjcvAcWqNDpZSf4cUmv8HSOl5ViRQFsfARFn0KuUQTgLxVMbNq5NW3g==
 
-pg-query-stream@^4.10.3:
-  version "4.10.3"
-  resolved "https://registry.yarnpkg.com/pg-query-stream/-/pg-query-stream-4.10.3.tgz#ed4461c76a1115a36581614ed1897ef4ecee375a"
-  integrity sha512-h2utrzpOIzeT9JfaqfvBbVuvCfBjH86jNfVrGGTbyepKAIOyTfDew0lAt8bbJjs9n/I5bGDl7S2sx6h5hPyJxw==
+pg-query-stream@^4.11.1:
+  version "4.11.1"
+  resolved "https://registry.yarnpkg.com/pg-query-stream/-/pg-query-stream-4.11.1.tgz#5c48ba19f30805d8e7ae6dcc6a681d392efaa6c0"
+  integrity sha512-JF8xvSq/F+0u39Axw7BwlpNiDLkAb26bkDI6t8lMRL1/q7QE6oHoi969hu4v6QAqNZnBKjb40038As5k7xhSMw==
   dependencies:
-    pg-cursor "^2.15.3"
+    pg-cursor "^2.16.1"
 
 pg-types@2.2.0:
   version "2.2.0"
@@ -5860,7 +5860,7 @@ pg-types@2.2.0:
     postgres-date "~1.0.4"
     postgres-interval "^1.1.0"
 
-pg@^8.16.3, pg@^8.17.1:
+pg@^8.17.1:
   version "8.17.1"
   resolved "https://registry.yarnpkg.com/pg/-/pg-8.17.1.tgz#cecf0c96d3f5004951ccbafaaa230779ebc89d35"
   integrity sha512-EIR+jXdYNSMOrpRp7g6WgQr7SaZNZfS7IzZIO0oTNEeibq956JxeD15t3Jk3zZH0KH8DmOIx38qJfQenoE8bXQ==
@@ -6516,16 +6516,7 @@ string-length@^4.0.2:
     char-regex "^1.0.2"
     strip-ansi "^6.0.0"
 
-"string-width-cjs@npm:string-width@^4.2.0":
-  version "4.2.3"
-  resolved "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
-  integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
-  dependencies:
-    emoji-regex "^8.0.0"
-    is-fullwidth-code-point "^3.0.0"
-    strip-ansi "^6.0.1"
-
-string-width@^4.0.0, string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.2, string-width@^4.2.3:
+"string-width-cjs@npm:string-width@^4.2.0", string-width@^4.0.0, string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.2, string-width@^4.2.3:
   version "4.2.3"
   resolved "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
@@ -6598,14 +6589,7 @@ string_decoder@~1.1.1:
   dependencies:
     safe-buffer "~5.1.0"
 
-"strip-ansi-cjs@npm:strip-ansi@^6.0.1":
-  version "6.0.1"
-  resolved "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
-  integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
-  dependencies:
-    ansi-regex "^5.0.1"
-
-strip-ansi@^6.0.0, strip-ansi@^6.0.1:
+"strip-ansi-cjs@npm:strip-ansi@^6.0.1", strip-ansi@^6.0.0, strip-ansi@^6.0.1:
   version "6.0.1"
   resolved "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
   integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
@@ -7399,7 +7383,7 @@ wordwrap@^1.0.0:
   resolved "https://registry.yarnpkg.com/wordwrap/-/wordwrap-1.0.0.tgz#27584810891456a4171c8d0226441ade90cbcaeb"
   integrity sha512-gvVzJFlPycKc5dZN4yPkP8w7Dc37BtP1yczEneOb4uq34pXZcvrtRTmWV8W+Ume+XCxKgbjM+nevkyFPMybd4Q==
 
-"wrap-ansi-cjs@npm:wrap-ansi@^7.0.0":
+"wrap-ansi-cjs@npm:wrap-ansi@^7.0.0", wrap-ansi@^7.0.0:
   version "7.0.0"
   resolved "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
   integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
@@ -7412,15 +7396,6 @@ wrap-ansi@^6.2.0:
   version "6.2.0"
   resolved "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-6.2.0.tgz#e9393ba07102e6c91a3b221478f0257cd2856e53"
   integrity sha512-r6lPcBGxZXlIcymEu7InxDMhdW0KDxpLgoFLcguasxCaJ/SOIZwINatK9KY/tf+ZrlywOKU0UDj3ATXUBfxJXA==
-  dependencies:
-    ansi-styles "^4.0.0"
-    string-width "^4.1.0"
-    strip-ansi "^6.0.0"
-
-wrap-ansi@^7.0.0:
-  version "7.0.0"
-  resolved "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
-  integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
   dependencies:
     ansi-styles "^4.0.0"
     string-width "^4.1.0"
