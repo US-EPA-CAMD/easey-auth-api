@@ -51,7 +51,7 @@
     "form-data": "^4.0.5",
     "js-base64": "^3.7.8",
     "jsonwebtoken": "^9.0.3",
-    "jwks-rsa": "^3.2.0",
+    "jwks-rsa": "^3.2.1",
     "keyv": "^5.5.5",
     "nestjs-cacheable": "^1.0.0",
     "pg": "^8.17.1",
@@ -66,7 +66,7 @@
   },
   "devDependencies": {
     "@golevelup/ts-jest": "^0.7.0",
-    "@nestjs/cli": "^11.0.15",
+    "@nestjs/cli": "^11.0.16",
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.12",
     "@types/express": "^5.0.6",
