@@ -25,8 +25,8 @@ import { MaintenanceVerifyParamDTO } from '../dtos/maintenance-verify-param.dto'
 export class TokenService {
   private jwksClients = new Map<string, JwksClient>();
 
-  //used to keep track of ongoing refreshToken executions keyed by session.sessionId.
-  private readonly sessionPromises = new Map<string, Promise<TokenDTO>>();
+  //used to keep track of ongoing refreshToken executions keyed by token to prevent race conditions
+  private readonly tokenRefreshPromises = new Map<string, Promise<TokenDTO>>();
 
   constructor(
     private configService: ConfigService,
@@ -40,34 +40,35 @@ export class TokenService {
   async refreshToken(userId: string, token: string, clientIp: string) {
     this.logger.debug('Starting refreshToken process', { userId, clientIp });
 
-    //Grab the current session data
-    let session: UserSession = await this.userSessionService.findSessionByUserIdAndToken(
-      userId,
-      token,
-    );
-
-    if (!session) {
-      throw new EaseyException(
-        new Error('Unable to refresh token, no existing session for user/token '),
-        HttpStatus.BAD_REQUEST,
-        { userId: userId },
-      );
-    }
-
-    this.logger.debug('Retrieved user session', { sessionId: session.sessionId, });
-
-    //If a request comes in for a session that is already being processed, wait for promise to resolve.
-    const sessionId = session.sessionId;
-    if (this.sessionPromises.has(sessionId)) {
+    // Check if a refresh is already in progress for this token (prevents race conditions)
+    if (this.tokenRefreshPromises.has(token)) {
       this.logger.debug(
-        'Waiting for existing refreshToken process to complete',
-        { sessionId },
+        'Refresh already in progress for this token, waiting for completion',
+        { userId },
       );
-      return this.sessionPromises.get(sessionId);
+      return this.tokenRefreshPromises.get(token);
     }
 
+    // Create a promise for this refresh operation
     const refreshPromise = (async () => {
       try {
+        //Grab the current session data
+        let session: UserSession = await this.userSessionService.findSessionByUserIdAndToken(
+          userId,
+          token,
+        );
+
+        if (!session) {
+          throw new EaseyException(
+            new Error('Unable to refresh token, no existing session for user/token '),
+            HttpStatus.BAD_REQUEST,
+            { userId: userId },
+          );
+        }
+
+        this.logger.debug('Retrieved user session', { sessionId: session.sessionId, });
+
+        const sessionId = session.sessionId;
 
         if (this.bypassService.bypassEnabled()) {
           //Bypass Tokens
@@ -105,25 +106,24 @@ export class TokenService {
         authToken.expiration = session.tokenExpiration;
 
         return authToken;
-      } catch (error) {
-        this.sessionPromises.delete(sessionId);
-        throw error;
+      } finally {
+        // Always clean up the token-level promise when done (success or error)
+        this.tokenRefreshPromises.delete(token);
       }
     })();
 
-    this.sessionPromises.set(sessionId, refreshPromise);
-    const authToken = await refreshPromise;
-    this.sessionPromises.delete(sessionId); //promise resolved, removes from the map.
+    // Store the promise keyed by token
+    this.tokenRefreshPromises.set(token, refreshPromise);
 
-    return authToken;
+    // Return the promise
+    return refreshPromise;
   }
 
   private async validateClientIp(user: CurrentUser, clientIp: string) {
     // Skip IP validation if disabled in configuration (but never in production)
     const disableIpValidation = this.configService.get<boolean>('app.disableClientIpValidation');
-    const isProduction = this.configService.get<string>('app.env') === 'production';
-    
-    if (disableIpValidation && !isProduction) {
+
+    if (disableIpValidation) {
       this.logger.debug('Client IP validation is disabled');
       return;
     }
@@ -427,8 +427,11 @@ export class TokenService {
     );
 
     if (!userSession) {
-      this.logger.debug('No user session found');
-      return false;
+      this.logger.error(
+        'Token validation failed: No user session found',
+        `userId: ${userId}, tokenPrefix: ${token?.substring(0, 10)}, clientIp: ${clientIp}`
+      );
+      throw new UnauthorizedException('Invalid or expired token. Access denied.');
     }
 
     //populate user values
@@ -456,7 +459,13 @@ export class TokenService {
       return user;
     }
 
-    return false;
+    // INVESTIGATION NOTE (Issue #6939): Session token validation failed
+    // This may occur when the session exists but the token is invalid or expired
+    this.logger.error(
+      'Token validation failed: Invalid session token',
+      `userId: ${userId}, sessionId: ${user.sessionId}, tokenPrefix: ${token?.substring(0, 10)}, clientIp: ${clientIp}`
+    );
+    throw new UnauthorizedException('Invalid or expired token. Access denied.');
   }
 
   async validateMaintenance(maintenance: MaintenanceVerifyParamDTO): Promise<boolean> {

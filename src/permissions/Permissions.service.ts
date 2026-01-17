@@ -8,6 +8,7 @@ import { getConfigValue } from '@us-epa-camd/easey-common/utilities';
 import * as crypto from 'crypto';
 import * as https from 'https';
 import { firstValueFrom } from 'rxjs';
+import safeStringify from 'fast-safe-stringify';
 
 import {
   OrganizationResponse,
@@ -135,7 +136,8 @@ export class PermissionsService {
       );
     }
 
-    const permissionsDto = {plantList: [], missingCertificationStatements: true,} as FacilityAccessWithCertStatementFlagDTO;
+    //For mock permissions, always set hasValidEsa to true by default
+    const permissionsDto = {plantList: [], missingCertificationStatements: true, hasValidEsa: true} as FacilityAccessWithCertStatementFlagDTO;
     const mockPermissionObject = await this.bypassService.getMockPermissionObject();
 
     //filter out all the unmactched records
@@ -160,6 +162,9 @@ export class PermissionsService {
 
       //if the missingCertificationStatements flag is null or undefined, if bypass is on, then set the default value to false, otherwise true
       permissionsDto.missingCertificationStatements = userPermissions[0]?.missingCertificationStatements == null ? !this.bypassService.bypassEnabled() : userPermissions[0]?.missingCertificationStatements;
+
+      //if hasValidEsa is null or undefined, then always set the default value to true (assume valid ESA status unless explicitly set to false)
+      permissionsDto.hasValidEsa = userPermissions[0]?.hasValidEsa == null ? true : userPermissions[0]?.hasValidEsa;
     } else if (this.configService.get<boolean>('app.enableAllFacilities')) {
       return null;
     }
@@ -193,19 +198,33 @@ export class PermissionsService {
       if (permissionResult.data) {
         const data = permissionResult.data
         // check if the missingCertificationStatements is null or undefined, if it is, then set the default value to true
-        data.missingCertificationStatements = data.missingCertificationStatements == null ? true : data.missingCertificationStatements; 
+        data.missingCertificationStatements = data.missingCertificationStatements == null ? true : data.missingCertificationStatements;
+        // check if hasValidEsa is null or undefined, if it is, then set the default value to false (less permissive).
+        data.hasValidEsa = data.hasValidEsa == null ? false : data.hasValidEsa;
         return data;
       }
 
       return null;
     } catch (e) {
-      this.logger.error('getUserPermissions: ', e.message);
+      // Enhanced error logging to include CBS response details (Issue #6939)
+      if (e.response) {
+        this.logger.error(
+          'CBS API call failed with response error',
+          `URL: ${url}, Status: ${e.response.status} ${e.response.statusText}, Message: ${e.message}, Response: ${safeStringify(e.response.data)}`
+        );
+      } else {
+        this.logger.error(
+          'CBS API call failed without response (network/timeout error)',
+          `URL: ${url}, Message: ${e.message}`
+        );
+      }
+
       // throwing error, when CBS API returns error.
       if (
         !this.configService.get<boolean>('app.mockPermissionsEnabled') &&
         !e.response
       ) {
-        this.logger.error('Call to CBS for user responsibilities failed.', e.message);
+        this.logger.error('Call to CBS for user responsibilities failed - no response received.', e.message);
         throw new EaseyException(
           new Error(
             'Unable to obtain user responsibilities from CBS. Please try again later.',

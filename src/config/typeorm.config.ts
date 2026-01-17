@@ -26,6 +26,43 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
   }
 
   createTypeOrmOptions(): TypeOrmModuleOptions {
+    const replicaHost = this.configService.get<string>('database.replicaHost');
+    const host = this.configService.get<string>('database.host');
+
+    const replicaAccessEnabled = this.configService.get<boolean>('app.enableReplicaDbAccess');
+
+    // If replica host is available and different from primary host, use replication configuration
+    if (replicaAccessEnabled && replicaHost && replicaHost !== host) {
+      return {
+        type: 'postgres',
+        applicationName: this.configService.get<string>('app.name'),
+        entities: [__dirname + '/../**/*.entity.{js,ts}'],
+        synchronize: false,
+        replication: {
+          defaultMode: 'master',
+          master: {
+            host: this.configService.get<string>('database.host'),
+            port: this.configService.get<number>('database.port'),
+            username: this.configService.get<string>('database.user'),
+            password: this.configService.get<string>('database.pwd'),
+            database: this.configService.get<string>('database.name'),
+            ssl: this.tlsOptions,
+          },
+          slaves: [
+            {
+              host: replicaHost,
+              port: this.configService.get<number>('database.port'),
+              username: this.configService.get<string>('database.user'),
+              password: this.configService.get<string>('database.pwd'),
+              database: this.configService.get<string>('database.name'),
+              ssl: this.tlsOptions,
+            },
+          ],
+        },
+      };
+    }
+
+    // Fallback to original configuration if no replica host or same as master
     return {
       type: 'postgres',
       applicationName: this.configService.get<string>('app.name'),

@@ -117,6 +117,15 @@ export class SignService {
       return result;
     }
 
+    // Check for valid CDX ESA status
+    const hasValidEsa = permissionsWithCertStatementsFlag.hasValidEsa;
+    if (hasValidEsa !== true) {
+      result.hasValidationError = true;
+      result.validationErrorHeading = "Invalid CDX ESA Status Error"
+      result.validationErrorMessage = "You must have a valid CDX ESA status to submit."
+      return result;
+    }
+
     // retrieve the latest facilities permission list
     const facilitiesWithPermissions = permissionsWithCertStatementsFlag.plantList;
     

@@ -63,6 +63,9 @@ export default registerAs('app', () => ({
     'EASEY_AUTH_API_ENABLE_GLOBAL_VALIDATION_PIPE',
     true,
   ),
+  enableReplicaDbAccess: getConfigValueBoolean(
+    'EASEY_AUTH_API_ENABLE_REPLICA_DB_ACCESS',
+  ),
   version: getConfigValue('EASEY_AUTH_API_VERSION', 'v0.0.0'),
   published: getConfigValue('EASEY_AUTH_API_PUBLISHED', 'local'),
   cdxSvcs: getConfigValue(
