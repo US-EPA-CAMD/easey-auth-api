@@ -5037,10 +5037,10 @@ jwa@^2.0.1:
     ecdsa-sig-formatter "1.0.11"
     safe-buffer "^5.0.1"
 
-jwks-rsa@^3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/jwks-rsa/-/jwks-rsa-3.2.1.tgz#53672c9ac89b70dbf13e1126733f92b8fefcf7f3"
-  integrity sha512-r7QdN9TdqI6aFDFZt+GpAqj5yRtMUv23rL2I01i7B8P2/g8F0ioEN6VeSObKgTLs4GmmNJwP9J7Fyp/AYDBGRg==
+jwks-rsa@^3.2.2:
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/jwks-rsa/-/jwks-rsa-3.2.2.tgz#f6d528306befacdbc62c8c0272761faac55ffbb3"
+  integrity sha512-BqTyEDV+lS8F2trk3A+qJnxV5Q9EqKCBJOPti3W97r7qTympCZjb7h2X6f2kc+0K3rsSTY1/6YG2eaXKoj497w==
   dependencies:
     "@types/jsonwebtoken" "^9.0.4"
     debug "^4.3.4"
