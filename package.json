@@ -9,7 +9,7 @@
     "url": "git+https://github.com/US-EPA-CAMD/easey-auth-api.git"
   },
   "engines": {
-    "node": "20.x"
+    "node": "22.x"
   },
   "scripts": {
     "prebuild": "rimraf dist",
@@ -41,8 +41,8 @@
     "@nestjs/platform-express": "^11.1.12",
     "@nestjs/swagger": "^11.2.5",
     "@nestjs/typeorm": "^11.0.0",
-    "@us-epa-camd/easey-common": "21.4.6",
-    "axios": "^1.13.2",
+    "@us-epa-camd/easey-common": "21.5.0",
+    "axios": "^1.13.4",
     "cache-manager": "^6",
     "class-transformer": "0.5.1",
     "class-validator": "0.14.3",
@@ -51,10 +51,10 @@
     "form-data": "^4.0.5",
     "js-base64": "^3.7.8",
     "jsonwebtoken": "^9.0.3",
-    "jwks-rsa": "^3.2.1",
+    "jwks-rsa": "^3.2.2",
     "keyv": "^5.6.0",
     "nestjs-cacheable": "^1.0.0",
-    "pg": "^8.17.1",
+    "pg": "^8.17.2",
     "reflect-metadata": "^0.2.2",
     "rimraf": "^6.1.2",
     "rxjs": "^7.8.2",
@@ -75,8 +75,8 @@
     "@types/node": "20",
     "@types/supertest": "^6.0.3",
     "@types/uuid": "^9.0.8",
-    "@typescript-eslint/eslint-plugin": "8.53.1",
-    "@typescript-eslint/parser": "8.53.1",
+    "@typescript-eslint/eslint-plugin": "8.54.0",
+    "@typescript-eslint/parser": "8.54.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
