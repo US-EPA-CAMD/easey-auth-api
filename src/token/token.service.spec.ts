@@ -214,7 +214,11 @@ describe('Token Service', () => {
       const jwtDecodeSpy = jest.spyOn(require('jsonwebtoken'), 'decode').mockReturnValue(null);
 
       await expect(service.validateToken(invalidToken, clientIp)).rejects.toThrow(UnauthorizedException);
-      await expect(service.validateToken(invalidToken, clientIp)).rejects.toThrow('Invalid or expired token. Access denied.');
+      await expect(
+        service.validateToken(invalidToken, clientIp),
+      ).rejects.toThrow(
+        'Your session has expired. Please log out and log back in.',
+      );
 
       jwtDecodeSpy.mockRestore();
     });
@@ -225,10 +229,18 @@ describe('Token Service', () => {
       const clientIp = '127.0.0.1';
 
       // Mock jwt.decode to return a string
-      const jwtDecodeSpy = jest.spyOn(require('jsonwebtoken'), 'decode').mockReturnValue('string-token');
+      const jwtDecodeSpy = jest
+        .spyOn(require('jsonwebtoken'), 'decode')
+        .mockReturnValue('string-token');
 
-      await expect(service.validateToken(invalidToken, clientIp)).rejects.toThrow(UnauthorizedException);
-      await expect(service.validateToken(invalidToken, clientIp)).rejects.toThrow('Invalid or expired token. Access denied.');
+      await expect(
+        service.validateToken(invalidToken, clientIp),
+      ).rejects.toThrow(UnauthorizedException);
+      await expect(
+        service.validateToken(invalidToken, clientIp),
+      ).rejects.toThrow(
+        'Your session has expired. Please log out and log back in.',
+      );
 
       jwtDecodeSpy.mockRestore();
       });

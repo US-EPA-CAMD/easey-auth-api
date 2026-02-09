@@ -41,6 +41,14 @@ applications:
       TZ: America/New_York
       EASEY_AUTH_API_ENABLE_AUDIT_LOG: ((enableAuditLog))
       EASEY_AUTH_API_DISABLE_CLIENT_IP_VALIDATION: ((disableClientIpValidation))
+      EASEY_DB_MAX_CONNECTION_POOL: ((maxConnectionPool))
+      EASEY_DB_IDLE_TIMEOUT: ((idleTimeout))
+      EASEY_DB_CONNECTION_TIMEOUT: ((connectionTimeout))
+      EASEY_DB_STATEMENT_TIMEOUT: ((statementTimeout))
+      EASEY_DB_IDLE_TRANS_SESSION_TIMEOUT: ((idleInTransactionSessionTimeout))
+      EASEY_DB_MAX_USES_BEFORE_CONN_RECREATE: ((maxUsesBeforeRecreatingConnection))
+      EASEY_DB_SQL_LOGGING: ((sqlLogging))
+      EASEY_DB_MAX_QUERY_EXECUTION_TIMEOUT: ((maxQueryExecutionTime))
       EASEY_DB_HEALTH_TIMEOUT: ((dbHealthTimeout))
 
       # ICAM

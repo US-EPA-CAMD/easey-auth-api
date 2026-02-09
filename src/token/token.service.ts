@@ -399,9 +399,7 @@ export class TokenService {
     let userId: string;
     if (this.bypassService.bypassEnabled()) {
       this.logger.debug('Bypass service is enabled');
-      user = await this.bypassService.extractUserFromValidatedBypassToken(
-        token,
-      );
+      user = await this.bypassService.extractUserFromValidatedBypassToken(token);
       userId = user.userId;
     } else {
       const oidcJwtPayload = jwt.decode(token, { complete: true }) as {
@@ -413,7 +411,7 @@ export class TokenService {
 
       if (!oidcJwtPayload || typeof oidcJwtPayload === 'string') {
         this.logger.debug('Invalid token format: Unable to decode token');
-        throw new UnauthorizedException('Invalid or expired token. Access denied.');
+        throw new UnauthorizedException('Your session has expired. Please log out and log back in.',);
       }
 
       userId = oidcJwtPayload.payload.userId;
@@ -431,7 +429,7 @@ export class TokenService {
         'Token validation failed: No user session found',
         `userId: ${userId}, tokenPrefix: ${token?.substring(0, 10)}, clientIp: ${clientIp}`
       );
-      throw new UnauthorizedException('Invalid or expired token. Access denied.');
+      throw new UnauthorizedException('Your session has expired. Please log out and log back in.',);
     }
 
     //populate user values
@@ -465,7 +463,7 @@ export class TokenService {
       'Token validation failed: Invalid session token',
       `userId: ${userId}, sessionId: ${user.sessionId}, tokenPrefix: ${token?.substring(0, 10)}, clientIp: ${clientIp}`
     );
-    throw new UnauthorizedException('Invalid or expired token. Access denied.');
+    throw new UnauthorizedException('Your session has expired. Please log out and log back in.',);
   }
 
   async validateMaintenance(maintenance: MaintenanceVerifyParamDTO): Promise<boolean> {
