@@ -31,6 +31,9 @@ healthCheckInterval: 30
 healthCheckInvocationTimeout: 60
 dbHealthTimeout: 5000
 tokenExpirationDurationMinutes: 20
+appStatus: ONLINE
+cdxBypassEnabled: false
+cdxBypassUsers: '[]'
 
 # ICAM
 signFilesIndividually: false
