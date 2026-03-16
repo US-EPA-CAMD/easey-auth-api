@@ -76,8 +76,6 @@ export default registerAs('app', () => ({
     'EASEY_NAAS_SERVICES',
     'https://naasdev.epacdxnode.net/xml/securitytoken_v30.wsdl',
   ),
-  naasAppId: getConfigValue('EASEY_NAAS_SERVICES_APP_ID'),
-  nassAppPwd: getConfigValue('EASEY_NAAS_SERVICES_APP_PASSWORD'),
   // ENABLES DEBUG CONSOLE LOGS
   enableDebug: getConfigValueBoolean('EASEY_AUTH_API_ENABLE_DEBUG'),
   apiHost: apiHost,

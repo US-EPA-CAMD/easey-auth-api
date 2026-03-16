@@ -50,6 +50,10 @@ applications:
       EASEY_DB_SQL_LOGGING: ((sqlLogging))
       EASEY_DB_MAX_QUERY_EXECUTION_TIMEOUT: ((maxQueryExecutionTime))
       EASEY_DB_HEALTH_TIMEOUT: ((dbHealthTimeout))
+      EASEY_AUTH_API_APP_STATUS: ((appStatus))
+      EASEY_CDX_BYPASS_ENABLED: ((cdxBypassEnabled))
+      EASEY_CDX_BYPASS_USERS: ((cdxBypassUsers))
+      EASEY_MAINTENANCE_BYPASS_USERS: ((maintenanceBypassUsers))
 
       # ICAM
       EASEY_AUTH_API_SIGN_FILES_INDIVIDUALLY: ((signFilesIndividually))
