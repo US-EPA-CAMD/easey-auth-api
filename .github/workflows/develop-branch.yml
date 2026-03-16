@@ -55,9 +55,9 @@ jobs:
       - name: Configure Env Vars (secrets)
         run: scripts/environment-variables-secrets.sh
         env:
+          AUTH_API_API_KEY: ${{ secrets.AUTH_API_API_KEY }}
           AUTH_API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
-          CDX_BYPASS_PASSWORD: ${{ secrets.CDX_BYPASS_PASSWORD }}
-          NAAS_SERVICES_APP_ID: ${{ secrets.NAAS_SERVICES_APP_ID }}
-          NAAS_SERVICES_APP_PASSWORD: ${{ secrets.NAAS_SERVICES_APP_PASSWORD }}
+          AUTH_API_OIDC_CLIENT_SECRET: ${{ secrets.AUTH_API_OIDC_CLIENT_SECRET }}
+          AUTH_API_OIDC_HMAC_SECRET_KEY: ${{ secrets.AUTH_API_OIDC_HMAC_SECRET_KEY }}
       - name: Deploy
         run: devops/scripts/deploy.sh
