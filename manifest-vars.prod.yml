@@ -22,7 +22,7 @@ healthCheckInterval: 30
 healthCheckInvocationTimeout: 60
 dbHealthTimeout: 300000
 tokenExpirationDurationMinutes: 20
-appStatus: ONLINE
+appStatus: DOWN
 cdxBypassEnabled: false
 cdxBypassUsers: '[]'
 
