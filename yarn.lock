@@ -608,10 +608,10 @@
   resolved "https://registry.yarnpkg.com/@golevelup/ts-jest/-/ts-jest-0.7.0.tgz#b16c6775a34fa424e5fb492bc45a20c6d8204e0b"
   integrity sha512-b5Kf+NiEfWuMGUD5bl/Gm/RqojS4Sr/4Q0ySXN4xn3xlkhgPYG6nGLBeNjk3MiM2I3ztVVFfI7SB8ajqDy6Idw==
 
-"@golevelup/ts-jest@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@golevelup/ts-jest/-/ts-jest-2.0.0.tgz#e853552bf07bdadce71f958f57115903d2698b9a"
-  integrity sha512-JYQTcs6dw/b67lfibryyFJpwxtTR6tUf0BhXUsN/HtxyRErWtFYEvvOzB+shAW1yYeonjqbILk0PaDJMfX43rA==
+"@golevelup/ts-jest@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@golevelup/ts-jest/-/ts-jest-3.0.0.tgz#3e25efad2cdd5b29f3ab10bbcb5f76d9cfc9f024"
+  integrity sha512-ei0cvUKrVv8cJBW6df54yeod8PyzR2LTYG6wJ1xm+213p7HnThw5ShQcRH0/hhhnXnJCLrpmJM7e6fkRjHUF1g==
 
 "@humanfs/core@^0.19.1":
   version "0.19.1"
