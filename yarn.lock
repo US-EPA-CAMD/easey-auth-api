@@ -1251,10 +1251,10 @@
   resolved "https://registry.npmjs.org/@nestjs/cache-manager/-/cache-manager-2.3.0.tgz#e318ba56856c89b34f158efe9ca749fe3886dfa9"
   integrity sha512-pxeBp9w/s99HaW2+pezM1P3fLiWmUEnTUoUMLa9UYViCtjj0E0A19W/vaT5JFACCzFIeNrwH4/16jkpAhQ25Vw==
 
-"@nestjs/cache-manager@^3.1.0":
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@nestjs/cache-manager/-/cache-manager-3.1.0.tgz#65f3be68154e48557790c0a58a55aadb92439dd0"
-  integrity sha512-pEIqYZrBcE8UdkJmZRduurvoUfdU+3kRPeO1R2muiMbZnRuqlki5klFFNllO9LyYWzrx98bd1j0PSPKSJk1Wbw==
+"@nestjs/cache-manager@^3.1.1":
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/@nestjs/cache-manager/-/cache-manager-3.1.1.tgz#5b9af89e249ebe04009b6ee4e5ddab33dfb394c0"
+  integrity sha512-KEZ+s4RIdWi0BTAvjTIk2UWvCibacSlKBhyNugPwGNb8OewHywzPCAUqPxIjeuprkw6d4sj4oe9+FLEpFopWdg==
 
 "@nestjs/cli@^11.0.21":
   version "11.0.21"
