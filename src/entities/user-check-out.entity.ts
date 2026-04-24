@@ -14,6 +14,6 @@ export class UserCheckOut extends BaseEntity {
   @Column({ name: 'checked_out_by' })
   checkedOutBy: string;
 
-  @Column({ name: 'last_activity' })
+  @Column({ name: 'last_activity', type: 'timestamptz' })
   lastActivity: string;
 }
