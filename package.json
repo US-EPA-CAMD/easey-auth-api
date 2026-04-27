@@ -34,7 +34,7 @@
   "dependencies": {
     "@elastic/ecs-winston-format": "^1.5.3",
     "@nestjs/axios": "^4.0.1",
-    "@nestjs/cache-manager": "^3.1.1",
+    "@nestjs/cache-manager": "^3.1.2",
     "@nestjs/common": "^11.1.19",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.1.19",
