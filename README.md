@@ -228,9 +228,7 @@ const params = new URLSearchParams();
 
 ## Timestamp Standard
 
-The activity timestamps driving the session/check-out maintenance procedure — `last_activity` and `last_login_date` on `camdecmpswks.user_session`, and `last_activity` / `checked_out_on` on `camdecmpswks.user_check_out` — are stored as `timestamp with time zone` (UTC) and written from the API as `new Date().toISOString()`. Do **not** use `dateToEstString()` from `@us-epa-camd/easey-common` for these columns; the en-US locale string it returns has no timezone marker and is interpreted against the DB session's `TimeZone`, which drifts the maintenance procedure's expiry math.
-
-`dateToEstString()` is still the current convention for `token_expiration` and for values returned on `TokenDTO.expiration` (both UI consumers and `isSessionTokenExpired` parse these with `new Date(...)` and rely on the pair of writer + reader producing a symmetric shift). Standardizing that field to UTC is a separate, larger migration touching the UI and bypass-token encoding, out of scope here.
+The activity timestamps driving the session/check-out maintenance procedure (`last_activity` and `last_login_date` on `camdecmpswks.user_session`, and `last_activity` / `checked_out_on` on `camdecmpswks.user_check_out`) are stored as `timestamp with time zone` (UTC) and written from the API as `new Date().toISOString()`. Do **not** use `dateToEstString()` from `@us-epa-camd/easey-common` for these columns; the en-US locale string it returns has no timezone marker and is interpreted against the DB session's `TimeZone`, which drifts the maintenance procedure's expiry math.
 
 ## License & Contributing
 This project is licensed under the MIT License. We encourage you to read this project’s [License](LICENSE), [Contributing Guidelines](CONTRIBUTING.md), and [Code of Conduct](CODE-OF-CONDUCT.md).
