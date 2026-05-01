@@ -37,7 +37,7 @@ export class UserSessionService {
       );
     }
 
-    const activeDate = dateToEstString();
+    const activeDate = new Date().toISOString();
 
     sessionRecord.lastActivity = activeDate;
     await this.repository.save(sessionRecord);
@@ -87,8 +87,9 @@ export class UserSessionService {
     session.oidcPolicy = oidcPolicy;
     session.securityToken = authCode;
     session.clientIp = clientIp;
-    session.lastLoginDate = dateToEstString();
-    session.lastActivity = dateToEstString();
+    const nowUtc = new Date().toISOString();
+    session.lastLoginDate = nowUtc;
+    session.lastActivity = nowUtc;
     await this.repository.insert(session);
     return session;
   }
