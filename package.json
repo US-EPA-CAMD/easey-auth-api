@@ -41,7 +41,7 @@
     "@nestjs/platform-express": "^11.1.24",
     "@nestjs/swagger": "^11.4.4",
     "@nestjs/typeorm": "^11.0.1",
-    "@us-epa-camd/easey-common": "21.5.2",
+    "@us-epa-camd/easey-common": "21.5.7",
     "axios": "^1.17.0",
     "cache-manager": "^6",
     "class-transformer": "0.5.1",
@@ -60,7 +60,7 @@
     "rxjs": "^7.8.2",
     "serialize-javascript": "^7.0.5",
     "swagger-ui-express": "^5.0.1",
-    "typeorm": "0.3.28",
+    "typeorm": "0.3.30",
     "uuid": "^8.3.2",
     "winston": "^3.19.0"
   },
