@@ -55,7 +55,7 @@ jobs:
       - name: Configure Env Vars (secrets)
         run: scripts/environment-variables-secrets.sh
         env:
-          AUTH_API_API_KEY: ${{ secrets.AUTH_API_API_KEY }}
+          AUTH_API_API_KEY: ${{ secrets.API_KEY }}
           AUTH_API_SECRET_TOKEN: ${{ secrets.API_SECRET_TOKEN }}
           AUTH_API_OIDC_CLIENT_SECRET: ${{ secrets.AUTH_API_OIDC_CLIENT_SECRET }}
           AUTH_API_OIDC_HMAC_SECRET_KEY: ${{ secrets.AUTH_API_OIDC_HMAC_SECRET_KEY }}
