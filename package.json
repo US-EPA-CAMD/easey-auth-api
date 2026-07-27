@@ -61,7 +61,7 @@
     "serialize-javascript": "^7.0.7",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "0.3.30",
-    "uuid": "^8.3.2",
+    "uuid": "^14.0.1",
     "winston": "^3.19.0"
   },
   "devDependencies": {
