@@ -88,6 +88,8 @@ export default registerAs('app', () => ({
     'EASEY_AUTH_API_PERMISSIONS_URL',
     'https://cbsstagei.rtpnc.epa.gov/CBSD/api/auth-mgmt/responsibilities',
   ),
+  // HTTP verb for the permissions endpoint: 'GET' or 'POST'. Defaults to GET.
+  permissionsMethod: getConfigValue('EASEY_AUTH_API_PERMISSIONS_METHOD', 'GET'),
   contentUri: getConfigValue(
     'EASEY_AUTH_CONTENT_API',
     'https://api.epa.gov/easey/dev/content-mgmt',
