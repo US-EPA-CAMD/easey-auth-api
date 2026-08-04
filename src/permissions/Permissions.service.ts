@@ -194,8 +194,6 @@ export class PermissionsService {
       };
       // Non-POST falls back to GET
       const method = this.configService.get<string>('app.permissionsMethod');
-      // TODO: confirm POST payload contract with the API owner. Today userId is
-      // appended to `url` as a query param; the POST endpoint may expect it in the body.
       const permissionResult = await firstValueFrom(
         method === 'POST'
           ? this.httpService.post(url, {}, requestConfig)
