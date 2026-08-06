@@ -1,6 +1,7 @@
-import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Cacheable } from 'nestjs-cacheable';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 import { UserSessionService } from '../user-session/user-session.service';
 import { UserSession } from '../entities/user-session.entity';
@@ -29,6 +30,9 @@ export class TokenService {
   private readonly tokenRefreshPromises = new Map<string, Promise<TokenDTO>>();
 
   constructor(
+    @Inject(CACHE_MANAGER)
+    private readonly cacheManager: Cache,
+
     private configService: ConfigService,
     private readonly userSessionService: UserSessionService,
     private readonly oidcHelperService: OidcHelperService,
@@ -157,8 +161,22 @@ export class TokenService {
   }
 
   // Cache the API token with a default TTL; adjust based on requirements
-  @Cacheable({ key: 'cdxApiToken', ttl: 300 }) // TTL in seconds (e.g., 300s = 5min)
   async getCdxApiToken(): Promise<string> {
+    const cacheKey = 'cdxApiToken';
+
+    try {
+      const cached = await this.cacheManager.get<string>(cacheKey);
+
+      if (cached != null) {
+        return cached;
+      }
+    } catch (error) {
+      this.logger.error(
+        'Cache retrieval failed',
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+
     const clientId = this.configService.get('OIDC_CLIENT_ID');
     const clientSecret = this.configService.get('OIDC_CLIENT_SECRET');
     const scope = this.configService.get('OIDC_CLIENT_CREDENTIAL_SCOPE');
@@ -173,6 +191,16 @@ export class TokenService {
     const apiTokenResponse = await this.oidcHelperService.makePostRequestForToken<
       ApiTokenResponse
     >(tokenUrl, params);
+
+    try {
+      await this.cacheManager.set(cacheKey, apiTokenResponse.access_token, 300);
+    } catch (error) {
+      this.logger.error(
+        'Cache storage failed',
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+
     return apiTokenResponse.access_token;
   }
 
