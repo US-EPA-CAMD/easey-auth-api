@@ -192,8 +192,14 @@ export class TokenService {
       ApiTokenResponse
     >(tokenUrl, params);
 
+    const ttlMs = (Number(apiTokenResponse.expires_in) - 60) * 1000;
+
+    if (!Number.isFinite(ttlMs) || ttlMs <= 0) {
+      throw new Error('CDX returned an invalid token expiration');
+    }
+
     try {
-      await this.cacheManager.set(cacheKey, apiTokenResponse.access_token, 300);
+      await this.cacheManager.set(cacheKey, apiTokenResponse.access_token, ttlMs);
     } catch (error) {
       this.logger.error(
         'Cache storage failed',

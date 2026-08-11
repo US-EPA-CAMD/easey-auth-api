@@ -16,9 +16,7 @@ import { ClientTokenService } from '../client-token/client-token.service';
 
 @Module({
   imports: [
-    CacheModule.register({
-      ttl: 300,
-    }),
+    CacheModule.register(),
     HttpModule,
     UserSessionModule,
     ClientTokenModule,
