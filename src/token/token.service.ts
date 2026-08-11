@@ -182,7 +182,7 @@ export class TokenService {
       );
     }
 
-    if (this.cdxApiTokenPromise) {
+    if (this.cdxApiTokenPromise !== undefined) {
       this.logger.debug(
         'CDX API token request already in progress, waiting for completion',
       );
