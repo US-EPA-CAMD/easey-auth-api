@@ -189,7 +189,7 @@ export class TokenService {
 
       return this.cdxApiTokenPromise;
     }
-    this.cdxApiTokenPromise = (async () => {
+    const tokenPromise = (async () => {
       try {
         const clientId = this.configService.get('OIDC_CLIENT_ID');
         const clientSecret = this.configService.get('OIDC_CLIENT_SECRET');
@@ -229,7 +229,9 @@ export class TokenService {
       }
     })();
     
-    return this.cdxApiTokenPromise;
+    this.cdxApiTokenPromise = tokenPromise;
+
+  return tokenPromise;
 
   }
 
