@@ -206,6 +206,8 @@ export class TokenService {
           ApiTokenResponse
         >(tokenUrl, params);
 
+        this.logger.debug(`apiTokenResponse expires_in:- ${apiTokenResponse.expires_in}`);
+
         const ttlMs = (Number(apiTokenResponse.expires_in) - 60) * 1000;
 
         if (!Number.isFinite(ttlMs) || ttlMs <= 0) {
