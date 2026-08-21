@@ -4872,10 +4872,10 @@ jose@^4.15.4:
   resolved "https://registry.npmjs.org/jose/-/jose-4.15.9.tgz#9b68eda29e9a0614c042fa29387196c7dd800100"
   integrity sha512-1vUQX+IdDMVPj4k8kOxgUqlcK518yluMuGZwqlr44FS1ppZB/5GWh4rZG89erpOBOJjU/OBsnCVFfapsRz6nEA==
 
-js-base64@^3.9.2:
-  version "3.9.2"
-  resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-3.9.2.tgz#e40151b78f76d3294340edbb79b231ba82193ba1"
-  integrity sha512-6zayE8QlUdiweYI6cETD/XBSqFcoCUlufn/29PJR99r82x1yDnIprRca0YvAYpAW+ez0GuQkVBC6xG5QkD7OjA==
+js-base64@^3.9.3:
+  version "3.9.3"
+  resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-3.9.3.tgz#77b34aa20a765d150be687fc348d59fe7d022188"
+  integrity sha512-uwYQp+VJ38FVvtim6qNbit6e9uT6dwWQ4Y1+H9TxhW5hcHjpHwoxlR0nMpqUmIFOmu4VqMxwdJA88gIVuZJQ/g==
 
 js-tokens@^4.0.0:
   version "4.0.0"
