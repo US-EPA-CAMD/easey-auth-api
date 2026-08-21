@@ -1,13 +1,11 @@
-instances: 2
+instances: 1
 environment: staging
 host: api-easey-stg.app.cloud.gov
 apiHost: api.epa.gov/easey/staging
 cdxSvcs: https://testngn.epacdxnode.net/cdx-register-II/services
 naasSvcs: https://naas.epacdxnode.net/xml/securitytoken_v30.wsdl
 permissionsUrl: https://cbsstagei.epa.gov/CBS/api/auth-mgmt/responsibilities
-dataFlow: EASEY Staging
-mockPermissionsEnabled: false
-enableAllFacilities: false
+dataFlow: EASEY Test
 maintenanceBypassUsers: '[]'
 enableAuditLog: true
 maxConnectionPool: 60
@@ -25,7 +23,7 @@ tokenExpirationDurationMinutes: 20
 
 # ICAM
 signFilesIndividually: false
-oidcClientId: 3947f2fb-88b3-432d-a896-3409833729ce
+oidcClientId: e3f59e45-45bc-4974-a151-d3aea82d9d22
 oidcClientCredentialScope: https://icamauthtest.epacdx.net/cdxCoreServices/.default
 oidcCdxApiTokenUrl: https://icamauthtest.epacdx.net/cdxidbridgetest.onmicrosoft.com/B2C_1A_EIAM_ORGANIZATIONAL_SIGNIN/oauth2/v2.0/token
 oidcRestApiBase: https://testngn.epacdxnode.net/cdx-register-II-rest
@@ -34,4 +32,4 @@ oidcAuthApiRedirectUri: https://api.epa.gov/easey/staging/auth-mgmt/authenticati
 oidcCdxTokenEndpoint: https://icamauthtest.epacdx.net/cdxidbridgetest.onmicrosoft.com/%s/oauth2/v2.0/token
 oidcCdxLogoutEndpoint: https://icamauthtest.epacdx.net/cdxidbridgetest.onmicrosoft.com/%s/oauth2/v2.0/logout
 oidcCdxJwksUri: https://icamauthtest.epacdx.net/cdxidbridgetest.onmicrosoft.com/%s/discovery/v2.0/keys
-oidcCdxTokenIssuer: https://icamauthtest.epacdx.net/ebb0f696-0af0-431f-9327-b6a5c27946ae/v2.0/
+oidcCdxTokenIssuer: https://icamauthtest.epacdx.net/5a10b81f-ebf8-4a09-a9d8-5df54d203422/v2.0/
