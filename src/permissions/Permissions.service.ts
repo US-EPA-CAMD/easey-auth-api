@@ -110,16 +110,19 @@ export class PermissionsService {
 
     let url: string;
     let permissionServiceName = "";
+    // Mock permissions endpoint is GET-only; only CBS honors the configured method.
+    let method = "GET";
     if (bypassEnabled || mockPermissionsEnabled) {
       url = `${this.configService.get<string>('app.mockPermissionsUrl',)}?userId=${userId.toUpperCase()}`;
       permissionServiceName = "Mock Permissions";
     } else {
       url = `${this.configService.get<string>('app.permissionsUrl')}?userId=${userId.toUpperCase()}`;
       permissionServiceName = "CBS"
+      method = this.configService.get<string>('app.permissionsMethod');
     }
 
     try {
-      return await this.getUserPermissions(clientIp, accessToken, url);
+      return await this.getUserPermissions(clientIp, accessToken, url, method);
     } catch (error) {
       const errorMessage = "Unable to obtain user responsibilities from " +  permissionServiceName + ". Please try again later."
       this.logger.error(errorMessage, url, error.message);
@@ -176,6 +179,7 @@ export class PermissionsService {
     clientIp: string,
     token: string,
     url: string,
+    method: string = 'GET',
   ): Promise<FacilityAccessWithCertStatementFlagDTO> {
     
     try {
@@ -193,7 +197,6 @@ export class PermissionsService {
         },
       };
       // Non-POST falls back to GET
-      const method = this.configService.get<string>('app.permissionsMethod');
       const permissionResult = await firstValueFrom(
         method === 'POST'
           ? this.httpService.post(url, {}, requestConfig)
