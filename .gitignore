@@ -1,6 +1,9 @@
 # never include npm's package-lock.json when using yarn
 package-lock.json
 
+# build
+tsconfig.build.tsbuildinfo
+
 # dependencies
 /node_modules
 /npm-packages-offline-cache
