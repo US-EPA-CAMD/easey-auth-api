@@ -325,6 +325,22 @@ export class AuthService {
         userDto.token,
         clientIp,
       );
+
+      // A null result means no facility/responsibilities record was found for this user
+      // (e.g. missing entry in mockPermissions.json when mock permissions are enabled,
+      // or no CBS registration when calling the live permissions service).
+      if (!facilitiesWithCertFlag) {
+        this.logger.error(
+          `Login Error: No facility/responsibilities data returned for user ${userDto.userId}`,
+        );
+        throw new EaseyException(
+          new Error(
+            `Unable to retrieve facility responsibilities for user ${userDto.userId}. The user may not be registered with the configured permissions source.`,
+          ),
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
       //check if the user has any unsigned cert statements
       if (facilitiesWithCertFlag.missingCertificationStatements) {
         this.logger.error('Login Error: User has unsigned certificate statements');

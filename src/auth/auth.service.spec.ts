@@ -199,6 +199,36 @@ describe('AuthService', () => {
       expect(result.token).toEqual('dummy_access_token');
       expect(result.tokenExpiration).toEqual('3600000');
     });
+
+    it('should throw a clear error when no facility/responsibilities data is returned for the user', async () => {
+      const accessTokenResponse: AccessTokenResponse = {
+        access_token: 'dummy_access_token',
+        token_type: 'Bearer',
+        expires_in: 3600,
+
+        id_token: 'dummy_id_token',
+        id_token_expires_in: '3600',
+        profile_info: 'dummy_profile_info',
+        scope: 'openid email profile',
+        refresh_token: 'dummy_refresh_token',
+        refresh_token_expires_in: '7200',
+      };
+      jest
+        .spyOn(tokenService, 'exchangeAuthCodeForToken')
+        .mockResolvedValue(accessTokenResponse);
+      jest
+        .spyOn(tokenService, 'calculateTokenExpirationInMills')
+        .mockReturnValue('3600000');
+      jest
+        .spyOn(permissionsService, 'retrieveAllUserFacilities')
+        .mockResolvedValue(null);
+
+      await expect(
+        service.signIn({ sessionId: 'session123' }, '127.0.0.1'),
+      ).rejects.toThrow(
+        /Unable to retrieve facility responsibilities for user/,
+      );
+    });
   });
 
   describe('updateLastActivity', () => {
