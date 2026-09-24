@@ -6,6 +6,7 @@ cdxSvcs: https://testngn.epacdxnode.net/cdx-register-II/services
 naasSvcs: https://naas.epacdxnode.net/xml/securitytoken_v30.wsdl
 # currently using CBS DEV for perf testing which is pointing to perf api's
 permissionsUrl: https://cbsstagei.epa.gov/CBSD/api/auth-mgmt/responsibilities
+permissionsMethod: GET
 dataFlow: EASEY Performance
 mockPermissionsEnabled: false
 enableAllFacilities: true

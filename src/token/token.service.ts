@@ -1,6 +1,7 @@
-import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Cacheable } from 'nestjs-cacheable';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 import { UserSessionService } from '../user-session/user-session.service';
 import { UserSession } from '../entities/user-session.entity';
@@ -27,8 +28,12 @@ export class TokenService {
 
   //used to keep track of ongoing refreshToken executions keyed by token to prevent race conditions
   private readonly tokenRefreshPromises = new Map<string, Promise<TokenDTO>>();
+  private cdxApiTokenPromise?: Promise<string>;
 
   constructor(
+    @Inject(CACHE_MANAGER)
+    private readonly cacheManager: Cache,
+
     private configService: ConfigService,
     private readonly userSessionService: UserSessionService,
     private readonly oidcHelperService: OidcHelperService,
@@ -157,23 +162,77 @@ export class TokenService {
   }
 
   // Cache the API token with a default TTL; adjust based on requirements
-  @Cacheable({ key: 'cdxApiToken', ttl: 300 }) // TTL in seconds (e.g., 300s = 5min)
   async getCdxApiToken(): Promise<string> {
-    const clientId = this.configService.get('OIDC_CLIENT_ID');
-    const clientSecret = this.configService.get('OIDC_CLIENT_SECRET');
-    const scope = this.configService.get('OIDC_CLIENT_CREDENTIAL_SCOPE');
-    const tokenUrl = this.configService.get('OIDC_CDX_API_TOKEN_URL');
+    const cacheKey = 'cdxApiToken';
 
-    const params = new URLSearchParams();
-    params.append('grant_type', 'client_credentials');
-    params.append('scope', scope);
-    params.append('client_id', clientId);
-    params.append('client_secret', clientSecret);
+    try {
+      const cached = await this.cacheManager.get<string>(cacheKey);
 
-    const apiTokenResponse = await this.oidcHelperService.makePostRequestForToken<
-      ApiTokenResponse
-    >(tokenUrl, params);
-    return apiTokenResponse.access_token;
+      this.logger.debug('CDX API token cache lookup', {
+        cdxApiToken: cached ? 'found' : 'not found',
+      });
+
+      if (cached != null) {
+        return cached;
+      }
+    } catch (error) {
+      this.logger.error(
+        'Cache retrieval failed',
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+
+    if (this.cdxApiTokenPromise !== undefined) {
+      this.logger.debug(
+        'CDX API token request already in progress, waiting for completion',
+      );
+
+      return this.cdxApiTokenPromise;
+    }
+    const tokenPromise = (async () => {
+      try {
+        const clientId = this.configService.get('OIDC_CLIENT_ID');
+        const clientSecret = this.configService.get('OIDC_CLIENT_SECRET');
+        const scope = this.configService.get('OIDC_CLIENT_CREDENTIAL_SCOPE');
+        const tokenUrl = this.configService.get('OIDC_CDX_API_TOKEN_URL');
+
+        const params = new URLSearchParams();
+        params.append('grant_type', 'client_credentials');
+        params.append('scope', scope);
+        params.append('client_id', clientId);
+        params.append('client_secret', clientSecret);
+
+        const apiTokenResponse = await this.oidcHelperService.makePostRequestForToken<
+          ApiTokenResponse
+        >(tokenUrl, params);
+
+        this.logger.debug(`apiTokenResponse expires_in:- ${apiTokenResponse.expires_in}`);
+
+        const ttlMs = (Number(apiTokenResponse.expires_in) - 60) * 1000;
+
+        if (!Number.isFinite(ttlMs) || ttlMs <= 0) {
+          throw new Error('CDX returned an invalid token expiration');
+        }
+
+        try {
+          await this.cacheManager.set(cacheKey, apiTokenResponse.access_token, ttlMs);
+        } catch (error) {
+          this.logger.error(
+            'Cache storage failed',
+            error instanceof Error ? error.message : String(error),
+          );
+        }
+
+        return apiTokenResponse.access_token;
+      } finally {
+        this.cdxApiTokenPromise = undefined;
+      }
+    })();
+    
+    this.cdxApiTokenPromise = tokenPromise;
+
+  return tokenPromise;
+
   }
 
   async exchangeAuthCodeForToken(

@@ -5,6 +5,7 @@ apiHost: api.epa.gov/easey
 cdxSvcs: https://cdxnodengn.epa.gov/cdx-register-II/services
 naasSvcs: https://cdxnodenaas.epa.gov/xml/securitytoken_v30.wsdl
 permissionsUrl: https://camd.epa.gov/CBS/api/auth-mgmt/responsibilities
+permissionsMethod: GET
 dataFlow: EASEY
 mockPermissionsEnabled: false
 enableAllFacilities: false

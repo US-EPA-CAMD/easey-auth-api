@@ -2,6 +2,8 @@ import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { LoggerModule } from '@us-epa-camd/easey-common/logger';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+
 import { UserSessionService } from '../user-session/user-session.service';
 import { TokenDTO } from '../dtos/token.dto';
 import { TokenService } from './token.service';
@@ -36,6 +38,14 @@ describe('Token Service', () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [LoggerModule],
       providers: [
+        {
+          provide: CACHE_MANAGER,
+          useValue: {
+            get: jest.fn(),
+            set: jest.fn(),
+            del: jest.fn(),
+          },
+        },
         {
           provide: ConfigService,
           useValue: {
@@ -243,7 +253,7 @@ describe('Token Service', () => {
       );
 
       jwtDecodeSpy.mockRestore();
-      });
+    });
   });
 
   describe('IP validation integration tests', () => {
@@ -299,7 +309,7 @@ describe('Token Service', () => {
       userSession.facilities = '[]';
       userSession.roles = '[]';
 
-    jest.spyOn(userSessionService, 'findSessionByUserIdAndToken').mockResolvedValue(userSession);
+      jest.spyOn(userSessionService, 'findSessionByUserIdAndToken').mockResolvedValue(userSession);
       jest.spyOn(userSessionService, 'isValidSessionForToken').mockResolvedValue(userSession);
       jest.spyOn(userSessionService, 'updateClientIp').mockRejectedValue(new Error('Database error'));
       jest.spyOn(bypassService, 'bypassEnabled').mockReturnValue(true);
