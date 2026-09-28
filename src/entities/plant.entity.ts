@@ -94,7 +94,7 @@ export class Plant extends BaseEntity {
 
   @Column({
     name: 'first_ecmps_rpt_period_id',
-    type: 'bigint',
+    type: 'numeric',
     transformer: new NumericColumnTransformer(),
   })
   firstEcmpsRPTPeriodIdentifier: number;
