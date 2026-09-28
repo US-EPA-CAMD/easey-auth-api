@@ -54,14 +54,14 @@ export class MonitorPlan extends BaseEntity {
 
   @Column({
     name: 'begin_rpt_period_id',
-    type: 'bigint',
+    type: 'numeric',
     transformer: new NumericColumnTransformer(),
   })
   beginRPTPeriodIdentifier: number;
 
   @Column({
     name: 'end_rpt_period_id',
-    type: 'bigint',
+    type: 'numeric',
     transformer: new NumericColumnTransformer(),
   })
   endRPTPeriodIdentifier: number;
