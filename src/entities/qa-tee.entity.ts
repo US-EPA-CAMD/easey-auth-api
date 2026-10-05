@@ -62,7 +62,7 @@ export class QaTee extends BaseEntity {
 
   @Column({
     name: 'submission_id',
-    type: 'bigint',
+    type: 'numeric',
     transformer: new NumericColumnTransformer(),
   })
   submissionIdentifier: number;

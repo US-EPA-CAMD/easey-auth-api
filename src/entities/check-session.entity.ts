@@ -1,4 +1,3 @@
-import { NumericColumnTransformer } from '@us-epa-camd/easey-common/transforms';
 import { BaseEntity, Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity({ name: 'camdecmpswks.check_session' })
@@ -18,11 +17,7 @@ export class CheckSession extends BaseEntity {
   @Column({ name: 'test_extension_exemption_id' })
   testExtensionExemptionId: string;
 
-  @Column({
-    name: 'rpt_period_id',
-    type: 'numeric',
-    transformer: new NumericColumnTransformer(),
-  })
+  @Column({ name: 'rpt_period_id' })
   rptPeriodId: number;
 
   @Column({ name: 'severity_cd' })
