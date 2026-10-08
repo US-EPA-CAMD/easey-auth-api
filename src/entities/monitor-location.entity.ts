@@ -21,7 +21,7 @@ import {
   
     @Column({
       name: 'unit_id',
-      type: 'numeric',
+      type: 'integer',
       transformer: new NumericColumnTransformer(),
     })
     unitIdentifier: number;
