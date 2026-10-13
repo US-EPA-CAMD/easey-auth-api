@@ -18,7 +18,7 @@ import {
     @PrimaryColumn({
       name: 'unit_id',
       transformer: new NumericColumnTransformer(),
-      type: 'numeric',
+      type: 'integer',
     })
     id: number;
   
@@ -29,6 +29,7 @@ import {
   
     @Column({
       name: 'fac_id',
+      type: 'integer',
     })
     facId: number;
   
