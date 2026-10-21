@@ -71,7 +71,7 @@ export class AuthService {
 
       return policyResponse;
     } catch (error) {
-      this.logger.error('error determining user policy: ', error.message);
+      this.logger.error('Error determining user policy with CDX', error);
 
       // Check if the error is due to the specific condition of an invalid user ID
       if (
@@ -92,7 +92,10 @@ export class AuthService {
         });
       }
 
-      throw new Error(error);
+      throw new EaseyException(
+        new Error('Unable to authenticate with CDX. Please try again later.'),
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 
@@ -204,7 +207,8 @@ export class AuthService {
         session.securityToken = userDto.token;
         session.idToken = userDto.idToken;
         session.refreshToken = userDto.refreshToken;
-        session.tokenExpiration = userDto.tokenExpiration;
+        // UserDTO exposes ISO text; the entity persists a Date to timestamptz.
+        session.tokenExpiration = new Date(userDto.tokenExpiration);
         await this.userSessionService.updateSession(session);
       } else {
         //Check for a valid session that should have been created with validateAndCreateSession() call
@@ -302,7 +306,8 @@ export class AuthService {
         session.securityToken = userDto.token;
         session.idToken = userDto.idToken;
         session.refreshToken = userDto.refreshToken;
-        session.tokenExpiration = userDto.tokenExpiration;
+        // UserDTO exposes ISO text; the entity persists a Date to timestamptz.
+        session.tokenExpiration = new Date(userDto.tokenExpiration);
         await this.userSessionService.updateSession(session);
 
         userDto.roles = await this.permissionsService.retrieveAllUserRoles(

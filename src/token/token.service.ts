@@ -2,6 +2,7 @@ import { HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/c
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { EntityManager } from 'typeorm';
 
 import { UserSessionService } from '../user-session/user-session.service';
 import { UserSession } from '../entities/user-session.entity';
@@ -10,7 +11,6 @@ import {
   ApiTokenResponse,
   OidcJwtPayload,
 } from '../dtos/oidc-auth-dtos';
-import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { Logger } from '@us-epa-camd/easey-common/logger';
@@ -58,12 +58,13 @@ export class TokenService {
     const refreshPromise = (async () => {
       try {
         //Grab the current session data
-        let session: UserSession = await this.userSessionService.findSessionByUserIdAndToken(
+        // Verify on the primary so replica lag cannot reject a current token.
+        const initialSession: UserSession = await this.userSessionService.findSessionByUserIdAndTokenOnMaster(
           userId,
           token,
         );
 
-        if (!session) {
+        if (!initialSession) {
           throw new EaseyException(
             new Error('Unable to refresh token, no existing session for user/token '),
             HttpStatus.BAD_REQUEST,
@@ -71,46 +72,83 @@ export class TokenService {
           );
         }
 
-        this.logger.debug('Retrieved user session', { sessionId: session.sessionId, });
+        this.logger.debug('Retrieved user session', { sessionId: initialSession.sessionId, });
 
-        const sessionId = session.sessionId;
+        // Serialize refreshes for this session across all API instances.
+        return await this.userSessionService.withRefreshLock(
+          initialSession.sessionId,
+          async entityManager => {
+            let session = await this.userSessionService.findSessionBySessionId(
+              initialSession.sessionId,
+              entityManager,
+            );
 
-        if (this.bypassService.bypassEnabled()) {
-          //Bypass Tokens
-          const tokenDto = await this.bypassService.generateToken(
-            session.userId,
-            session.sessionId,
-            clientIp,
-            JSON.parse(session.roles)
-          );
+            if (!session) {
+              throw new EaseyException(
+                new Error('Unable to refresh token, session no longer exists'),
+                HttpStatus.BAD_REQUEST,
+                { userId },
+              );
+            }
 
-          //Save this in the session
-          session.securityToken = tokenDto.token;
-          session.idToken = '';
-          session.refreshToken = '';
-          session.tokenExpiration = tokenDto.expiration;
-          await this.userSessionService.updateSession(session);
+            if (session.securityToken !== token) {
+              // Another instance refreshed while this request waited.
+              return this.createTokenDto(session);
+            }
 
-        } else {
+            if (this.bypassService.bypassEnabled()) {
+              //Bypass Tokens
+              const tokenDto = await this.bypassService.generateToken(
+                session.userId,
+                session.sessionId,
+                clientIp,
+                JSON.parse(session.roles),
+              );
 
-          //Retrieve fresh token from the token refresh endpoint and store it in the user session
-          const accessTokenResponse = await this.updateUserSessionWithNewOidcTokens(
-            session,
-          );
-          this.logger.debug('Updated user session with newly retrieved tokens', {
-            accessTokenResponse,
+              const updated = await this.userSessionService.replaceSessionTokens(
+                session,
+                {
+                  securityToken: tokenDto.token,
+                  idToken: '',
+                  refreshToken: '',
+                  tokenExpiration: new Date(tokenDto.expiration),
+                },
+                entityManager,
+              );
+
+              if (!updated) {
+                throw new EaseyException(
+                  new Error('Session changed while refreshing token'),
+                  HttpStatus.CONFLICT,
+                  { sessionId: session.sessionId },
+                );
+              }
+            } else {
+              //Retrieve fresh token from the token refresh endpoint and store it in the user session
+              const accessTokenResponse = await this.updateUserSessionWithNewOidcTokens(
+                session,
+                entityManager,
+              );
+              this.logger.debug('Updated user session with newly retrieved tokens', {
+                accessTokenResponse,
+              });
+            }
+
+            session = await this.userSessionService.findSessionBySessionId(
+              initialSession.sessionId,
+              entityManager,
+            );
+
+            if (!session) {
+              throw new EaseyException(
+                new Error('Unable to load refreshed session'),
+                HttpStatus.BAD_REQUEST,
+                { userId },
+              );
+            }
+
+            return this.createTokenDto(session);
           });
-        }
-
-        session = await this.userSessionService.findSessionBySessionId(
-          sessionId,
-        ); // Get updated session
-
-        const authToken = new TokenDTO();
-        authToken.token = session.securityToken;
-        authToken.expiration = session.tokenExpiration;
-
-        return authToken;
       } finally {
         // Always clean up the token-level promise when done (success or error)
         this.tokenRefreshPromises.delete(token);
@@ -122,6 +160,13 @@ export class TokenService {
 
     // Return the promise
     return refreshPromise;
+  }
+
+  private createTokenDto(session: UserSession): TokenDTO {
+    const authToken = new TokenDTO();
+    authToken.token = session.securityToken;
+    authToken.expiration = session.tokenExpiration.toISOString();
+    return authToken;
   }
 
   private async validateClientIp(user: CurrentUser, clientIp: string) {
@@ -256,6 +301,7 @@ export class TokenService {
 
   async updateUserSessionWithNewOidcTokens(
     userSession: UserSession,
+    entityManager?: EntityManager,
   ): Promise<AccessTokenResponse> {
     const params = new URLSearchParams();
     params.append('grant_type', 'refresh_token');
@@ -268,6 +314,7 @@ export class TokenService {
     await this.validateAndSaveOidcTokenInUserSession(
       accessTokenResponse,
       userSession,
+      entityManager,
     );
 
     return accessTokenResponse;
@@ -276,6 +323,7 @@ export class TokenService {
   private async validateAndSaveOidcTokenInUserSession(
     accessTokenResponse: AccessTokenResponse,
     userSession: UserSession,
+    entityManager?: EntityManager,
   ) {
     //Validate the token
     if (
@@ -290,14 +338,27 @@ export class TokenService {
       );
     }
 
-    const expiration = this.calculateTokenExpirationInMills(
-      accessTokenResponse.expires_in,
+    const expiration = new Date(
+      this.calculateTokenExpirationInMills(accessTokenResponse.expires_in),
     );
-    await this.userSessionService.updateUserSessionToken(
-      userSession.sessionId,
-      accessTokenResponse,
-      expiration,
+    const updated = await this.userSessionService.replaceSessionTokens(
+      userSession,
+      {
+        tokenExpiration: expiration,
+        idToken: accessTokenResponse.id_token,
+        securityToken: accessTokenResponse.access_token,
+        refreshToken: accessTokenResponse.refresh_token,
+      },
+      entityManager,
     );
+
+    if (!updated) {
+      throw new EaseyException(
+        new Error('Session changed while saving refreshed token'),
+        HttpStatus.CONFLICT,
+        { sessionId: userSession.sessionId },
+      );
+    }
   }
 
   private async makeAccessTokenRequestRestCall(
@@ -324,7 +385,7 @@ export class TokenService {
   }
 
   calculateTokenExpirationInMills(seconds: number) {
-    return dateToEstString(Date.now() + seconds * 1000);
+    return new Date(Date.now() + seconds * 1000).toISOString();
   }
 
   private getJwksClient(jwksUri: string): JwksClient {
@@ -494,7 +555,7 @@ export class TokenService {
     //populate user values
     user.userId = userSession.userId;
     user.sessionId = userSession.sessionId;
-    user.expiration = userSession.tokenExpiration;
+    user.expiration = userSession.tokenExpiration.toISOString();
     user.clientIp = userSession.clientIp;
     user.facilities = JSON.parse(userSession.facilities);
     user.roles = JSON.parse(userSession.roles);

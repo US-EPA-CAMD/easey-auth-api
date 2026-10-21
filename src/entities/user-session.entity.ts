@@ -26,8 +26,11 @@ export class UserSession extends BaseEntity {
   @Column({ name: 'roles' })
   roles: string;
 
-  @Column({ name: 'token_expiration' })
-  tokenExpiration: string;
+  @Column({ name: 'token_expiration', type: 'timestamptz' })
+  tokenExpiration: Date;
+
+  @Column({ name: 'token_version', type: 'integer', default: 0 })
+  tokenVersion: number;
 
   @Column({ name: 'oidc_policy' })
   oidcPolicy: string;

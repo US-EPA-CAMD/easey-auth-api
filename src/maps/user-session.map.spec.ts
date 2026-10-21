@@ -6,7 +6,7 @@ import { UserSessionMap } from './user-session.map';
 const userId = '';
 const sessionId = '';
 const securityToken = '';
-const tokenExpiration = '';
+const tokenExpiration = new Date('2026-10-20T15:42:42.000Z');
 const lastLoginDate = '';
 
 const entity = new UserSession();
@@ -33,7 +33,7 @@ describe('UserSessionMap', () => {
     expect(result.userId).toEqual(userId);
     expect(result.sessionId).toEqual(sessionId);
     expect(result.securityToken).toEqual(securityToken);
-    expect(result.tokenExpiration).toEqual(tokenExpiration);
+    expect(result.tokenExpiration).toEqual(tokenExpiration.toISOString());
     expect(result.lastLoginDate).toEqual(lastLoginDate);
   });
 });
