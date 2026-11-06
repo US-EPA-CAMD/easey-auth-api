@@ -9,7 +9,7 @@ import { MonitorPlan } from './monitor-plan.entity';
 export class Plant extends BaseEntity {
   @PrimaryColumn({
     name: 'fac_id',
-    type: 'bigint',
+    type: 'integer',
     transformer: new NumericColumnTransformer(),
   })
   facIdentifier: number;
@@ -94,7 +94,7 @@ export class Plant extends BaseEntity {
 
   @Column({
     name: 'first_ecmps_rpt_period_id',
-    type: 'bigint',
+    type: 'numeric',
     transformer: new NumericColumnTransformer(),
   })
   firstEcmpsRPTPeriodIdentifier: number;

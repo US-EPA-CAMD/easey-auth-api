@@ -12,7 +12,7 @@ export class QaTee extends BaseEntity {
 
   @Column({
     name: 'rpt_period_id',
-    type: 'bigint',
+    type: 'numeric',
     transformer: new NumericColumnTransformer(),
   })
   rptPeriodIdentifier: number;
@@ -62,7 +62,7 @@ export class QaTee extends BaseEntity {
 
   @Column({
     name: 'submission_id',
-    type: 'bigint',
+    type: 'numeric',
     transformer: new NumericColumnTransformer(),
   })
   submissionIdentifier: number;
