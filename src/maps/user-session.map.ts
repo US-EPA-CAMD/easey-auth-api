@@ -11,7 +11,7 @@ export class UserSessionMap extends BaseMap<UserSession, UserSessionDTO> {
       userId: entity.userId,
       sessionId: entity.sessionId,
       securityToken: entity.securityToken,
-      tokenExpiration: entity.tokenExpiration,
+      tokenExpiration: entity.tokenExpiration.toISOString(),
       lastLoginDate: entity.lastLoginDate,
     };
   }

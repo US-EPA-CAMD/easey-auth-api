@@ -1,4 +1,6 @@
+import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import * as jwt from 'jsonwebtoken';
 import { AuthService } from './auth.service';
 import { TokenService } from '../token/token.service';
@@ -135,6 +137,34 @@ describe('AuthService', () => {
       const result = await service.determinePolicy('user1');
       expect(result).toEqual(response);
     });
+
+    it('should log the CDX error and return a user-friendly message', async () => {
+      expect.assertions(4);
+      const providerError = new Error(
+        'Error making a request to the CDX token endpoint',
+      );
+      jest
+        .spyOn(tokenService, 'getCdxApiToken')
+        .mockRejectedValue(providerError);
+
+      try {
+        await service.determinePolicy('user1');
+      } catch (error) {
+        const cdxError = error as EaseyException;
+        const response = cdxError.getResponse() as { message: string };
+
+        expect(cdxError).toBeInstanceOf(EaseyException);
+        expect(cdxError.getStatus()).toBe(HttpStatus.BAD_GATEWAY);
+        expect(response.message).toBe(
+          'Unable to authenticate with CDX. Please try again later.',
+        );
+      }
+
+      expect(logger.error).toHaveBeenCalledWith(
+        'Error determining user policy with CDX',
+        providerError,
+      );
+    });
   });
 
   describe('validateAndCreateSession', () => {
@@ -149,7 +179,7 @@ describe('AuthService', () => {
         .mockResolvedValue(oidcResponse);
       const userSession = new UserSession();
       userSession.sessionId = 'session123';
-      userSession.tokenExpiration = 'expiration';
+      userSession.tokenExpiration = new Date('2026-10-20T15:42:42.000Z');
       jest
         .spyOn(userSessionService, 'createUserSession')
         .mockResolvedValue(userSession);

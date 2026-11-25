@@ -14,6 +14,7 @@ let responseVals = {
   ['app.cdxSvcs']: '',
   ['app.mockPermissionsEnabled']: true,
   ['app.enableAllFacilities']: true,
+  ['app.tokenExpirationDurationMinutes']: 20,
 };
 
 jest.mock('rxjs', () => {
@@ -68,6 +69,22 @@ describe('BypassService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  it('should generate an ISO UTC expiration', async () => {
+    const dateNowSpy = jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-10-20T15:42:42.000Z'));
+
+    const token = await service.generateToken(
+      'user',
+      'session-id',
+      '127.0.0.1',
+      [],
+    );
+
+    expect(token.expiration).toBe('2026-10-20T16:02:42.000Z');
+    dateNowSpy.mockRestore();
   });
 
   describe('getMockRoles', () => {

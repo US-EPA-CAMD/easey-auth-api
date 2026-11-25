@@ -1,8 +1,8 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { withMasterConnection } from '@us-epa-camd/easey-common/connection';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
-import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
-import { EntityManager, ILike } from 'typeorm';
+import { DataSource, EntityManager, ILike } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 
 import { UserCheckOut } from '../entities/user-check-out.entity';
@@ -11,7 +11,13 @@ import { UserSessionRepository } from '../user-session/user-session.repository';
 import { FacilityAccessDTO } from '../dtos/permissions.dto';
 import { firstValueFrom } from 'rxjs';
 import { getManager } from 'typeorm';
-import { AccessTokenResponse } from '../dtos/oidc-auth-dtos';
+
+export interface SessionTokenUpdate {
+  securityToken: string;
+  refreshToken: string;
+  idToken: string;
+  tokenExpiration: Date;
+}
 
 @Injectable()
 export class UserSessionService {
@@ -19,6 +25,7 @@ export class UserSessionService {
     private readonly entityManager: EntityManager,
     private readonly repository: UserSessionRepository,
     private readonly configService: ConfigService,
+    private readonly dataSource: DataSource,
   ) {}
 
   returnManager() {
@@ -38,9 +45,27 @@ export class UserSessionService {
     }
 
     const activeDate = new Date().toISOString();
+    // Prevent a heartbeat read before rotation from updating afterward.
+    const updateResult = await this.repository.update(
+      {
+        sessionId: sessionRecord.sessionId,
+        securityToken: token,
+        tokenVersion: sessionRecord.tokenVersion,
+      },
+      { lastActivity: activeDate },
+    );
 
-    sessionRecord.lastActivity = activeDate;
-    await this.repository.save(sessionRecord);
+    if (updateResult.affected === 0) {
+      // A concurrent refresh made this heartbeat stale; skip checkout activity too.
+      return;
+    }
+
+    if (updateResult.affected !== 1) {
+      throw new EaseyException(
+        new Error('Unexpected result while updating session activity'),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
 
     const checkOutRecord = await this.returnManager().findOne(UserCheckOut, {
       where: { checkedOutBy: ILike(sessionRecord.userId) },
@@ -56,7 +81,7 @@ export class UserSessionService {
     sessionRecord: UserSession,
     applyThreshold = true,
   ): boolean {
-    const currentExpiration = new Date(sessionRecord.tokenExpiration);
+    const currentExpiration = new Date(sessionRecord.tokenExpiration.getTime());
 
     if (applyThreshold) {
       currentExpiration.setSeconds(
@@ -65,7 +90,7 @@ export class UserSessionService {
       );
     }
 
-    if (new Date(dateToEstString()) < currentExpiration) {
+    if (new Date() < currentExpiration) {
       return false;
     }
 
@@ -87,6 +112,7 @@ export class UserSessionService {
     session.oidcPolicy = oidcPolicy;
     session.securityToken = authCode;
     session.clientIp = clientIp;
+    session.tokenVersion = 0;
     const nowUtc = new Date().toISOString();
     session.lastLoginDate = nowUtc;
     session.lastActivity = nowUtc;
@@ -150,6 +176,18 @@ export class UserSessionService {
     return null;
   }
 
+  async findSessionByUserIdAndTokenOnMaster(
+    userId: string,
+    token: string,
+  ): Promise<UserSession> {
+    return withMasterConnection(this.dataSource, entityManager =>
+      entityManager.findOneBy(UserSession, {
+        userId: ILike(userId),
+        securityToken: token,
+      }),
+    );
+  }
+
   async findSessionByUserId(userId: string): Promise<UserSession> {
     const session = await this.repository.findOneBy({
       userId: ILike(userId),
@@ -162,8 +200,11 @@ export class UserSessionService {
     return null;
   }
 
-  async findSessionBySessionId(sessionId: string): Promise<UserSession> {
-    const session = await this.repository.findOneBy({
+  async findSessionBySessionId(sessionId: string, entityManager?: EntityManager): Promise<UserSession> {
+    const repository = entityManager
+      ? entityManager.getRepository(UserSession)
+      : this.repository;
+    const session = await repository.findOneBy({
       sessionId: sessionId,
     });
 
@@ -174,19 +215,48 @@ export class UserSessionService {
     return null;
   }
 
-  async updateUserSessionToken(
-    sessionId: string,
-    accessTokenResponse: AccessTokenResponse,
-    expiration: string,
-  ) {
-    await this.repository.update(
-      { sessionId: sessionId },
+  async replaceSessionTokens(
+    session: UserSession,
+    tokenUpdate: SessionTokenUpdate,
+    entityManager?: EntityManager,
+  ): Promise<boolean> {
+    const repository = entityManager
+      ? entityManager.getRepository(UserSession)
+      : this.repository;
+    // Only the refresh with the expected token version may rotate the session.
+    const updateResult = await repository.update(
       {
-        tokenExpiration: expiration,
-        idToken: accessTokenResponse.id_token,
-        securityToken: accessTokenResponse.access_token,
-        refreshToken: accessTokenResponse.refresh_token,
+        sessionId: session.sessionId,
+        securityToken: session.securityToken,
+        tokenVersion: session.tokenVersion,
       },
+      {
+        ...tokenUpdate,
+        tokenVersion: () => 'token_version + 1',
+      },
+    );
+
+    return updateResult.affected === 1;
+  }
+
+  async withRefreshLock<T>(
+    sessionId: string,
+    operation: (entityManager: EntityManager) => Promise<T>,
+  ): Promise<T> {
+    return withMasterConnection(this.dataSource, entityManager =>
+      entityManager.transaction(async transactionalEntityManager => {
+        // This key serializes only this session's refreshes; it does not lock the row or table.
+        // Commit, rollback, connection loss, or the five-minute idle transaction timeout releases it.
+        await transactionalEntityManager.query(
+          `SELECT pg_advisory_xact_lock(
+            hashtext('camdecmpswks.user_session.refresh'),
+            hashtext($1)
+          )`,
+          [sessionId],
+        );
+
+        return operation(transactionalEntityManager);
+      }),
     );
   }
 

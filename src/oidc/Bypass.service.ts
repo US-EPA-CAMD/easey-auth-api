@@ -5,8 +5,6 @@ import { UserRole } from '@us-epa-camd/easey-common/enums';
 import { EaseyException } from '@us-epa-camd/easey-common/exceptions';
 import { CurrentUser } from '@us-epa-camd/easey-common/interfaces';
 import { Logger } from '@us-epa-camd/easey-common/logger';
-import { dateToEstString } from '@us-epa-camd/easey-common/utilities/functions';
-
 import { decode, encode } from 'js-base64';
 import { TokenDTO } from '../dtos/token.dto';
 import { UserDTO } from '../dtos/user.dto';
@@ -64,11 +62,11 @@ export class BypassService {
     clientIp: string,
     roles: string[],
   ): Promise<TokenDTO> {
-    const expiration = dateToEstString(
+    const expiration = new Date(
       Date.now() +
         this.configService.get<number>('app.tokenExpirationDurationMinutes') *
           60000,
-    );
+    ).toISOString();
 
     const token = encode(
       `userId=${userId.toUpperCase()}&sessionId=${sessionId}&expiration=${expiration}&clientIp=${clientIp}&roles=${JSON.stringify(
